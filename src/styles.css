@@ -1,0 +1,94 @@
+/* Duskwood Academy UI tokens (Dusk theme). */
+:root {
+  --surface: #1f1a2a;
+  --surface-raised: #2b2439;
+  --surface-glass: rgba(31, 26, 42, 0.82);
+  --line: #4a3f5c;
+  --line-strong: #8a7ca0;
+  --ink: #f6efe4;
+  --ink-muted: #c4b8cc;
+  --accent: #b48ae6;
+  --on-accent: #1f1a2a;
+  --glow: #f5d83a;
+  --focus-ring: #f5d83a;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-float: 0 6px 20px rgba(10, 6, 18, 0.45);
+  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; }
+body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 500;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+canvas { display: block; touch-action: none; }
+
+.dw-hud { position: fixed; inset: 0; pointer-events: none; font-size: 14px; line-height: 20px; }
+.dw-hud > * { pointer-events: auto; }
+
+.dw-panel {
+  position: absolute;
+  background: var(--surface-glass);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+  padding: var(--space-3) var(--space-4);
+  backdrop-filter: blur(6px);
+}
+.dw-panel-title { font: 600 16px/22px var(--font-display); margin-bottom: var(--space-2); }
+.dw-caption { font-size: 12px; line-height: 16px; font-weight: 700; color: var(--ink-muted); margin-top: var(--space-1); }
+
+.dw-panel dl { display: grid; grid-template-columns: auto auto; gap: 2px var(--space-4); margin: 0; }
+.dw-panel dt { color: var(--ink-muted); }
+.dw-panel dd { margin: 0; text-align: right; font-family: var(--font-display); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.dw-coords { top: var(--space-4); left: var(--space-4); min-width: 210px; }
+.dw-minimap { top: var(--space-4); right: var(--space-4); }
+.dw-minimap canvas { border-radius: var(--radius-md); cursor: crosshair; border: 2px solid var(--line-strong); }
+.dw-stats { bottom: var(--space-4); right: var(--space-4); min-width: 200px; }
+.dw-help {
+  bottom: var(--space-4); left: var(--space-4);
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center;
+  max-width: min(640px, calc(100vw - 260px));
+  color: var(--ink-muted);
+}
+kbd {
+  display: inline-block; min-width: 22px; padding: 0 5px; margin-right: 2px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  background: var(--surface-raised); color: var(--ink);
+  font: 600 12px/20px var(--font-display); text-align: center;
+}
+
+.dw-btn {
+  font: 700 14px/20px var(--font-body);
+  height: 36px; padding: 0 var(--space-3);
+  border-radius: var(--radius-md); border: 2px solid var(--line-strong);
+  background: var(--surface-raised); color: var(--ink); cursor: pointer;
+}
+.dw-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.dw-btn-primary kbd { background: var(--surface); color: var(--ink); }
+.dw-btn:focus-visible, .dw-minimap canvas:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+.dw-loading {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  font: 600 22px/28px var(--font-display); color: var(--ink); pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .dw-coords { min-width: 0; font-size: 12px; }
+  .dw-stats { display: none; }
+  .dw-minimap canvas { width: 140px !important; height: 140px !important; }
+  .dw-help { max-width: calc(100vw - 32px); bottom: var(--space-3); font-size: 12px; }
+}
