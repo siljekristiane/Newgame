@@ -7,7 +7,7 @@ Bygget med three.js, React Three Fiber, Vite og TypeScript.
 ## Kjør
 
 **I StackBlitz:** åpne
-[stackblitz.com/github/siljekristiane/newgame/tree/claude/happy-knuth-ai7a6n](https://stackblitz.com/github/siljekristiane/newgame/tree/claude/happy-knuth-ai7a6n).
+[stackblitz.com/github/siljekristiane/Newgame](https://stackblitz.com/github/siljekristiane/Newgame).
 Den installerer og starter `npm run dev` av seg selv.
 
 **Lokalt:**
