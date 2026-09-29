@@ -3,6 +3,6 @@ dist
 dist-single
 *.tsbuildinfo
 .DS_Store
-test-results
-playwright-report
-measurements
+/test-results
+/playwright-report
+/measurements
