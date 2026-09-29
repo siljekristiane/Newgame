@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CHUNK_SIZE, LOD_LEVELS } from '../config/world';
-import { buildChunk } from './buildChunk';
+import { buildChunk, PROP_STRIDE } from './buildChunk';
 import { gridHeightAt, groundHeightAt } from './ground';
 import { heightAt } from './terrain';
 
 /** Height of the actual built mesh at (x, z): find the triangle under the point in buildChunk's arrays. */
 function meshHeight(cx: number, cz: number, segments: number, x: number, z: number): number {
-  const { positions } = buildChunk({ cx, cz, segments, withProps: false });
+  const { positions } = buildChunk({ cx, cz, segments, morphSegments: 0, withProps: false });
   const side = segments + 1;
   const step = CHUNK_SIZE / segments;
   const lx = x - cx * CHUNK_SIZE;
@@ -45,9 +45,9 @@ describe('ground height', () => {
   it('props stand on the mesh of the LOD they were built for', () => {
     for (const lod of [0, 1]) {
       const { segments } = LOD_LEVELS[lod]!;
-      const data = buildChunk({ cx: 45, cz: 52, segments, withProps: true });
+      const data = buildChunk({ cx: 45, cz: 52, segments, morphSegments: 0, withProps: true });
       expect(data.props.length).toBeGreaterThan(0);
-      for (let k = 0; k < data.props.length; k += 5) {
+      for (let k = 0; k < data.props.length; k += PROP_STRIDE) {
         const x = 45 * CHUNK_SIZE + data.props[k]!;
         const z = 52 * CHUNK_SIZE + data.props[k + 2]!;
         expect(Math.abs(data.props[k + 1]! - meshHeight(45, 52, segments, x, z))).toBeLessThan(0.001);

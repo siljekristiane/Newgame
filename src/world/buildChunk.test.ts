@@ -15,7 +15,7 @@ describe('terrain', () => {
   });
 
   it('builds chunks with local (float32-safe) coordinates', () => {
-    const data = buildChunk({ cx: CHUNKS_PER_SIDE - 20, cz: CHUNKS_PER_SIDE - 20, segments: 8, withProps: false });
+    const data = buildChunk({ cx: CHUNKS_PER_SIDE - 20, cz: CHUNKS_PER_SIDE - 20, segments: 8, morphSegments: 0, withProps: false });
     const xs = Array.from(data.positions.filter((_, i) => i % 3 === 0));
     expect(Math.min(...xs)).toBe(0);
     expect(Math.max(...xs)).toBe(CHUNK_SIZE);
@@ -25,8 +25,8 @@ describe('terrain', () => {
   });
 
   it('shares exact edge heights with the neighbouring chunk (no seams at equal LOD)', () => {
-    const a = buildChunk({ cx: 50, cz: 50, segments: 16, withProps: false });
-    const b = buildChunk({ cx: 51, cz: 50, segments: 16, withProps: false });
+    const a = buildChunk({ cx: 50, cz: 50, segments: 16, morphSegments: 8, withProps: false });
+    const b = buildChunk({ cx: 51, cz: 50, segments: 16, morphSegments: 8, withProps: false });
     const side = 17;
     for (let j = 0; j < side; j++) {
       expect(a.positions[(j * side + 16) * 3 + 1]).toBe(b.positions[j * side * 3 + 1]);

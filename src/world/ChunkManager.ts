@@ -10,7 +10,7 @@ export interface LoadedChunk {
   cz: number;
   lod: number;
   geometry: THREE.BufferGeometry;
-  /** 5 floats per prop, see ChunkData.props. Empty for far LODs. */
+  /** PROP_STRIDE floats per prop, see ChunkData.props. Empty for far LODs. */
   props: Float32Array;
 }
 
@@ -110,7 +110,13 @@ export class ChunkManager {
       const level = LOD_LEVELS[req.lod]!;
       this.inflight.set(req.key, req.lod);
       this.pool
-        .buildChunk({ cx: req.cx, cz: req.cz, segments: level.segments, withProps: level.props })
+        .buildChunk({
+          cx: req.cx,
+          cz: req.cz,
+          segments: level.segments,
+          morphSegments: LOD_LEVELS[req.lod + 1]?.segments ?? 0,
+          withProps: level.props,
+        })
         .then((data) => {
           // A newer request for this chunk (another LOD) supersedes this one.
           if (this.inflight.get(req.key) !== req.lod) return;
@@ -134,6 +140,10 @@ export class ChunkManager {
 
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
+      geometry.setAttribute('normal', new THREE.BufferAttribute(data.normals, 3));
+      geometry.setAttribute('morphHeight', new THREE.BufferAttribute(data.morphHeights, 1));
+      geometry.setAttribute('morphNormal', new THREE.BufferAttribute(data.morphNormals, 3));
+      geometry.setAttribute('morphColor', new THREE.BufferAttribute(data.morphColors, 3));
       geometry.setAttribute('color', new THREE.BufferAttribute(data.colors, 3));
       geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
       geometry.boundingBox = new THREE.Box3(

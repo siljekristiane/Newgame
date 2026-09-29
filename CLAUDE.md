@@ -57,7 +57,7 @@ kjører det samme ved hver push.
 
 | Del | Valg | Merknad |
 |---|---|---|
-| Rendering | three.js | `MeshLambertMaterial` + `flatShading` for low-poly-stilen |
+| Rendering | three.js | Terreng: `MeshStandardMaterial` (PBR) med glatte normaler og geomorphing, i `src/materials/` |
 | React-binding | @react-three/fiber 9 | Ingen drei ennå; legg til bare ved behov |
 | UI | React 19 + ren CSS | HUD ligger i DOM over canvas, ikke i 3D |
 | State | zustand (UI) + muterbare moduler (per frame) | Se «State» under |
@@ -77,6 +77,7 @@ src/
     useGameStore.ts       zustand: HUD-snapshot, hurtigreise, minikart, teleport
   input/useControls.ts    Tastatur (event.code) og mus/scroll
   debug/                  Faste kameravinkler, bildetidsmåler, testkrok (window.__duskwood)
+  materials/              Materialer og shader-tillegg (terreng med geomorphing, props)
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     terrain.ts            heightAt(x, z) og colorAt(): verdenen som ren funksjon
@@ -151,6 +152,21 @@ Ring-avstand (Chebyshev, i chunks) fra spillerens chunk bestemmer oppløsning
 En chunk beholder gammelt mesh til ny LOD er klar, så det blir aldri hull.
 Tåke (`CAMERA.fogNear/fogFar`) skjuler kanten ved 10 km.
 
+**Geomorphing** (`materials/terrainMaterials.ts`): hver vertex har også høyde,
+normal og farge slik de ser ut på neste, grovere LOD (`morphHeight`,
+`morphNormal`, `morphColor`, regnet ut i `buildChunk`). De siste
+`MORPH_RANGE` meterne (400 m) før en LOD-rings ytterkant glir verteksen over
+til den grove formen (Chebyshev-avstand til spilleren, samme form som ringene).
+Når chunken byttes, er den allerede lik det nye meshet: ingen hopp, og kanten
+mot neste ring er helt morphet, så heller ingen sprekker. Props morpher med
+(`aMorphDelta` per instans). Målt: et LOD-bytte endrer 1,0 % av pikslene med
+morph mot 2,0 % uten (e2e-testen «LOD swaps do not pop»). Kan slås av i F3.
+
+**Normaler** regnes fra `heightAt` med fast avstand (`NORMAL_SAMPLE_STEP`) for
+alle LOD-er, så lyset er likt der LOD-er møtes. **Terrenget tegnes bare fra
+forsiden** (dobbeltsidig terreng lekker mørke baksider langs silhuetter);
+skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -202,6 +218,10 @@ Målt referanse (`docs/measurements/baseline/`, før fase 2): 24–148 draw call
 og 78–136 k trekanter i bildet (frustum culling fjerner det meste bak kameraet),
 ca. 350–400 chunks lastet, 10–11 s til ferdig strømmet verden ved første
 innlasting i programvare-rendering.
+
+Etter steg 2a (`docs/measurements/step-2a/`): samme draw calls, ca. 10 % flere
+trekanter (skjørt i begge retninger), 5–8 MB mer JS-minne (morph-attributter),
+10,1 s innlasting.
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig

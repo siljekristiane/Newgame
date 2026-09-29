@@ -1,10 +1,19 @@
 import { useFrame } from '@react-three/fiber';
 import { memo, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
-import { CHUNK_SIZE } from '../config/world';
+import { CHUNK_SIZE, LOD_LEVELS } from '../config/world';
 import { world } from '../design/tokens';
-import { origin } from '../state/runtime';
+import { createPropMaterial, createTerrainMaterial, morphEnabled, morphPlayer } from '../materials/terrainMaterials';
+import { useGameStore } from '../state/useGameStore';
+import { origin, player } from '../state/runtime';
+import { PROP_STRIDE } from '../world/buildChunk';
 import type { ChunkManager, LoadedChunk } from '../world/ChunkManager';
+
+interface LodMaterials {
+  terrain: THREE.Material;
+  cube: THREE.Material;
+  sphere: THREE.Material;
+}
 
 /**
  * Renders every loaded chunk. Chunks sit at their world position inside a
@@ -14,75 +23,113 @@ import type { ChunkManager, LoadedChunk } from '../world/ChunkManager';
 export function Terrain({ manager }: { manager: ChunkManager }) {
   useSyncExternalStore(manager.subscribe, manager.getVersion);
   const group = useRef<THREE.Group>(null);
-  const material = useMemo(
-    () => new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }),
+  // One material set per LOD: they differ only in their morph range.
+  const materials = useMemo<LodMaterials[]>(
+    () =>
+      LOD_LEVELS.map((_, lod) => ({
+        terrain: createTerrainMaterial(lod),
+        cube: createPropMaterial(world.stone, lod),
+        sphere: createPropMaterial(world.canopy, lod),
+      })),
     [],
   );
-  useEffect(() => () => material.dispose(), [material]);
+  useEffect(
+    () => () =>
+      materials.forEach((m) => {
+        m.terrain.dispose();
+        m.cube.dispose();
+        m.sphere.dispose();
+      }),
+    [materials],
+  );
 
+  const geomorph = useGameStore((s) => s.geomorph);
   useFrame(() => {
     group.current?.position.set(-origin.x, 0, -origin.z);
+    morphPlayer.value.set(player.x - origin.x, player.z - origin.z);
+    morphEnabled.value = geomorph ? 1 : 0;
   });
 
   const chunks = Array.from(manager.chunks.values());
   return (
     <group ref={group}>
       {chunks.map((chunk) => (
-        <Chunk key={chunk.key} chunk={chunk} geometry={chunk.geometry} material={material} />
+        <Chunk key={chunk.key} chunk={chunk} geometry={chunk.geometry} materials={materials[chunk.lod]!} />
       ))}
     </group>
   );
 }
 
-const Chunk = memo(function Chunk({ chunk, geometry, material }: { chunk: LoadedChunk; geometry: THREE.BufferGeometry; material: THREE.Material }) {
+const Chunk = memo(function Chunk({ chunk, geometry, materials }: { chunk: LoadedChunk; geometry: THREE.BufferGeometry; materials: LodMaterials }) {
   return (
     <group position={[chunk.cx * CHUNK_SIZE, 0, chunk.cz * CHUNK_SIZE]}>
-      <mesh geometry={geometry} material={material} matrixAutoUpdate={false} userData={{ terrain: true }} />
-      {chunk.props.length > 0 && <ChunkProps props={chunk.props} />}
+      <mesh geometry={geometry} material={materials.terrain} matrixAutoUpdate={false} userData={{ terrain: true }} />
+      {chunk.props.length > 0 && <ChunkProps props={chunk.props} materials={materials} />}
     </group>
   );
 });
 
-const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-const sphereGeometry = new THREE.IcosahedronGeometry(0.5, 1);
-const cubeMaterial = new THREE.MeshLambertMaterial({ color: world.stone, flatShading: true });
-const sphereMaterial = new THREE.MeshLambertMaterial({ color: world.canopy, flatShading: true });
+const cubeBase = new THREE.BoxGeometry(1, 1, 1);
+const sphereBase = new THREE.IcosahedronGeometry(0.5, 1);
 
 /** Placeholder objects (cubes and spheres) as two instanced draw calls per chunk. */
-function ChunkProps({ props }: { props: Float32Array }) {
-  const cubes = useRef<THREE.InstancedMesh>(null);
-  const spheres = useRef<THREE.InstancedMesh>(null);
-  const count = props.length / 5;
-
-  useEffect(() => {
+function ChunkProps({ props, materials }: { props: Float32Array; materials: LodMaterials }) {
+  const count = props.length / PROP_STRIDE;
+  // Per-chunk copies of the tiny base geometries, because the morph delta is a
+  // per-instance attribute stored on the geometry.
+  const { cubes, spheres } = useMemo(() => {
     const m = new THREE.Matrix4();
-    let nc = 0;
-    let ns = 0;
+    const cubeM: number[] = [];
+    const sphereM: number[] = [];
+    const cubeD: number[] = [];
+    const sphereD: number[] = [];
     for (let i = 0; i < count; i++) {
-      const x = props[i * 5]!;
-      const y = props[i * 5 + 1]!;
-      const z = props[i * 5 + 2]!;
-      const size = props[i * 5 + 3]!;
-      if (props[i * 5 + 4] === 0) {
+      const o = i * PROP_STRIDE;
+      const [x, y, z, size, kind, morphY] = [props[o]!, props[o + 1]!, props[o + 2]!, props[o + 3]!, props[o + 4]!, props[o + 5]!];
+      if (kind === 0) {
         m.makeScale(size, size * 1.6, size).setPosition(x, y + size * 0.7, z);
-        cubes.current?.setMatrixAt(nc++, m);
+        cubeM.push(...m.elements);
+        cubeD.push(morphY - y);
       } else {
         m.makeScale(size * 1.6, size * 1.6, size * 1.6).setPosition(x, y + size * 1.2, z);
-        spheres.current?.setMatrixAt(ns++, m);
+        sphereM.push(...m.elements);
+        sphereD.push(morphY - y);
       }
     }
-    for (const [mesh, n] of [[cubes.current, nc], [spheres.current, ns]] as const) {
-      if (!mesh) continue;
-      mesh.count = n;
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.computeBoundingSphere();
-    }
+    const build = (base: THREE.BufferGeometry, matrices: number[], deltas: number[]) => {
+      const geometry = base.clone();
+      geometry.setAttribute('aMorphDelta', new THREE.InstancedBufferAttribute(new Float32Array(deltas), 1));
+      return { geometry, matrices: new Float32Array(matrices), n: deltas.length };
+    };
+    return { cubes: build(cubeBase, cubeM, cubeD), spheres: build(sphereBase, sphereM, sphereD) };
   }, [props, count]);
+
+  useEffect(
+    () => () => {
+      cubes.geometry.dispose();
+      spheres.geometry.dispose();
+    },
+    [cubes, spheres],
+  );
 
   return (
     <>
-      <instancedMesh ref={cubes} args={[cubeGeometry, cubeMaterial, count]} />
-      <instancedMesh ref={spheres} args={[sphereGeometry, sphereMaterial, count]} />
+      <Instances data={cubes} material={materials.cube} />
+      <Instances data={spheres} material={materials.sphere} />
     </>
   );
+}
+
+function Instances({ data, material }: { data: { geometry: THREE.BufferGeometry; matrices: Float32Array; n: number }; material: THREE.Material }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    mesh.instanceMatrix.array.set(data.matrices);
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.count = data.n;
+    mesh.computeBoundingSphere();
+  }, [data]);
+  if (data.n === 0) return null;
+  return <instancedMesh ref={ref} args={[data.geometry, material, data.n]} />;
 }

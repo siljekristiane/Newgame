@@ -37,6 +37,8 @@ interface GameState {
   debug: DebugSnapshot;
   showDebug: boolean;
   travelMode: boolean;
+  /** Debug: terrain geomorphing between LODs. */
+  geomorph: boolean;
   minimap: ImageData | null;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
   lastJumpAt: number;
@@ -44,6 +46,7 @@ interface GameState {
   setDebug: (debug: DebugSnapshot) => void;
   toggleDebug: () => void;
   toggleTravelMode: () => void;
+  setGeomorph: (on: boolean) => void;
   setMinimap: (image: ImageData) => void;
   teleport: (x: number, z: number) => void;
 }
@@ -67,12 +70,14 @@ export const useGameStore = create<GameState>((set) => ({
   },
   showDebug: true,
   travelMode: false,
+  geomorph: true,
   minimap: null,
   lastJumpAt: 0,
   setHud: (hud) => set({ hud }),
   setDebug: (debug) => set({ debug }),
   toggleDebug: () => set((s) => ({ showDebug: !s.showDebug })),
   toggleTravelMode: () => set((s) => ({ travelMode: !s.travelMode })),
+  setGeomorph: (geomorph) => set({ geomorph }),
   setMinimap: (minimap) => set({ minimap }),
   teleport: (x, z) => {
     // The game loop notices the jump and rebases the origin on its next frame.

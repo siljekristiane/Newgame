@@ -7,6 +7,8 @@ import type { DebugSnapshot, HudSnapshot } from '../state/useGameStore';
 export interface DuskwoodTestApi {
   views: string[];
   setView: (id: string) => boolean;
+  /** Geomorphing on/off (to measure what it saves). */
+  setGeomorph: (on: boolean) => void;
   /** Moves the player to world meters (x, z), like a minimap click. */
   teleport: (x: number, z: number) => void;
   /** True once every chunk wanted around the player is loaded. */

@@ -1,0 +1,112 @@
+{
+  "stamp": "2026-09-29-18-40",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "firstLoadMs": 10057.900000000023,
+  "rows": [
+    {
+      "view": "spawn",
+      "fps": 5,
+      "frameMs": 203.9506858930196,
+      "frameMsP95": 247,
+      "drawCalls": 118,
+      "triangles": 125930,
+      "geometries": 118,
+      "textures": 0,
+      "programs": 5,
+      "heapMb": 24.482685089111328,
+      "loadedChunks": 349,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        180
+      ],
+      "settleMs": 0.5
+    },
+    {
+      "view": "coast",
+      "fps": 5,
+      "frameMs": 203.16296344333225,
+      "frameMsP95": 247,
+      "drawCalls": 133,
+      "triangles": 128426,
+      "geometries": 191,
+      "textures": 0,
+      "programs": 5,
+      "heapMb": 26.073331832885742,
+      "loadedChunks": 370,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        201
+      ],
+      "settleMs": 1716.6000000000931
+    },
+    {
+      "view": "valley",
+      "fps": 5,
+      "frameMs": 218.38250045776368,
+      "frameMsP95": 253.6999969482422,
+      "drawCalls": 148,
+      "triangles": 150082,
+      "geometries": 237,
+      "textures": 0,
+      "programs": 5,
+      "heapMb": 34.545411109924316,
+      "loadedChunks": 397,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        228
+      ],
+      "settleMs": 6704.5
+    },
+    {
+      "view": "mountain",
+      "fps": 5,
+      "frameMs": 220.57083346048992,
+      "frameMsP95": 270,
+      "drawCalls": 135,
+      "triangles": 141618,
+      "geometries": 207,
+      "textures": 0,
+      "programs": 5,
+      "heapMb": 28.19990348815918,
+      "loadedChunks": 377,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        208
+      ],
+      "settleMs": 8221.300000000047
+    },
+    {
+      "view": "edge",
+      "fps": 6,
+      "frameMs": 177.90083325703938,
+      "frameMsP95": 247.60000610351562,
+      "drawCalls": 24,
+      "triangles": 83842,
+      "geometries": 69,
+      "textures": 0,
+      "programs": 5,
+      "heapMb": 21.746424674987793,
+      "loadedChunks": 248,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        81,
+        118
+      ],
+      "settleMs": 4407.399999999907
+    }
+  ]
+}

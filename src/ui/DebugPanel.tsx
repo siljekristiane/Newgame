@@ -10,6 +10,8 @@ const nb = (n: number, digits = 0) => n.toLocaleString('nb-NO', { maximumFractio
 export function DebugPanel() {
   const d = useGameStore((s) => s.debug);
   const show = useGameStore((s) => s.showDebug);
+  const geomorph = useGameStore((s) => s.geomorph);
+  const setGeomorph = useGameStore((s) => s.setGeomorph);
   if (!show) return null;
 
   return (
@@ -47,6 +49,9 @@ export function DebugPanel() {
         <dt>Ferdig lastet etter</dt>
         <dd>{d.settleMs === null ? 'laster …' : `${nb(d.settleMs / 1000, 1)} s`}</dd>
       </dl>
+      <label className="dw-toggle">
+        <input type="checkbox" checked={geomorph} onChange={(e) => setGeomorph(e.target.checked)} /> Myke LOD-overganger
+      </label>
       <div className="dw-views" role="group" aria-label="Faste kameravinkler">
         {VIEWS.map((v) => (
           <button key={v.id} type="button" className="dw-btn dw-btn-sm" onClick={() => applyView(v.id)}>

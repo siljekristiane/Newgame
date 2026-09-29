@@ -38,6 +38,15 @@ export const LOD_LEVELS = [
   { maxDistance: 10, segments: 8, props: false }, // 125 m
 ] as const;
 
+/**
+ * Geomorphing: over the last MORPH_RANGE meters of a LOD's ring, vertices glide
+ * to the next coarser LOD's shape, so the swap itself changes nothing visible.
+ */
+export const MORPH_RANGE = 400;
+
+/** Normals sample heightAt() at this spacing for every LOD (the LOD 0 grid step), so shading doesn't pop. */
+export const NORMAL_SAMPLE_STEP = 1_000 / 64;
+
 /** Chunks farther than this (in chunks) are never loaded. */
 export const VIEW_RADIUS = LOD_LEVELS[LOD_LEVELS.length - 1]!.maxDistance;
 /** Loaded chunks are only unloaded past this, so they don't flicker at the edge. */

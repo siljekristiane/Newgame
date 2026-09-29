@@ -13,6 +13,10 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     const data = buildChunk(msg);
     self.postMessage({ id: msg.id, data }, [
       data.positions.buffer,
+      data.normals.buffer,
+      data.morphHeights.buffer,
+      data.morphNormals.buffer,
+      data.morphColors.buffer,
       data.colors.buffer,
       data.indices.buffer,
       data.props.buffer,

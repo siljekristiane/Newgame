@@ -7,7 +7,7 @@ import type { WorkerPool } from './workerPool';
 
 /** Builds chunks in-process, cheaply (4 segments), instead of in workers. */
 const fakePool = {
-  buildChunk: (req: ChunkRequest): Promise<ChunkData> => Promise.resolve(buildChunk({ ...req, segments: 4, withProps: false })),
+  buildChunk: (req: ChunkRequest): Promise<ChunkData> => Promise.resolve(buildChunk({ ...req, segments: 4, morphSegments: 0, withProps: false })),
 } as unknown as WorkerPool;
 
 async function settle(manager: ChunkManager, x: number, z: number): Promise<void> {

@@ -83,3 +83,51 @@ test('the player stands on the rendered ground, also between grid points', async
   }
   expect(worstOld, 'the test spots should include a place where the old method was wrong').toBeGreaterThan(0.05);
 });
+
+test('LOD swaps do not pop (geomorphing)', async ({ page }) => {
+  await page.goto('/#v-valley');
+  await waitUntilSettled(page);
+  await page.addStyleTag({ content: '.dw-hud{display:none}' });
+  const settle = async () => {
+    await page.waitForTimeout(400);
+    await waitUntilSettled(page);
+    await page.waitForTimeout(1000);
+  };
+  const shot = async () => (await page.screenshot({ clip: { x: 0, y: 0, width: 1280, height: 430 } })).toString('base64');
+  // Share of pixels that changed noticeably between two screenshots.
+  const changed = (a: string, b: string) =>
+    page.evaluate(async ([a, b]) => {
+      const load = (s: string) =>
+        new Promise<HTMLImageElement>((r) => {
+          const i = new Image();
+          i.onload = () => r(i);
+          i.src = `data:image/png;base64,${s}`;
+        });
+      const [ia, ib] = await Promise.all([load(a!), load(b!)]);
+      const c = document.createElement('canvas');
+      c.width = ia.width;
+      c.height = ia.height;
+      const x = c.getContext('2d')!;
+      x.drawImage(ia, 0, 0);
+      const da = x.getImageData(0, 0, c.width, c.height).data;
+      x.drawImage(ib, 0, 0);
+      const db = x.getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 0; i < da.length; i += 4) if (Math.abs(da[i]! - db[i]!) + Math.abs(da[i + 1]! - db[i + 1]!) + Math.abs(da[i + 2]! - db[i + 2]!) > 24) n++;
+      return n / (da.length / 4);
+    }, [a, b]);
+  // Walk 2 m west across a chunk border: every LOD ring shifts by one chunk.
+  const cross = async (morph: boolean) => {
+    await page.evaluate((m) => window.__duskwood!.setGeomorph(m), morph);
+    await page.evaluate(() => window.__duskwood!.teleport(49_001, 53_500));
+    await settle();
+    const before = await shot();
+    await page.evaluate(() => window.__duskwood!.teleport(48_999, 53_500));
+    await settle();
+    return changed(before, await shot());
+  };
+  const withMorph = await cross(true);
+  const withoutMorph = await cross(false);
+  console.log(`changed pixels at a LOD swap: ${(withMorph * 100).toFixed(2)} % with geomorphing, ${(withoutMorph * 100).toFixed(2)} % without`);
+  expect(withMorph).toBeLessThan(withoutMorph * 0.8);
+});

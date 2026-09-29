@@ -31,6 +31,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       views: VIEWS.map((v) => v.id),
       setView: applyView,
       teleport: (x, z) => useGameStore.getState().teleport(x, z),
+      setGeomorph: (on) => useGameStore.getState().setGeomorph(on),
       isSettled: () => settleMs.current !== null,
       debug: () => useGameStore.getState().debug,
       hud: () => useGameStore.getState().hud,

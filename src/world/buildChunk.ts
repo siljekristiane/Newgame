@@ -1,4 +1,4 @@
-import { CHUNK_SIZE, MINIMAP_RESOLUTION, SEA_LEVEL, WORLD_SIZE, WORLD_SEED } from '../config/world';
+import { CHUNK_SIZE, MINIMAP_RESOLUTION, NORMAL_SAMPLE_STEP, SEA_LEVEL, WORLD_SIZE, WORLD_SEED } from '../config/world';
 import { hexToRgb, world } from '../design/tokens';
 import { hash2 } from './noise';
 import { gridHeightAt } from './ground';
@@ -13,28 +13,50 @@ export interface ChunkRequest {
   cx: number;
   cz: number;
   segments: number;
+  /**
+   * Grid of the next coarser LOD (segments / 2), or 0 for the coarsest. Each
+   * vertex also gets its height on that coarser mesh, so the shader can morph
+   * toward it before the switch (geomorphing: no popping, no cracks).
+   */
+  morphSegments: number;
   withProps: boolean;
 }
 
 export interface ChunkData {
   /** Vertex positions relative to the chunk's north-west corner (small numbers = float32-safe). */
   positions: Float32Array;
+  /** Smooth normals from heightAt() at a fixed sample step, so every LOD shades alike. */
+  normals: Float32Array;
+  /**
+   * Per vertex, the same attributes as seen on the next coarser LOD's mesh
+   * (= own values for the coarsest). Shape, shading and colour all morph, so
+   * the swap itself is invisible.
+   */
+  morphHeights: Float32Array;
+  morphNormals: Float32Array;
+  morphColors: Float32Array;
   colors: Float32Array;
   indices: Uint16Array | Uint32Array;
-  /** Placeholder props, 5 floats each: localX, y, localZ, size, kind (0 = cube, 1 = sphere). */
+  /** Placeholder props, PROP_STRIDE floats each: localX, y, localZ, size, kind (0 = cube, 1 = sphere), morphY. */
   props: Float32Array;
   minHeight: number;
   maxHeight: number;
 }
 
 export const PROPS_PER_CHUNK = 36;
+export const PROP_STRIDE = 6;
 
-export function buildChunk({ cx, cz, segments, withProps }: ChunkRequest): ChunkData {
+export function buildChunk({ cx, cz, segments, morphSegments, withProps }: ChunkRequest): ChunkData {
+  if (morphSegments !== 0 && morphSegments * 2 !== segments) throw new Error('morphSegments must be segments / 2');
   const side = segments + 1;
   const gridCount = side * side;
   const perimeter = segments * 4;
   const vertexCount = gridCount + perimeter;
   const positions = new Float32Array(vertexCount * 3);
+  const normals = new Float32Array(vertexCount * 3);
+  const morphHeights = new Float32Array(vertexCount);
+  const morphNormals = new Float32Array(vertexCount * 3);
+  const morphColors = new Float32Array(vertexCount * 3);
   const colors = new Float32Array(vertexCount * 3);
   const originX = cx * CHUNK_SIZE;
   const originZ = cz * CHUNK_SIZE;
@@ -55,6 +77,38 @@ export function buildChunk({ cx, cz, segments, withProps }: ChunkRequest): Chunk
       toLinear(colors, v * 3);
       if (h < minHeight) minHeight = h;
       if (h > maxHeight) maxHeight = h;
+      terrainNormal(originX + lx, originZ + lz, normals, v * 3);
+    }
+  }
+
+  // Morph targets: what a vertex looks like on the coarser grid (segments / 2).
+  // Even grid points are shared; odd ones sit halfway along a coarse edge or on
+  // the coarse quad's b-c diagonal (same split as the index buffer below), so
+  // their target is the average of those two coarse vertices.
+  for (let j = 0; j < side; j++) {
+    for (let i = 0; i < side; i++) {
+      const v = j * side + i;
+      let a = v;
+      let b = v;
+      if (morphSegments) {
+        const oddI = i % 2 === 1;
+        const oddJ = j % 2 === 1;
+        if (oddI && oddJ) [a, b] = [(j - 1) * side + i + 1, (j + 1) * side + i - 1];
+        else if (oddI) [a, b] = [v - 1, v + 1];
+        else if (oddJ) [a, b] = [v - side, v + side];
+      }
+      const m = (positions[a * 3 + 1]! + positions[b * 3 + 1]!) / 2;
+      morphHeights[v] = m;
+      if (m < minHeight) minHeight = m;
+      if (m > maxHeight) maxHeight = m;
+      for (let k = 0; k < 3; k++) morphColors[v * 3 + k] = (colors[a * 3 + k]! + colors[b * 3 + k]!) / 2;
+      const nx = normals[a * 3]! + normals[b * 3]!;
+      const ny = normals[a * 3 + 1]! + normals[b * 3 + 1]!;
+      const nz = normals[a * 3 + 2]! + normals[b * 3 + 2]!;
+      const len = Math.hypot(nx, ny, nz);
+      morphNormals[v * 3] = nx / len;
+      morphNormals[v * 3 + 1] = ny / len;
+      morphNormals[v * 3 + 2] = nz / len;
     }
   }
 
@@ -68,12 +122,20 @@ export function buildChunk({ cx, cz, segments, withProps }: ChunkRequest): Chunk
     positions[dst * 3] = positions[src * 3]!;
     positions[dst * 3 + 1] = positions[src * 3 + 1]! - skirtDepth;
     positions[dst * 3 + 2] = positions[src * 3 + 2]!;
+    morphHeights[dst] = morphHeights[src]! - skirtDepth;
+    morphNormals.set(morphNormals.subarray(src * 3, src * 3 + 3), dst * 3);
+    morphColors.set(morphColors.subarray(src * 3, src * 3 + 3), dst * 3);
+    // Same normal and colour as the edge above: a skirt that peeks through a
+    // crack then looks like ground, not a dark line.
+    normals[dst * 3] = normals[src * 3]!;
+    normals[dst * 3 + 1] = normals[src * 3 + 1]!;
+    normals[dst * 3 + 2] = normals[src * 3 + 2]!;
     colors[dst * 3] = colors[src * 3]!;
     colors[dst * 3 + 1] = colors[src * 3 + 1]!;
     colors[dst * 3 + 2] = colors[src * 3 + 2]!;
   }
 
-  const triangleCount = segments * segments * 2 + perimeter * 2;
+  const triangleCount = segments * segments * 2 + perimeter * 4;
   const indices = vertexCount > 65535 ? new Uint32Array(triangleCount * 3) : new Uint16Array(triangleCount * 3);
   let t = 0;
   for (let j = 0; j < segments; j++) {
@@ -92,19 +154,39 @@ export function buildChunk({ cx, cz, segments, withProps }: ChunkRequest): Chunk
     const b = ring[(k + 1) % ring.length]!;
     const sa = gridCount + k;
     const sb = gridCount + ((k + 1) % ring.length);
-    // The terrain material is double-sided, so skirts show from any side.
+    // Both windings: the terrain is drawn front-side only (a double-sided
+    // terrain leaks dark back faces along hill silhouettes), but a skirt must
+    // show from whichever side the gap is seen.
     indices[t++] = a; indices[t++] = b; indices[t++] = sa;
     indices[t++] = b; indices[t++] = sb; indices[t++] = sa;
+    indices[t++] = a; indices[t++] = sa; indices[t++] = b;
+    indices[t++] = b; indices[t++] = sa; indices[t++] = sb;
   }
 
   return {
     positions,
+    normals,
+    morphHeights,
+    morphNormals,
+    morphColors,
     colors,
     indices: indices.subarray(0, t),
-    props: withProps ? buildProps(cx, cz, segments) : new Float32Array(0),
+    props: withProps ? buildProps(cx, cz, segments, morphSegments) : new Float32Array(0),
     minHeight,
     maxHeight,
   };
+}
+
+/** Normal of heightAt() by central differences at NORMAL_SAMPLE_STEP. */
+function terrainNormal(x: number, z: number, out: Float32Array, o: number): void {
+  const e = NORMAL_SAMPLE_STEP;
+  const nx = heightAt(x - e, z) - heightAt(x + e, z);
+  const nz = heightAt(x, z - e) - heightAt(x, z + e);
+  const ny = 2 * e;
+  const len = Math.hypot(nx, ny, nz);
+  out[o] = nx / len;
+  out[o + 1] = ny / len;
+  out[o + 2] = nz / len;
 }
 
 /** Palette colours are sRGB; Three.js expects vertex colours in linear space. */
@@ -131,8 +213,8 @@ function perimeterIndices(segments: number): number[] {
  * Which props exist depends only on the chunk; their height is taken from the
  * mesh they stand on (`segments`), so they sit on the rendered ground at every LOD.
  */
-export function buildProps(cx: number, cz: number, segments: number): Float32Array {
-  const out = new Float32Array(PROPS_PER_CHUNK * 5);
+export function buildProps(cx: number, cz: number, segments: number, morphSegments = 0): Float32Array {
+  const out = new Float32Array(PROPS_PER_CHUNK * PROP_STRIDE);
   let n = 0;
   for (let k = 0; k < PROPS_PER_CHUNK; k++) {
     const lx = hash2(cx * 97 + k, cz, WORLD_SEED) * CHUNK_SIZE;
@@ -141,11 +223,14 @@ export function buildProps(cx: number, cz: number, segments: number): Float32Arr
     if (h < SEA_LEVEL + 4 || h > 700) continue;
     const kind = hash2(cx + k, cz - k, WORLD_SEED + 13) < 0.35 ? 0 : 1;
     const size = 2 + hash2(cx - k, cz + k, WORLD_SEED + 21) * (kind === 0 ? 5 : 6);
-    const y = gridHeightAt(cx * CHUNK_SIZE + lx, cz * CHUNK_SIZE + lz, segments);
-    out.set([lx, y, lz, size, kind], n * 5);
+    const x = cx * CHUNK_SIZE + lx;
+    const z = cz * CHUNK_SIZE + lz;
+    const y = gridHeightAt(x, z, segments);
+    const morphY = morphSegments ? gridHeightAt(x, z, morphSegments) : y;
+    out.set([lx, y, lz, size, kind, morphY], n * PROP_STRIDE);
     n++;
   }
-  return out.subarray(0, n * 5);
+  return out.subarray(0, n * PROP_STRIDE);
 }
 
 /** RGBA image of the whole world, for the minimap. */
