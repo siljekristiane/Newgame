@@ -37,7 +37,7 @@ export function Terrain({ manager }: { manager: ChunkManager }) {
 const Chunk = memo(function Chunk({ chunk, geometry, material }: { chunk: LoadedChunk; geometry: THREE.BufferGeometry; material: THREE.Material }) {
   return (
     <group position={[chunk.cx * CHUNK_SIZE, 0, chunk.cz * CHUNK_SIZE]}>
-      <mesh geometry={geometry} material={material} matrixAutoUpdate={false} />
+      <mesh geometry={geometry} material={material} matrixAutoUpdate={false} userData={{ terrain: true }} />
       {chunk.props.length > 0 && <ChunkProps props={chunk.props} />}
     </group>
   );

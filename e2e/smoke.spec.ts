@@ -58,3 +58,28 @@ test.describe('Duskwood World', () => {
     expect(errors).toEqual([]);
   });
 });
+
+test('the player stands on the rendered ground, also between grid points', async ({ page }) => {
+  await page.goto('/');
+  await waitUntilSettled(page);
+  // Fixed views, plus off-grid points: on the highest ridge, on a slope and in a valley.
+  const spots: Array<[string, number, number]> = [
+    ['ridge', 34_007.3, 50_011.1],
+    ['slope', 37_503.9, 50_605.2],
+    ['valley', 49_508.8, 53_492.6],
+    ['spawn', 50_000, 50_000],
+  ];
+  let worstOld = 0;
+  for (const [name, x, z] of spots) {
+    await page.evaluate(([px, pz]) => window.__duskwood!.teleport(px!, pz!), [x, z]);
+    await page.waitForTimeout(300);
+    await waitUntilSettled(page);
+    const g = (await page.evaluate(() => window.__duskwood!.groundCheck()))!;
+    expect(g, `no terrain under the player at ${name}`).not.toBeNull();
+    // float32 vertices + ray precision: millimetres at most.
+    expect(Math.abs(g.playerY - g.meshY), `gap at ${name}`).toBeLessThan(0.02);
+    worstOld = Math.max(worstOld, Math.abs(g.smoothY - g.meshY));
+    console.log(`${name}: player ${g.playerY.toFixed(3)} m, mesh ${g.meshY.toFixed(3)} m, old method off by ${(g.smoothY - g.meshY).toFixed(3)} m`);
+  }
+  expect(worstOld, 'the test spots should include a place where the old method was wrong').toBeGreaterThan(0.05);
+});

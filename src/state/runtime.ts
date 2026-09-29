@@ -1,5 +1,5 @@
 import { SPAWN } from '../config/world';
-import { heightAt } from '../world/terrain';
+import { groundHeightAt } from '../world/ground';
 
 /**
  * Per-frame mutable state. It changes 60 times a second, so it lives outside
@@ -14,7 +14,7 @@ import { heightAt } from '../world/terrain';
 export const player = {
   x: SPAWN.x,
   z: SPAWN.z,
-  y: Math.max(0, heightAt(SPAWN.x, SPAWN.z)),
+  y: Math.max(0, groundHeightAt(SPAWN.x, SPAWN.z)),
   heading: 0,
   speed: 0,
 };

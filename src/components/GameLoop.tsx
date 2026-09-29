@@ -5,7 +5,7 @@ import { cameraRig, input, origin, player, rebaseOrigin } from '../state/runtime
 import { useGameStore } from '../state/useGameStore';
 import { clampToWorld, worldToChunk } from '../world/chunkMath';
 import type { ChunkManager } from '../world/ChunkManager';
-import { heightAt } from '../world/terrain';
+import { groundHeightAt } from '../world/ground';
 import type { WorkerPool } from '../world/workerPool';
 
 const HUD_INTERVAL = 0.2; // seconds
@@ -57,7 +57,7 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
       player.speed = 0;
     }
     // Stand on the ground, or on the water surface.
-    player.y = Math.max(SEA_LEVEL, heightAt(player.x, player.z));
+    player.y = Math.max(SEA_LEVEL, groundHeightAt(player.x, player.z));
 
     // Floating origin: keep render-space coordinates small.
     if (Math.abs(player.x - origin.x) > REBASE_DISTANCE || Math.abs(player.z - origin.z) > REBASE_DISTANCE) {

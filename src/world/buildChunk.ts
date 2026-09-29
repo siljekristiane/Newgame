@@ -1,6 +1,7 @@
 import { CHUNK_SIZE, MINIMAP_RESOLUTION, SEA_LEVEL, WORLD_SIZE, WORLD_SEED } from '../config/world';
 import { hexToRgb, world } from '../design/tokens';
 import { hash2 } from './noise';
+import { gridHeightAt } from './ground';
 import { colorAt, heightAt } from './terrain';
 
 /**
@@ -100,7 +101,7 @@ export function buildChunk({ cx, cz, segments, withProps }: ChunkRequest): Chunk
     positions,
     colors,
     indices: indices.subarray(0, t),
-    props: withProps ? buildProps(cx, cz) : new Float32Array(0),
+    props: withProps ? buildProps(cx, cz, segments) : new Float32Array(0),
     minHeight,
     maxHeight,
   };
@@ -125,8 +126,12 @@ function perimeterIndices(segments: number): number[] {
   return out;
 }
 
-/** Deterministic placeholder objects: same chunk, same props, every time. */
-export function buildProps(cx: number, cz: number): Float32Array {
+/**
+ * Deterministic placeholder objects: same chunk, same props, every time.
+ * Which props exist depends only on the chunk; their height is taken from the
+ * mesh they stand on (`segments`), so they sit on the rendered ground at every LOD.
+ */
+export function buildProps(cx: number, cz: number, segments: number): Float32Array {
   const out = new Float32Array(PROPS_PER_CHUNK * 5);
   let n = 0;
   for (let k = 0; k < PROPS_PER_CHUNK; k++) {
@@ -136,7 +141,8 @@ export function buildProps(cx: number, cz: number): Float32Array {
     if (h < SEA_LEVEL + 4 || h > 700) continue;
     const kind = hash2(cx + k, cz - k, WORLD_SEED + 13) < 0.35 ? 0 : 1;
     const size = 2 + hash2(cx - k, cz + k, WORLD_SEED + 21) * (kind === 0 ? 5 : 6);
-    out.set([lx, h, lz, size, kind], n * 5);
+    const y = gridHeightAt(cx * CHUNK_SIZE + lx, cz * CHUNK_SIZE + lz, segments);
+    out.set([lx, y, lz, size, kind], n * 5);
     n++;
   }
   return out.subarray(0, n * 5);

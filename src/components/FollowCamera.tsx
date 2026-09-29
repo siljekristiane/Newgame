@@ -2,7 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
 import * as THREE from 'three';
 import { cameraRig, origin, player } from '../state/runtime';
-import { heightAt } from '../world/terrain';
+import { groundHeightAt } from '../world/ground';
 
 /** Third-person camera: orbits the player, eases toward its target, stays above ground. */
 export function FollowCamera() {
@@ -16,7 +16,7 @@ export function FollowCamera() {
     const cp = Math.cos(cameraRig.pitch);
     const wantX = player.x + Math.sin(cameraRig.yaw) * d * cp;
     const wantZ = player.z + Math.cos(cameraRig.yaw) * d * cp;
-    const ground = Math.max(0, heightAt(wantX, wantZ)) + 2;
+    const ground = Math.max(0, groundHeightAt(wantX, wantZ)) + 2;
     const wantY = Math.max(ground, player.y + 2 + Math.sin(cameraRig.pitch) * d);
 
     // After a rebase, move the camera by the same shift so it stays put in the world.

@@ -7,10 +7,19 @@ import type { DebugSnapshot, HudSnapshot } from '../state/useGameStore';
 export interface DuskwoodTestApi {
   views: string[];
   setView: (id: string) => boolean;
+  /** Moves the player to world meters (x, z), like a minimap click. */
+  teleport: (x: number, z: number) => void;
   /** True once every chunk wanted around the player is loaded. */
   isSettled: () => boolean;
   debug: () => DebugSnapshot;
   hud: () => HudSnapshot;
+  /**
+   * Casts a ray straight down at the player against the rendered terrain
+   * meshes: `meshY` is the ground the player is drawn on, `playerY` where the
+   * game thinks the ground is, `smoothY` the old heightAt() value. Null if no
+   * terrain is loaded under the player.
+   */
+  groundCheck: () => { playerY: number; meshY: number; smoothY: number } | null;
 }
 
 declare global {

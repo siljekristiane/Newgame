@@ -1,9 +1,12 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
+import * as THREE from 'three';
 import { PerfMonitor } from '../debug/perfMonitor';
 import '../debug/testApi';
 import { applyView, VIEWS } from '../debug/views';
+import { origin, player } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
+import { heightAt } from '../world/terrain';
 import type { ChunkManager } from '../world/ChunkManager';
 
 const INTERVAL = 0.2; // seconds between snapshots
@@ -17,6 +20,7 @@ type PerformanceWithMemory = Performance & { memory?: { usedJSHeapSize: number }
  */
 export function DebugProbe({ manager }: { manager: ChunkManager }) {
   const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
   const monitor = useRef(new PerfMonitor(120));
   const timer = useRef(0);
   const settleMs = useRef<number | null>(null);
@@ -26,14 +30,26 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
     window.__duskwood = {
       views: VIEWS.map((v) => v.id),
       setView: applyView,
+      teleport: (x, z) => useGameStore.getState().teleport(x, z),
       isSettled: () => settleMs.current !== null,
       debug: () => useGameStore.getState().debug,
       hud: () => useGameStore.getState().hud,
+      groundCheck: () => {
+        const terrain: THREE.Object3D[] = [];
+        scene.traverse((o) => {
+          if (o.userData.terrain) terrain.push(o);
+        });
+        scene.updateMatrixWorld();
+        const ray = new THREE.Raycaster(new THREE.Vector3(player.x - origin.x, 10_000, player.z - origin.z), new THREE.Vector3(0, -1, 0));
+        const hit = ray.intersectObjects(terrain, false)[0];
+        if (!hit) return null;
+        return { playerY: player.y, meshY: hit.point.y, smoothY: heightAt(player.x, player.z) };
+      },
     };
     return () => {
       delete window.__duskwood;
     };
-  }, []);
+  }, [scene]);
 
   useFrame((_, dt) => {
     monitor.current.push(dt * 1000);

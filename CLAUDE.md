@@ -80,6 +80,7 @@ src/
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     terrain.ts            heightAt(x, z) og colorAt(): verdenen som ren funksjon
+    ground.ts             groundHeightAt / gridHeightAt: høyden på trekantene som tegnes
     chunkMath.ts          Koordinater, chunk-nøkler, LOD-valg, ønsket chunk-sett
     buildChunk.ts         Bygger vertex-data for én chunk + props + minikart (ren)
     terrain.worker.ts     Worker som kaller buildChunk/buildMinimap
@@ -125,6 +126,13 @@ Nye systemer får sin egen mappe (`src/quests/`, `src/npc/` …) og kobles inn i
 - Chunk-nøkkel: `"cx,cz"`. `worldToChunk()` gjør om fra meter til chunk.
 - Terrenget er en **ren funksjon** (`heightAt`), så ingenting lagres: en chunk kan
   bygges på nytt når som helst og blir helt lik. Samme seed = samme verden overalt.
+- **Bakkehøyde:** `heightAt` er den glatte funksjonen terrenget samples fra.
+  Det som tegnes er trekanter mellom rutenettpunktene, og mellom punktene
+  avviker de (opptil ~10 m på skarpe rygger). Alt som står på bakken bruker
+  derfor `groundHeightAt` (LOD 0, der spilleren alltid står) eller
+  `gridHeightAt(x, z, segments)` (objekter i en chunk av gitt LOD). Aldri
+  `heightAt` for plassering. Testet mot selve meshet, både i enhetstest og med
+  en stråle i nettleseren (`__duskwood.groundCheck()`).
 - Nabochunks deler kant-vertekser eksakt (testet), og **skjørt** (en ring av
   vertekser som henger ned langs kanten) skjuler sprekker mellom ulike LOD-er.
 

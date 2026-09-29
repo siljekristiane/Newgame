@@ -6,7 +6,7 @@ import { heightAt } from './terrain';
 describe('terrain', () => {
   it('is deterministic', () => {
     expect(heightAt(23_456.5, 61_000.25)).toBe(heightAt(23_456.5, 61_000.25));
-    expect(buildProps(50, 50)).toEqual(buildProps(50, 50));
+    expect(buildProps(50, 50, 64)).toEqual(buildProps(50, 50, 64));
   });
 
   it('ends in ocean at the world edge', () => {
