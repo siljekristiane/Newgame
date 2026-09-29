@@ -1,10 +1,17 @@
 # CLAUDE.md — Duskwood World
 
-Et 3D open world-spill i nettleseren. Verdenen er **500 × 500 km** i ekte meter,
+Et 3D open world-spill i nettleseren. Verdenen er **100 × 100 km** i ekte meter,
 generert prosedyralt og strømmet inn i biter (chunks) rundt spilleren.
+(Den var 500 km; brukeren valgte 100 km for å forenkle realistisk grafikk.)
 
-Nåværende fase: **teknisk fundament**. Ingen quests, plot, NPC-er eller
+Nåværende fase: **visuell og teknisk oppgradering, område for område**, mot en
+nær realistisk stil (se «Kunstretning»). Ingen quests, plot, NPC-historier eller
 gameplay-mekanikker ennå. Legg ikke til slikt før det blir bedt om.
+
+Arbeidsmåte brukeren har bedt om: forklar kort før en større endring, gjør én
+avgrenset endring om gangen, test, oppsummer, og vent på tilbakemelding før neste
+store steg. Ikke bytt prosjektnavn eller identitet, og ikke fjern fungerende
+systemer uten begrunnelse og godkjenning.
 
 ## Kommandoer
 
@@ -60,15 +67,16 @@ src/
 Nye systemer får sin egen mappe (`src/quests/`, `src/npc/` …) og kobles inn i
 `GameLoop` eller `Scene`, ikke inn i terreng-koden.
 
-## Arkitektur for 500 km-verdenen
+## Arkitektur for verdenen
 
 ### Koordinatsystemer (viktigst av alt)
 
-- **1 enhet = 1 meter.** X = øst, Z = sør, Y = opp. Verden går fra 0 til 500 000 på X og Z.
+- **1 enhet = 1 meter.** X = øst, Z = sør, Y = opp. Verden går fra 0 til 100 000 på X og Z.
 - **Verdenskoordinater** lagres som vanlige JS-tall (float64). Presisjonen er
-  under en mikrometer på 500 km, så spillerposisjon, lagring og logikk bruker alltid disse.
+  langt under en millimeter på 100 km, så spillerposisjon, lagring og logikk bruker alltid disse.
 - **Render-koordinater** = verden − `origin`. GPU-en regner i float32, som bare
-  har ~7 sifre: på 250 km blir det centimeter-hopp og skjelvende geometri.
+  har ~7 sifre: 50 km ut blir det millimeter-hopp som gir skjelvende skygger,
+  kamera og fysikk.
   Derfor ser three.js aldri store tall.
 - **Flytende origo** (`state/runtime.ts`): når spilleren er mer enn
   `REBASE_DISTANCE` (2 km) fra `origin`, flyttes origo til spilleren.
@@ -81,8 +89,10 @@ Nye systemer får sin egen mappe (`src/quests/`, `src/npc/` …) og kobles inn i
 
 ### Chunking
 
-- Chunk = 1 × 1 km (`CHUNK_SIZE`). Verden har 500 × 500 = 250 000 chunks, men bare
-  ca. 320 er lastet om gangen (sirkel med radius `VIEW_RADIUS` = 10 chunks).
+- Chunk = 1 × 1 km (`CHUNK_SIZE`). Verden har 100 × 100 = 10 000 chunks, men bare
+  ca. 350 er lastet om gangen (sirkel med radius `VIEW_RADIUS` = 10 chunks).
+- Terrengets form styres av `TERRAIN` i `config/world.ts` (skala på kontinenter,
+  fjell, åser, og kystbredden mot verdenskanten).
 - Chunk-nøkkel: `"cx,cz"`. `worldToChunk()` gjør om fra meter til chunk.
 - Terrenget er en **ren funksjon** (`heightAt`), så ingenting lagres: en chunk kan
   bygges på nytt når som helst og blir helt lik. Samme seed = samme verden overalt.
@@ -142,7 +152,7 @@ Bruk aldri positiv `useFrame`-prioritet uten å ta over renderingen bevisst.
 |---|---|
 | float32 på GPU → skjelving langt fra origo | Flytende origo + lokale chunk-vertekser |
 | Z-fighting over 14 km siktlinje | `logarithmicDepthBuffer: true`, near 0.5 m |
-| Minne: 250 000 chunks passer ikke | Bare ~320 lastet; `dispose()` ved utlasting |
+| Minne: 10 000 chunks passer ikke | Bare ~350 lastet; `dispose()` ved utlasting |
 | Terrenggenerering blokkerer frames | Web Workers + Transferables |
 | Opplastingstopper når mange chunks blir ferdige | Tidsbudsjett per frame |
 | Mange draw calls | Delt materiale; props som `InstancedMesh` (2 per chunk) |
@@ -177,14 +187,33 @@ LRU-cache av geometrier for å slippe å bygge chunks man nettopp forlot.
 - Taster leses med `event.code` (fysisk posisjon), så WASD virker på norsk tastatur.
 - Placeholders er enkle former (plan, kuber, sfærer) til ekte modeller kommer.
 
-## Design
+## Kunstretning og design
 
-Utseendet følger **Duskwood Academy**-designsystemet: low-poly, flat shading,
-skumringshimmel (`skyZenith` → `skyGlow`), furugrønt, sand, krystall-lilla og
-lampegult. HUD bruker Dusk-temaet (mørkt glass), Fredoka for titler/tall og
-Nunito for tekst. Tekst på HUD holder minst 4,5:1 kontrast.
+**Valgt retning: C · nær realistisk** (brukerens valg). Fysisk basert lys og
+himmel, PBR-materialer med normal maps, dempede naturfarger, dis over fjell.
+Høyest detalj nær spilleren, optimalisert på avstand. «Høy detalj» betyr ikke
+maks polygoner overalt: prioriter lys, materialer, silhuetter og teksturer.
+
+Dagens low-poly/flat shading er et mellomstadium som byttes ut steg for steg.
+Duskwood-paletten (`design/tokens.ts`) beholdes for stemning (gyllen time,
+krystall-lilla, lampegult) og for HUD. HUD bruker Dusk-temaet (mørkt glass),
+Fredoka for titler/tall og Nunito for tekst, med minst 4,5:1 kontrast.
+
+### Innhold: prosedyralt først
+
+- **Alt lages prosedyralt i kode** der det går: terreng, teksturer, gress,
+  stein, himmel, vann, vær, vegetasjon.
+- **Gratis CC0-pakker** (f.eks. Quaternius, Kenney, Poly Haven, ambientCG)
+  brukes bare der de er klart bedre: **dyr, figurer og bygninger**, og **bare når
+  brukeren ber om det**.
+- Hver ekstern fil føres i `CREDITS.md` med kilde og lisens. Repoet er
+  offentlig: ingen betalte eller ikke-frie filer i repoet.
+
+Plattform: bare desktop-nettlesere (Chrome, Firefox, Safari) med tastatur og mus.
+Mobil støttes ikke. Renderer: WebGL2 (materialkoden samles slik at WebGPU kan
+vurderes senere).
 
 ## Kontroller
 
 W A S D gå · Shift løp · Q/E eller dra med musa: snu kamera · scroll: zoom ·
-F: hurtigreise (1,5 km/s) · klikk på minikartet: teleporter.
+F: hurtigreise (500 m/s) · klikk på minikartet: teleporter.

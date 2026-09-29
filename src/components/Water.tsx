@@ -6,7 +6,7 @@ import { world } from '../design/tokens';
 import { origin } from '../state/runtime';
 
 /**
- * The sea: one flat plane covering the whole 500 × 500 km world at sea level.
+ * The sea: one flat plane covering the whole 100 × 100 km world at sea level.
  * It also marks the world's extent: past its edge there is only sky.
  */
 export function Water() {

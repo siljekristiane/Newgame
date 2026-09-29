@@ -1,4 +1,4 @@
-import { SEA_LEVEL, WORLD_SEED, WORLD_SIZE } from '../config/world';
+import { SEA_LEVEL, TERRAIN, WORLD_SEED, WORLD_SIZE } from '../config/world';
 import { hexToRgb, world } from '../design/tokens';
 import { createNoise2D } from './noise';
 
@@ -26,26 +26,26 @@ function fbm(noise: (x: number, y: number) => number, x: number, z: number, octa
   return sum / norm;
 }
 
-/** 0 at the world edge, 1 from 20 km inside it: the world ends in ocean. */
+/** 0 at the world edge, 1 from TERRAIN.coastWidth inside it: the world ends in ocean. */
 function edgeFalloff(x: number, z: number): number {
   const d = Math.min(x, z, WORLD_SIZE - x, WORLD_SIZE - z);
-  const t = Math.min(1, Math.max(0, d / 20_000));
+  const t = Math.min(1, Math.max(0, d / TERRAIN.coastWidth));
   return t * t * (3 - 2 * t);
 }
 
 export function heightAt(x: number, z: number): number {
-  // Large landmasses (~100 km features), biased so most of the world is land.
-  const c = fbm(continent, x / 90_000, z / 90_000, 4) + 0.25;
+  // Large landmasses, biased so most of the world is land.
+  const c = fbm(continent, x / TERRAIN.continentScale, z / TERRAIN.continentScale, 4) + 0.25;
   // Mountain ranges only where the continent is high.
   const mountainMask = Math.max(0, c - 0.1) * 1.6;
-  const ridge = 1 - Math.abs(fbm(mountains, x / 14_000, z / 14_000, 4));
+  const ridge = 1 - Math.abs(fbm(mountains, x / TERRAIN.mountainScale, z / TERRAIN.mountainScale, 4));
   const m = ridge * ridge * mountainMask;
-  const hill = fbm(hills, x / 2_500, z / 2_500, 3);
-  const small = detail(x / 180, z / 180);
+  const hill = fbm(hills, x / TERRAIN.hillScale, z / TERRAIN.hillScale, 3);
+  const small = detail(x / TERRAIN.detailScale, z / TERRAIN.detailScale);
 
   const h = c * 220 + m * 900 + hill * 50 + small * 3;
   const edge = edgeFalloff(x, z);
-  return h * edge + (1 - edge) * -120;
+  return h * edge + (1 - edge) * TERRAIN.oceanFloor;
 }
 
 /** Height colours from the Duskwood World palette. */

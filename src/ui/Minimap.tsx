@@ -5,7 +5,7 @@ import { km } from './format';
 
 const SIZE = 200; // CSS px
 
-/** The whole 500 km world. Click anywhere to teleport there. */
+/** The whole world. Click anywhere to teleport there. */
 export function Minimap() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const base = useRef<HTMLCanvasElement | null>(null);
@@ -80,7 +80,7 @@ export function Minimap() {
         role="img"
       />
       <div className="dw-caption">
-        {image ? `500 × 500 km · klikk for å teleportere` : 'Tegner kart …'}
+        {image ? `${WORLD_SIZE / 1000} × ${WORLD_SIZE / 1000} km · klikk for å teleportere` : 'Tegner kart …'}
       </div>
       <div className="dw-caption">{km(hud.x, 1)} Ø · {km(hud.z, 1)} S</div>
     </div>

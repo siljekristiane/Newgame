@@ -7,7 +7,7 @@ import { heightAt } from '../world/terrain';
  * throttled snapshot through the store (see useGameStore).
  *
  * Coordinate spaces:
- * - world:  meters, 0..WORLD_SIZE, stored as JS numbers (float64, exact enough for 500 km).
+ * - world:  meters, 0..WORLD_SIZE, stored as JS numbers (float64, far more precise than a 100 km world needs).
  * - render: world minus `origin`. Everything handed to Three.js is in render
  *   space, so the GPU (float32) only ever sees numbers within a few km of 0.
  */

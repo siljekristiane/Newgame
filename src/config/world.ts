@@ -2,12 +2,26 @@
  * World-wide constants. 1 world unit = 1 meter.
  * World coordinates run from 0 to WORLD_SIZE on X (east) and Z (south).
  */
-export const WORLD_SIZE = 500_000; // 500 km
+export const WORLD_SIZE = 100_000; // 100 km
 export const CHUNK_SIZE = 1_000; // 1 km
-export const CHUNKS_PER_SIDE = WORLD_SIZE / CHUNK_SIZE; // 500
+export const CHUNKS_PER_SIDE = WORLD_SIZE / CHUNK_SIZE; // 100
 
 export const WORLD_SEED = 1337;
 export const SEA_LEVEL = 0;
+
+/**
+ * Terrain shape, in meters. Scales are the size of one noise "feature"; they are
+ * tuned to the world size so a 100 km world still holds several landmasses.
+ */
+export const TERRAIN = {
+  continentScale: 30_000,
+  mountainScale: 7_000,
+  hillScale: 2_500,
+  detailScale: 180,
+  /** Land fades into ocean over this distance from the world edge. */
+  coastWidth: 6_000,
+  oceanFloor: -120,
+} as const;
 
 /** Where the player starts: the middle of the world. */
 export const SPAWN = { x: WORLD_SIZE / 2, z: WORLD_SIZE / 2 };
@@ -49,7 +63,7 @@ export const PLAYER = {
   radius: 1,
   walkSpeed: 8, // m/s
   runSpeed: 40, // m/s with Shift
-  travelSpeed: 1_500, // m/s in fast-travel mode (F), to cross 500 km in ~6 minutes
+  travelSpeed: 500, // m/s in fast-travel mode (F), to cross 100 km in ~3 minutes
 } as const;
 
 export const MINIMAP_RESOLUTION = 256;
