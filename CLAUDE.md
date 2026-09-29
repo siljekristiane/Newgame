@@ -20,12 +20,38 @@ npm install        # installer avhengigheter
 npm run dev        # utviklingsserver på http://localhost:5173
 npm run build      # typesjekk + produksjonsbygg til dist/
 npm run preview    # server dist/ lokalt
-npm run typecheck  # bare TypeScript
-npm test           # enhetstester (Vitest)
+npm run typecheck  # TypeScript (app + e2e)
+npm run lint       # ESLint
+npm test           # enhetstester (Vitest, src/**/*.test.ts)
+npm run check      # lint + typecheck + test + build
+npm run e2e        # nettlesertester (Playwright) mot produksjonsbygget
+npm run measure    # målinger + skjermbilder av de faste vinklene → measurements/
 ```
 
-Før du sier at noe er ferdig: `npm run typecheck && npm test && npm run build`
-skal gå grønt, og endringer i scenen skal sjekkes i en ekte nettleser.
+Playwright trenger Chromium: `npx playwright install chromium`, eller sett
+`PW_CHROMIUM_PATH` til en installert Chromium (i Claude-skyen:
+`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`).
+
+Før du sier at noe er ferdig: `npm run check` og `npm run e2e` skal gå grønt, og
+endringer i scenen skal sjekkes i en ekte nettleser. CI (`.github/workflows/ci.yml`)
+kjører det samme ved hver push.
+
+### Måle før og etter
+
+- **F3** viser ytelsespanelet: FPS, bildetid (snitt og 95 %), draw calls,
+  trekanter, geometrier, teksturer, shadere, JS-minne, chunks per LOD og hvor
+  lenge strømmingen brukte. Rødt = over budsjett (se «Ytelse»).
+- **Faste kameravinkler** (`src/debug/views.ts`): spawn, coast, valley,
+  mountain, edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
+  knappene i F3-panelet. Samme vinkel før og etter = sammenlignbare bilder.
+- `npm run measure` skriver tall og skjermbilder til `measurements/<tid>/`.
+  Referansen før fase 2 ligger i `docs/measurements/baseline/`. En større visuell
+  endring skal måles og sammenlignes med forrige måling i oppsummeringen.
+- `window.__duskwood` (`src/debug/testApi.ts`) er testkroken e2e bruker:
+  `setView`, `isSettled`, `debug`, `hud`. Den leser bare state og flytter
+  spilleren til faste vinkler.
+- FPS målt med programvare-rendering (SwiftShader, som i skyen og CI) er ikke
+  representativ. Draw calls, trekanter, minne og innlastingstid er det.
 
 ## Tech stack
 
@@ -50,6 +76,7 @@ src/
     runtime.ts            Muterbar per-frame-state: player, origin, cameraRig, input
     useGameStore.ts       zustand: HUD-snapshot, hurtigreise, minikart, teleport
   input/useControls.ts    Tastatur (event.code) og mus/scroll
+  debug/                  Faste kameravinkler, bildetidsmåler, testkrok (window.__duskwood)
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     terrain.ts            heightAt(x, z) og colorAt(): verdenen som ren funksjon
@@ -60,8 +87,10 @@ src/
     ChunkManager.ts       Streaming: plan → dispatch → upload → unload
     *.test.ts             Enhetstester
   components/             R3F-komponenter: Scene, GameLoop, Terrain, Player,
-                          FollowCamera, Sky, Water
-  ui/                     HUD, minikart, formattering (norsk tallformat)
+                          FollowCamera, Sky, Water, DebugProbe
+  ui/                     HUD, minikart, F3-panel, formattering (norsk tallformat)
+e2e/                      Playwright: smoke.spec.ts (hver endring), measure.spec.ts
+docs/measurements/        Lagrede målinger (baseline = før fase 2)
 ```
 
 Nye systemer får sin egen mappe (`src/quests/`, `src/npc/` …) og kobles inn i
@@ -117,8 +146,9 @@ Tåke (`CAMERA.fogNear/fogFar`) skjuler kanten ved 10 km.
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
-   `UNLOAD_RADIUS` (frigjør GPU-minne med `dispose()`), lag kø av manglende og
-   feil-LOD-chunks, nærmest først.
+   `UNLOAD_RADIUS` (frigjør GPU-minne med `dispose()`), og chunks utenfor
+   ønsket sirkel som ikke er grove (rester etter lange hopp). Lag så kø av
+   manglende og feil-LOD-chunks, nærmest først.
 2. **dispatch**: maks `MAX_INFLIGHT_BUILDS` jobber ute hos workers samtidig.
 3. **upload**: gjør worker-data om til `BufferGeometry`. Minst
    `MAX_MESH_UPLOADS_PER_FRAME` per frame, mer hvis det er tid igjen innen
@@ -159,6 +189,11 @@ Bruk aldri positiv `useFrame`-prioritet uten å ta over renderingen bevisst.
 | Fjerne detaljer koster trekanter | LOD-ringer; props bare i LOD 0–1 |
 | Stor fane på pause → enorm `delta` | `dt` klemmes til 0,1 s |
 | Høy DPI | `dpr={[1, 1.75]}` |
+
+Målt referanse (`docs/measurements/baseline/`, før fase 2): 24–148 draw calls
+og 78–136 k trekanter i bildet (frustum culling fjerner det meste bak kameraet),
+ca. 350–400 chunks lastet, 10–11 s til ferdig strømmet verden ved første
+innlasting i programvare-rendering.
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig
@@ -216,4 +251,4 @@ vurderes senere).
 ## Kontroller
 
 W A S D gå · Shift løp · Q/E eller dra med musa: snu kamera · scroll: zoom ·
-F: hurtigreise (500 m/s) · klikk på minikartet: teleporter.
+F: hurtigreise (500 m/s) · klikk på minikartet: teleporter · F3: ytelsespanel.

@@ -13,6 +13,11 @@ export function useControls(target: HTMLElement | null): void {
     const down = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
       if (e.code === 'KeyF' && !e.repeat) useGameStore.getState().toggleTravelMode();
+      if (e.code === 'F3') {
+        e.preventDefault(); // F3 is "find" in most browsers
+        if (!e.repeat) useGameStore.getState().toggleDebug();
+        return;
+      }
       if (GAME_KEYS.has(e.code)) e.preventDefault();
       input.keys.add(e.code);
     };

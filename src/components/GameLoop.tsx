@@ -17,7 +17,6 @@ const HUD_INTERVAL = 0.2; // seconds
  */
 export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: WorkerPool }) {
   const hudTimer = useRef(0);
-  const frames = useRef(0);
 
   useEffect(() => {
     pool.buildMinimap(MINIMAP_RESOLUTION).then((pixels) => {
@@ -67,11 +66,9 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
 
     manager.update(player.x, player.z);
 
-    frames.current++;
     hudTimer.current += rawDelta;
     if (hudTimer.current >= HUD_INTERVAL) {
       const { cx, cz } = worldToChunk(player.x, player.z);
-      const stats = manager.stats();
       useGameStore.getState().setHud({
         x: player.x,
         z: player.z,
@@ -80,12 +77,7 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
         speed: player.speed,
         cx,
         cz,
-        fps: Math.round(frames.current / hudTimer.current),
-        loadedChunks: stats.loaded,
-        pendingChunks: stats.pending,
-        lodCounts: stats.lodCounts,
       });
-      frames.current = 0;
       hudTimer.current = 0;
     }
   }, -1);

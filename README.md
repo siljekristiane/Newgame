@@ -17,6 +17,17 @@ npm install
 npm run dev
 ```
 
+Sjekker og tester:
+
+```bash
+npm run check    # lint, typesjekk, enhetstester og bygg
+npm run e2e      # nettlesertester (første gang: npx playwright install chromium)
+npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
+```
+
+Åpne en fast kameravinkel direkte med `#v-spawn`, `#v-coast`, `#v-valley`,
+`#v-mountain` eller `#v-edge` i adressen. **F3** viser ytelsespanelet.
+
 ## Kontroller
 
 | Tast | Handling |
@@ -27,6 +38,7 @@ npm run dev
 | Q / E, eller dra med musa | Snu kameraet |
 | Scroll | Zoom |
 | Klikk på minikartet | Teleporter dit |
+| F3 | Ytelsespanel av/på |
 
 ## Hva som finnes nå
 

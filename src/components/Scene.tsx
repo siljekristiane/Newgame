@@ -3,6 +3,7 @@ import { CAMERA } from '../config/world';
 import { world } from '../design/tokens';
 import { ChunkManager } from '../world/ChunkManager';
 import { WorkerPool } from '../world/workerPool';
+import { DebugProbe } from './DebugProbe';
 import { FollowCamera } from './FollowCamera';
 import { GameLoop } from './GameLoop';
 import { Player } from './Player';
@@ -17,6 +18,8 @@ export function Scene() {
   useEffect(() => {
     const pool = new WorkerPool();
     const manager = new ChunkManager(pool);
+    // Workers are an external resource: they must be created (and torn down) in an effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSystems({ pool, manager });
     return () => {
       manager.dispose();
@@ -38,6 +41,7 @@ export function Scene() {
       <Player />
       <GameLoop manager={manager} pool={pool} />
       <FollowCamera />
+      <DebugProbe manager={manager} />
     </>
   );
 }

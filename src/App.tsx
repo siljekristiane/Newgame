@@ -2,12 +2,14 @@ import { Canvas } from '@react-three/fiber';
 import { useState } from 'react';
 import { CAMERA } from './config/world';
 import { Scene } from './components/Scene';
+import { useViewHash } from './debug/useViewHash';
 import { useControls } from './input/useControls';
 import { Hud } from './ui/Hud';
 
 export function App() {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   useControls(canvas);
+  useViewHash();
 
   return (
     <>

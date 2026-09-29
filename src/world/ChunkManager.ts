@@ -79,8 +79,15 @@ export class ChunkManager {
     const center = this.center!;
     let changed = false;
 
+    const wanted = desiredChunks(center, VIEW_RADIUS);
+    const wantedKeys = new Set(wanted.map((w) => chunkKey(w.cx, w.cz)));
+    const coarsest = LOD_LEVELS.length - 1;
     for (const [key, chunk] of this.chunks) {
-      if (chunkDistance(center, chunk) > UNLOAD_RADIUS) {
+      // Chunks outside the wanted circle are only kept while coarse and close
+      // (so the edge doesn't flicker). A finer one, left there by a long jump,
+      // would never be re-planned, so drop it.
+      const unwanted = !wantedKeys.has(key);
+      if (chunkDistance(center, chunk) > UNLOAD_RADIUS || (unwanted && chunk.lod !== coarsest)) {
         chunk.geometry.dispose();
         this.chunks.delete(key);
         changed = true;
@@ -88,7 +95,7 @@ export class ChunkManager {
     }
 
     this.queue = [];
-    for (const want of desiredChunks(center, VIEW_RADIUS)) {
+    for (const want of wanted) {
       const key = chunkKey(want.cx, want.cz);
       const have = this.chunks.get(key);
       if (have?.lod === want.lod || this.inflight.get(key) === want.lod) continue;

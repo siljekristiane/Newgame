@@ -1,6 +1,6 @@
-import { LOD_LEVELS } from '../config/world';
 import { useGameStore } from '../state/useGameStore';
 import { compass, km, meters } from './format';
+import { DebugPanel } from './DebugPanel';
 import { Minimap } from './Minimap';
 
 export function Hud() {
@@ -24,36 +24,18 @@ export function Hud() {
 
       <Minimap />
 
-      <div className="dw-panel dw-stats">
-        <div className="dw-panel-title">Ytelse</div>
-        <dl>
-          <dt>FPS</dt><dd>{hud.fps}</dd>
-          <dt>Chunks lastet</dt><dd>{hud.loadedChunks}</dd>
-          <dt>I kø</dt><dd>{hud.pendingChunks}</dd>
-          {LOD_LEVELS.map((level, i) => (
-            <FragmentRow key={i} label={`LOD ${i} (${level.segments}²)`} value={hud.lodCounts[i] ?? 0} />
-          ))}
-        </dl>
-      </div>
+      <DebugPanel />
 
       <div className="dw-panel dw-help">
         <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gå</span>
         <span><kbd>Shift</kbd> løp</span>
         <span><kbd>Q</kbd><kbd>E</kbd> / dra med mus: snu kamera</span>
         <span>Scroll: zoom</span>
+        <span><kbd>F3</kbd> ytelse</span>
         <button type="button" className={travel ? 'dw-btn dw-btn-primary' : 'dw-btn'} onClick={toggleTravel} aria-pressed={travel}>
           <kbd>F</kbd> Hurtigreise {travel ? 'på' : 'av'}
         </button>
       </div>
     </div>
-  );
-}
-
-function FragmentRow({ label, value }: { label: string; value: number }) {
-  return (
-    <>
-      <dt>{label}</dt>
-      <dd>{value}</dd>
-    </>
   );
 }

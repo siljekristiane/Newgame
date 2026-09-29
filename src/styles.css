@@ -11,6 +11,7 @@
   --on-accent: #1f1a2a;
   --glow: #f5d83a;
   --focus-ring: #f5d83a;
+  --danger: #ff8a70;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -57,7 +58,13 @@ canvas { display: block; touch-action: none; }
 .dw-coords { top: var(--space-4); left: var(--space-4); min-width: 210px; }
 .dw-minimap { top: var(--space-4); right: var(--space-4); }
 .dw-minimap canvas { border-radius: var(--radius-md); cursor: crosshair; border: 2px solid var(--line-strong); }
-.dw-stats { bottom: var(--space-4); right: var(--space-4); min-width: 200px; }
+.dw-stats { bottom: var(--space-4); right: var(--space-4); width: 300px; font-size: 13px; line-height: 18px; padding: var(--space-3); }
+.dw-stats dl { grid-template-columns: auto 1fr; }
+.dw-stats dt { white-space: nowrap; }
+.dw-stats .dw-panel-title { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }
+.dw-warn { color: var(--danger); }
+.dw-views { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-3); }
+.dw-btn-sm { height: 28px; padding: 0 var(--space-2); font-size: 12px; line-height: 16px; border-width: 1px; }
 .dw-help {
   bottom: var(--space-4); left: var(--space-4);
   display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center;
