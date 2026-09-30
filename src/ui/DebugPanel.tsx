@@ -3,6 +3,7 @@ import { applyView, VIEWS } from '../debug/views';
 import { useGameStore } from '../state/useGameStore';
 import { clockTime } from './format';
 import type { WeatherMode } from '../weather/weather';
+import type { QualityLevel } from '../config/world';
 
 /** Budgets from CLAUDE.md. Over budget shows a warning, in words as well as colour. */
 const BUDGET = { drawCalls: 500, triangles: 1_500_000, frameMs: 1000 / 60 };
@@ -22,6 +23,10 @@ export function DebugPanel() {
   const vegetation = useGameStore((s) => s.vegetation);
   const setVegetation = useGameStore((s) => s.setVegetation);
   const weatherMode = useGameStore((s) => s.weatherMode);
+  const quality = useGameStore((s) => s.quality);
+  const setQuality = useGameStore((s) => s.setQuality);
+  const grass = useGameStore((s) => s.grass);
+  const setGrass = useGameStore((s) => s.setGrass);
   const setWeatherMode = useGameStore((s) => s.setWeatherMode);
   const hours = useGameStore((s) => s.hud.hours);
   const timePaused = useGameStore((s) => s.timePaused);
@@ -64,6 +69,14 @@ export function DebugPanel() {
         <dd>{d.settleMs === null ? 'laster …' : `${nb(d.settleMs / 1000, 1)} s`}</dd>
       </dl>
       <label className="dw-toggle">
+        Kvalitet
+        <select value={quality ?? 'high'} onChange={(e) => setQuality(e.target.value as QualityLevel)}>
+          <option value="low">Lav</option>
+          <option value="medium">Middels</option>
+          <option value="high">Høy</option>
+        </select>
+      </label>
+      <label className="dw-toggle">
         <input type="checkbox" checked={geomorph} onChange={(e) => setGeomorph(e.target.checked)} /> Myke LOD-overganger
       </label>
       <label className="dw-toggle">
@@ -75,6 +88,9 @@ export function DebugPanel() {
       </label>
       <label className="dw-toggle">
         <input type="checkbox" checked={vegetation} onChange={(e) => setVegetation(e.target.checked)} /> Vegetasjon
+      </label>
+      <label className="dw-toggle">
+        <input type="checkbox" checked={grass} onChange={(e) => setGrass(e.target.checked)} /> Gress
       </label>
       <label className="dw-toggle">
         Vær

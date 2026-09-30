@@ -42,7 +42,7 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 | M | Stort kart (klikk for å teleportere, Esc lukker) |
 | N | Skjul/vis minikartet |
 | Klikk på minikartet | Teleporter dit |
-| F3 | Ytelsespanel av/på (også klokke, vær, skygger, teksturer og vegetasjon) |
+| F3 | Ytelsespanel av/på (også kvalitet, klokke, vær, skygger, teksturer, vegetasjon og gress) |
 
 ## Hva som finnes nå
 
@@ -59,6 +59,7 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 - Flytende origo, så det ikke skjelver langt ute i verden
 - Spiller (plassholder) med myk bevegelse, hopp og musestyrt tredjepersonskamera
 - HUD med posisjon i km, høyde, retning, fart og ytelsestall
+- Kvalitetsnivåer (Lav/Middels/Høy) valgt automatisk etter skjermkortet, kan endres i F3
 - Kompass, minikart som kan skjules og stort kart med rutenett, alle med klikk-for-å-teleportere
 
 Arkitektur og kodestandard står i [CLAUDE.md](./CLAUDE.md).

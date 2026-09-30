@@ -48,6 +48,11 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
 - `step-9/`: kompass, skjulbart minikart og stort kart (`bigmap.jpg`). Samme
   rendertall som steg 8; F3-panelet er skjult som standard, målingen slår det på.
 
+- `step-10a/`: kvalitetsnivåer. Målingen setter «Høy», så rendertallene er som
+  før; shadere 29 → 37 fordi spillet først velger «Lav» i SwiftShader og så får
+  begge variantene. `spawn-quality-low.jpg`: automatisk «Lav» (uten teksturer,
+  skygger og gress).
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

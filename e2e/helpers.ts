@@ -43,6 +43,8 @@ export async function openGame(page: Page, hash = '', { textures = false, shadow
   // Fixed light, so screenshots taken seconds apart are comparable.
   await page.evaluate(() => window.__duskwood!.setTime(15, true));
   await page.evaluate(() => window.__duskwood!.setWeather('clear'));
+  // Start from the full preset (software rendering would pick 'low'), then switch off what the test does not need.
+  await page.evaluate(() => window.__duskwood!.setQuality('high'));
   if (!textures) await page.evaluate(() => window.__duskwood!.setTerrainTextures(false));
   if (!shadows) await page.evaluate(() => window.__duskwood!.setShadows(false));
   if (!vegetation) await page.evaluate(() => window.__duskwood!.setVegetation(false));

@@ -1,5 +1,6 @@
 import type { DebugSnapshot, HudSnapshot } from '../state/useGameStore';
 import type { WeatherMode } from '../weather/weather';
+import type { QualityLevel } from '../config/world';
 
 /**
  * A small window API for automated browser tests and measurements
@@ -18,6 +19,8 @@ export interface DuskwoodTestApi {
   setVegetation: (on: boolean) => void;
   /** Pins the weather ('auto' = follow the weather model). */
   setWeather: (mode: WeatherMode) => void;
+  /** Applies a quality preset (not remembered). */
+  setQuality: (level: QualityLevel) => void;
   /** Terrain detail textures on/off. */
   setTerrainTextures: (on: boolean) => void;
   /** Moves the player to world meters (x, z), like a minimap click. */

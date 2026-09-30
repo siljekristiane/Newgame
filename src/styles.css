@@ -58,7 +58,7 @@ canvas { display: block; touch-action: none; }
 .dw-coords { top: var(--space-4); left: var(--space-4); min-width: 210px; }
 .dw-minimap { top: var(--space-4); right: var(--space-4); }
 .dw-minimap canvas { border-radius: var(--radius-md); cursor: crosshair; border: 2px solid var(--line-strong); }
-.dw-stats { bottom: var(--space-4); right: var(--space-4); width: 300px; font-size: 13px; line-height: 18px; padding: var(--space-3); }
+.dw-stats { bottom: var(--space-4); right: var(--space-4); width: 300px; font-size: 13px; line-height: 18px; padding: var(--space-3); max-height: calc(100vh - 340px); overflow-y: auto; }
 .dw-stats dl { grid-template-columns: auto 1fr; }
 .dw-stats dt { white-space: nowrap; }
 .dw-stats .dw-panel-title { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }

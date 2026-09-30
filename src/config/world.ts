@@ -234,6 +234,9 @@ export const UNLOAD_RADIUS = VIEW_RADIUS + 1;
 export const REBASE_DISTANCE = 2_000;
 
 /** How many chunk builds may be in flight at once, and meshes added per frame. */
+/** Chunks kept (with their GPU geometry) after they leave, for a quick return. */
+export const CHUNK_CACHE_SIZE = 96;
+
 export const MAX_INFLIGHT_BUILDS = 8;
 export const MAX_MESH_UPLOADS_PER_FRAME = 4;
 /** Extra meshes may be added while the frame has spent less than this (ms) on uploads. */

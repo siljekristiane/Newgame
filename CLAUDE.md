@@ -82,6 +82,7 @@ src/
   regions/                Håndlagde områder: stempling i terrenget + spawn/ (plass, stier)
   player/                 Bevegelsesmodell (ren, testet)
   weather/                Værmodell, skystøy, regn og snø
+  settings/               Kvalitetsnivåer: valg fra GPU-navn, lagring i nettleseren
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     naturalTerrain.ts     naturalHeightAt(x, z): terrengformen uten regioner
@@ -357,6 +358,18 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   Et skarpere kart (`BIG_MAP_RESOLUTION` = 512) lages i workeren etter minikartet.
 - **Ytelsespanelet** (F3) er skjult som standard; `npm run measure` slår det på
   for skjermbildene. Kartfarger kommer fra `mapPalette` i `design/tokens.ts`.
+
+### Kvalitetsnivåer (steg 10)
+
+- `QUALITY` i `config/world.ts`: **Lav** (piksel­tetthet 1, uten skygger,
+  teksturer og gress), **Middels** (1,25, skygger og teksturer, uten gress) og
+  **Høy** (1,75, alt på). Trær er med på alle nivåer.
+- `settings/quality.ts` (testet): første gang velges nivå fra skjermkortets
+  navn (`WEBGL_debug_renderer_info`): programvare (SwiftShader, llvmpipe) → Lav,
+  integrert (Intel, Mali …) → Middels, ellers Høy. Et valg i F3 lagres i
+  `localStorage` (try/catch: uten lagring gjelder det bare dette besøket).
+- `QualityInit` monteres først i scenen; e2e og `measure` setter `high` etterpå
+  og slår så av det testen ikke trenger, så resultatene er like på alle maskiner.
 
 ### Streaming (`ChunkManager`)
 

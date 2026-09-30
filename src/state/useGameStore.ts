@@ -3,6 +3,8 @@ import { SPAWN, TIME } from '../config/world';
 import { clampToWorld } from '../world/chunkMath';
 import { clock, player } from './runtime';
 import type { WeatherMode } from '../weather/weather';
+import { QUALITY, type QualityLevel } from '../config/world';
+import { saveQuality } from '../settings/quality';
 
 export interface HudSnapshot {
   x: number;
@@ -55,6 +57,10 @@ interface GameState {
   pointerLocked: boolean;
   /** Weather: 'auto' follows the weather model; the others pin it (F3). */
   weatherMode: WeatherMode;
+  /** Quality preset (null until detected from the GPU at start). */
+  quality: QualityLevel | null;
+  /** Grass tufts round the player (part of the quality presets). */
+  grass: boolean;
   timePaused: boolean;
   minimap: ImageData | null;
   /** Sharper world map for the big map (M), made after the minimap. */
@@ -74,6 +80,9 @@ interface GameState {
   setVegetation: (on: boolean) => void;
   setPointerLocked: (locked: boolean) => void;
   setWeatherMode: (mode: WeatherMode) => void;
+  /** Applies a preset: pixel ratio, shadows, textures, vegetation, grass. `remember` stores the choice in this browser. */
+  setQuality: (level: QualityLevel, remember?: boolean) => void;
+  setGrass: (on: boolean) => void;
   /** Sets the in-game clock (hours 0..24); `paused` stops it from advancing. */
   setTime: (hours: number, paused?: boolean) => void;
   setMinimap: (image: ImageData) => void;
@@ -110,6 +119,8 @@ export const useGameStore = create<GameState>((set) => ({
   vegetation: true,
   pointerLocked: false,
   weatherMode: 'auto',
+  quality: null,
+  grass: true,
   timePaused: false,
   minimap: null,
   bigMap: null,
@@ -127,6 +138,12 @@ export const useGameStore = create<GameState>((set) => ({
   setVegetation: (vegetation) => set({ vegetation }),
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),
   setWeatherMode: (weatherMode) => set({ weatherMode }),
+  setQuality: (level, remember = true) => {
+    const q = QUALITY[level];
+    if (remember) saveQuality(level);
+    set({ quality: level, shadows: q.shadows, detailOn: q.textures, vegetation: q.vegetation, grass: q.grass });
+  },
+  setGrass: (grass) => set({ grass }),
   setTime: (hours, paused) => {
     clock.hours = ((hours % 24) + 24) % 24;
     if (paused !== undefined) clock.paused = paused;

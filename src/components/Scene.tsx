@@ -7,6 +7,7 @@ import { FollowCamera } from './FollowCamera';
 import { GameLoop } from './GameLoop';
 import { Grass } from './Grass';
 import { Player } from './Player';
+import { QualityInit } from './QualityInit';
 import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
@@ -33,6 +34,7 @@ export function Scene() {
 
   return (
     <>
+      <QualityInit />
       <Atmosphere />
       <Water pool={pool} />
       <Terrain manager={manager} />

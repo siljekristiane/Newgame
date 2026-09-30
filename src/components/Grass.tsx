@@ -18,7 +18,7 @@ const GRID = Math.ceil((GRASS.radius * 2) / GRASS.cell);
  * chunk and its neighbours; it is rebuilt when the player changes chunk.
  */
 export function Grass({ pool }: { pool: WorkerPool }) {
-  const vegetation = useGameStore((s) => s.vegetation);
+  const vegetation = useGameStore((s) => s.vegetation && s.grass);
 
   const { mesh, state } = useMemo(() => {
     const tuft = createTuftGeometry();
