@@ -345,6 +345,19 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   Forflytningen summeres på CPU-en (float64), så vindskifter ikke får dråpene
   til å hoppe, og de står stille i verden når du går gjennom dem.
 
+### UI (steg 9)
+
+- **Kompass** (`ui/Compass.tsx`) øverst i midten: retningen kameraet ser, med
+  en lilla markør mot startplassen. Oppdateres hvert bilde med
+  `requestAnimationFrame` direkte fra `runtime` (CSS-transform), uten React.
+- **Minikart** kan skjules med **N** (eller knappen), og **M** åpner det store
+  kartet (`ui/BigMap.tsx`): hele verden med 10 km-rutenett, spilleren,
+  innlastet område og startplassen; koordinater ved hover, klikk teleporterer.
+  Esc eller M lukker. Kartet slipper musepekeren (pointer lock) når det åpnes.
+  Et skarpere kart (`BIG_MAP_RESOLUTION` = 512) lages i workeren etter minikartet.
+- **Ytelsespanelet** (F3) er skjult som standard; `npm run measure` slår det på
+  for skjermbildene. Kartfarger kommer fra `mapPalette` i `design/tokens.ts`.
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -496,5 +509,5 @@ vurderes senere).
 ## Kontroller
 
 W A S D gå · Shift løp · Mellomrom hopp · klikk: styr kamera med musa (Esc slipper) · Q/E eller dra: snu kamera · scroll: zoom ·
-F: hurtigreise (500 m/s) · klikk på minikartet: teleporter · F3: ytelsespanel
+F: hurtigreise (500 m/s) · M: stort kart · N: skjul/vis minikart · klikk på kartet: teleporter · F3: ytelsespanel
 (også tid på døgnet, skygger, teksturer, myke LOD-overganger).

@@ -1,6 +1,8 @@
 import { useGameStore } from '../state/useGameStore';
 import { clockTime, compass, km, meters } from './format';
 import { DebugPanel } from './DebugPanel';
+import { BigMap } from './BigMap';
+import { Compass } from './Compass';
 import { Minimap } from './Minimap';
 
 export function Hud() {
@@ -24,7 +26,11 @@ export function Hud() {
         </dl>
       </div>
 
+      <Compass />
+
       <Minimap />
+
+      <BigMap />
 
       <DebugPanel />
 
@@ -34,6 +40,7 @@ export function Hud() {
         <span><kbd>Mellomrom</kbd> hopp</span>
         <span>{pointerLocked ? <><kbd>Esc</kbd> slipp musa</> : <>Klikk: styr kamera med musa · <kbd>Q</kbd><kbd>E</kbd> snu</>}</span>
         <span>Scroll: zoom</span>
+        <span><kbd>M</kbd> kart</span>
         <span><kbd>F3</kbd> ytelse</span>
         <button type="button" className={travel ? 'dw-btn dw-btn-primary' : 'dw-btn'} onClick={toggleTravel} aria-pressed={travel}>
           <kbd>F</kbd> Hurtigreise {travel ? 'på' : 'av'}

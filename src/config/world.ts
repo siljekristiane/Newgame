@@ -264,4 +264,17 @@ export const PLAYER = {
   mouseSensitivity: 0.0025,
 } as const;
 
+/**
+ * Quality presets (step 10, F3). `dprMax` caps the pixel ratio; the rest
+ * switch features on. The first choice is detected from the GPU name.
+ */
+export type QualityLevel = 'low' | 'medium' | 'high';
+export const QUALITY: Record<QualityLevel, { dprMax: number; shadows: boolean; textures: boolean; vegetation: boolean; grass: boolean }> = {
+  low: { dprMax: 1, shadows: false, textures: false, vegetation: true, grass: false },
+  medium: { dprMax: 1.25, shadows: true, textures: true, vegetation: true, grass: false },
+  high: { dprMax: 1.75, shadows: true, textures: true, vegetation: true, grass: true },
+};
+
 export const MINIMAP_RESOLUTION = 256;
+/** The big map (M): 512² texels over 100 km, ~200 m each. */
+export const BIG_MAP_RESOLUTION = 512;

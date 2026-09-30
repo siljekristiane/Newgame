@@ -45,6 +45,9 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   `weather-cloudy.jpg` (kysten, skyet), `weather-rain.jpg` (spawn i regn) og
   `weather-snow.jpg` (fjelltoppen i snøvær).
 
+- `step-9/`: kompass, skjulbart minikart og stort kart (`bigmap.jpg`). Samme
+  rendertall som steg 8; F3-panelet er skjult som standard, målingen slår det på.
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

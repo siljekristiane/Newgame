@@ -57,6 +57,16 @@ export const vegetationPalette = {
   rock: '#7f7b73',
 } as const;
 
+/** Map and compass drawing (canvas), matching the HUD's Dusk theme. */
+export const mapPalette = {
+  ink: '#1f1a2a',
+  marker: '#f5d83a',
+  place: '#a57ad8',
+  grid: 'rgba(246, 239, 228, 0.28)',
+  label: 'rgba(246, 239, 228, 0.9)',
+  loaded: 'rgba(31, 26, 42, 0.8)',
+} as const;
+
 /** Rain streaks and snow flakes. */
 export const weatherPalette = {
   rain: '#c9d5e2',

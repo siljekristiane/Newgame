@@ -57,6 +57,28 @@ test.describe('Duskwood World', () => {
     await waitUntilSettled(page);
   });
 
+  test('the big map opens with M and teleports on click; N hides the minimap', async ({ page }) => {
+    await openGame(page);
+    await page.keyboard.press('KeyM');
+    const dialog = page.getByRole('dialog', { name: 'Stort kart' });
+    await expect(dialog).toBeVisible();
+    const map = dialog.getByRole('img', { name: /Stort kart over hele verdenen/ });
+    const box = (await map.boundingBox())!;
+    await page.mouse.click(box.x + box.width * 0.7, box.y + box.height * 0.25);
+    await expect(dialog).toBeHidden();
+    await page.waitForTimeout(400);
+    const hud = await page.evaluate(() => window.__duskwood!.hud());
+    expect(hud.x).toBeGreaterThan(69_000);
+    expect(hud.x).toBeLessThan(71_000);
+    expect(hud.z).toBeGreaterThan(24_000);
+    expect(hud.z).toBeLessThan(26_000);
+
+    await page.keyboard.press('KeyN');
+    await expect(page.getByRole('button', { name: /Vis kart/ })).toBeVisible();
+    await page.keyboard.press('KeyN');
+    await expect(page.getByText('Verdenskart')).toBeVisible();
+  });
+
   test('every fixed camera view loads', async ({ page }, testInfo) => {
     const errors = watchForErrors(page);
     await openGame(page);

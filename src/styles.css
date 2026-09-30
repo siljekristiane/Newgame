@@ -94,6 +94,41 @@ kbd {
 .dw-btn-primary kbd { background: var(--surface); color: var(--ink); }
 .dw-btn:focus-visible, .dw-minimap canvas:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
+.dw-minimap-title { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.dw-minimap-title .dw-panel-title { margin: 0; }
+.dw-minimap-actions { display: flex; gap: var(--space-1); }
+.dw-minimap-closed { padding: var(--space-2); }
+
+.dw-compass {
+  position: absolute; top: var(--space-4); left: 50%; transform: translateX(-50%);
+  height: 34px; overflow: hidden; pointer-events: none;
+  background: var(--surface-glass); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float); backdrop-filter: blur(6px);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+.dw-compass-strip { position: absolute; left: 50%; top: 0; height: 100%; }
+.dw-compass-mark {
+  position: absolute; top: 4px; width: 1px; height: 8px; background: var(--line-strong); transform: translateX(-50%);
+}
+.dw-compass-label {
+  width: auto; height: auto; top: 6px; background: none; color: var(--ink);
+  font: 600 15px/20px var(--font-display);
+}
+.dw-compass-home {
+  position: absolute; left: 50%; bottom: 3px; width: 9px; height: 9px; margin-left: -4.5px;
+  background: var(--accent); border: 1px solid var(--surface); transform-origin: center; rotate: 45deg;
+}
+.dw-compass-needle { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--glow); opacity: 0.85; }
+
+.dw-bigmap-backdrop {
+  position: fixed; inset: 0; display: grid; place-items: center; z-index: 10;
+  background: rgba(20, 16, 28, 0.55);
+}
+.dw-bigmap { position: relative; padding: var(--space-3); }
+.dw-bigmap-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2); }
+.dw-bigmap-title .dw-panel-title { margin: 0; }
+.dw-bigmap canvas { display: block; border-radius: var(--radius-md); border: 2px solid var(--line-strong); cursor: crosshair; }
+
 .dw-loading {
   position: fixed; inset: 0; display: grid; place-items: center;
   font: 600 22px/28px var(--font-display); color: var(--ink); pointer-events: none;

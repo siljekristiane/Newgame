@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { CHUNK_SIZE, MINIMAP_RESOLUTION, VIEW_RADIUS, WORLD_SIZE } from '../config/world';
+import { mapPalette } from '../design/tokens';
 import { useGameStore } from '../state/useGameStore';
 import { km } from './format';
 
@@ -12,6 +13,9 @@ export function Minimap() {
   const image = useGameStore((s) => s.minimap);
   const hud = useGameStore((s) => s.hud);
   const teleport = useGameStore((s) => s.teleport);
+  const open = useGameStore((s) => s.minimapOpen);
+  const toggle = useGameStore((s) => s.toggleMinimap);
+  const openBig = useGameStore((s) => s.setBigMapOpen);
 
   useEffect(() => {
     if (!image) return;
@@ -40,7 +44,7 @@ export function Minimap() {
 
     // Loaded area (view radius).
     const r = (VIEW_RADIUS + 0.5) * CHUNK_SIZE * scale;
-    ctx.strokeStyle = 'rgba(31, 26, 42, 0.8)';
+    ctx.strokeStyle = mapPalette.loaded;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(px, pz, Math.max(r, 3), 0, Math.PI * 2);
@@ -50,8 +54,8 @@ export function Minimap() {
     ctx.save();
     ctx.translate(px, pz);
     ctx.rotate(-hud.heading + Math.PI);
-    ctx.fillStyle = '#f5d83a';
-    ctx.strokeStyle = '#1f1a2a';
+    ctx.fillStyle = mapPalette.marker;
+    ctx.strokeStyle = mapPalette.ink;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, -7);
@@ -62,16 +66,36 @@ export function Minimap() {
     ctx.fill();
     ctx.stroke();
     ctx.restore();
-  }, [hud, image]);
+  }, [hud, image, open]);
 
   const onClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     teleport(((e.clientX - rect.left) / rect.width) * WORLD_SIZE, ((e.clientY - rect.top) / rect.height) * WORLD_SIZE);
   };
 
+  if (!open) {
+    return (
+      <div className="dw-panel dw-minimap dw-minimap-closed">
+        <button type="button" className="dw-btn dw-btn-sm" onClick={toggle}>
+          <kbd>N</kbd> Vis kart
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="dw-panel dw-minimap">
-      <div className="dw-panel-title">Verdenskart</div>
+      <div className="dw-minimap-title">
+        <span className="dw-panel-title">Verdenskart</span>
+        <span className="dw-minimap-actions">
+          <button type="button" className="dw-btn dw-btn-sm" onClick={() => openBig(true)} title="Stort kart">
+            <kbd>M</kbd>
+          </button>
+          <button type="button" className="dw-btn dw-btn-sm" onClick={toggle} title="Skjul kartet">
+            <kbd>N</kbd> Skjul
+          </button>
+        </span>
+      </div>
       <canvas
         ref={canvas}
         style={{ width: SIZE, height: SIZE }}

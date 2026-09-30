@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import { MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME, WEATHER } from '../config/world';
+import { BIG_MAP_RESOLUTION, MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME, WEATHER } from '../config/world';
 import { cameraRig, clock, cloudDrift, input, motion, origin, player, rebaseOrigin, weather } from '../state/runtime';
 import { weatherAt } from '../weather/weather';
 import { useGameStore } from '../state/useGameStore';
@@ -22,9 +22,22 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
   const hudTimer = useRef(0);
 
   useEffect(() => {
-    pool.buildMinimap(MINIMAP_RESOLUTION).then((pixels) => {
-      useGameStore.getState().setMinimap(new ImageData(new Uint8ClampedArray(pixels), MINIMAP_RESOLUTION, MINIMAP_RESOLUTION));
-    });
+    let cancelled = false;
+    pool
+      .buildMinimap(MINIMAP_RESOLUTION)
+      .then((pixels) => {
+        if (cancelled) return;
+        useGameStore.getState().setMinimap(new ImageData(new Uint8ClampedArray(pixels), MINIMAP_RESOLUTION, MINIMAP_RESOLUTION));
+        // Then the sharper big map, in the background.
+        return pool.buildMinimap(BIG_MAP_RESOLUTION);
+      })
+      .then((pixels) => {
+        if (pixels && !cancelled) useGameStore.getState().setBigMap(new ImageData(new Uint8ClampedArray(pixels), BIG_MAP_RESOLUTION, BIG_MAP_RESOLUTION));
+      })
+      .catch((err: unknown) => console.warn('[map] world map failed', err));
+    return () => {
+      cancelled = true;
+    };
   }, [pool]);
 
   useFrame((_, rawDelta) => {

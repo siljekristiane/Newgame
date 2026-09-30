@@ -57,6 +57,10 @@ interface GameState {
   weatherMode: WeatherMode;
   timePaused: boolean;
   minimap: ImageData | null;
+  /** Sharper world map for the big map (M), made after the minimap. */
+  bigMap: ImageData | null;
+  minimapOpen: boolean;
+  bigMapOpen: boolean;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
   lastJumpAt: number;
   setHud: (hud: HudSnapshot) => void;
@@ -73,6 +77,9 @@ interface GameState {
   /** Sets the in-game clock (hours 0..24); `paused` stops it from advancing. */
   setTime: (hours: number, paused?: boolean) => void;
   setMinimap: (image: ImageData) => void;
+  setBigMap: (image: ImageData) => void;
+  toggleMinimap: () => void;
+  setBigMapOpen: (open: boolean) => void;
   teleport: (x: number, z: number) => void;
 }
 
@@ -94,7 +101,7 @@ export const useGameStore = create<GameState>((set) => ({
     settleMs: null,
     terrainTextures: false,
   },
-  showDebug: true,
+  showDebug: false,
   travelMode: false,
   geomorph: true,
   detailReady: false,
@@ -105,6 +112,9 @@ export const useGameStore = create<GameState>((set) => ({
   weatherMode: 'auto',
   timePaused: false,
   minimap: null,
+  bigMap: null,
+  minimapOpen: true,
+  bigMapOpen: false,
   lastJumpAt: 0,
   setHud: (hud) => set({ hud }),
   setDebug: (debug) => set({ debug }),
@@ -123,6 +133,9 @@ export const useGameStore = create<GameState>((set) => ({
     set((s) => ({ timePaused: clock.paused, hud: { ...s.hud, hours: clock.hours } }));
   },
   setMinimap: (minimap) => set({ minimap }),
+  setBigMap: (bigMap) => set({ bigMap }),
+  toggleMinimap: () => set((s) => ({ minimapOpen: !s.minimapOpen })),
+  setBigMapOpen: (bigMapOpen) => set({ bigMapOpen }),
   teleport: (x, z) => {
     // The game loop notices the jump and rebases the origin on its next frame.
     player.x = clampToWorld(x);

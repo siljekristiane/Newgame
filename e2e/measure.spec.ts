@@ -20,6 +20,7 @@ test('measure all fixed views @measure', async ({ page }) => {
   await page.waitForFunction(() => window.__duskwood !== undefined, undefined, { timeout: 60_000 });
   await page.evaluate(() => window.__duskwood!.setTime(15, true)); // same light every run
   await page.evaluate(() => window.__duskwood!.setWeather('clear'));
+  await page.keyboard.press('F3'); // show the performance panel in the screenshots
   await waitUntilSettled(page);
   await page.waitForFunction(() => window.__duskwood!.debug().terrainTextures, undefined, { timeout: 120_000 });
   const firstLoad = await page.evaluate(() => window.__duskwood!.debug().settleMs);

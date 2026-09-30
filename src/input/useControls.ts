@@ -17,7 +17,16 @@ export function useControls(target: HTMLElement | null): void {
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
-      if (e.code === 'KeyF' && !e.repeat) useGameStore.getState().toggleTravelMode();
+      const store = useGameStore.getState();
+      if (e.code === 'KeyF' && !e.repeat) store.toggleTravelMode();
+      if (e.code === 'KeyN' && !e.repeat) store.toggleMinimap();
+      if (e.code === 'KeyM' && !e.repeat) {
+        const open = !store.bigMapOpen;
+        store.setBigMapOpen(open);
+        // The map needs the mouse pointer.
+        if (open && document.pointerLockElement) document.exitPointerLock();
+      }
+      if (e.code === 'Escape' && store.bigMapOpen) store.setBigMapOpen(false);
       if (e.code === 'F3') {
         e.preventDefault(); // F3 is "find" in most browsers
         if (!e.repeat) useGameStore.getState().toggleDebug();
