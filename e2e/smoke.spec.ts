@@ -1,15 +1,16 @@
 import { expect, test } from '@playwright/test';
-import { goToView, waitUntilSettled, watchForErrors } from './helpers';
+import { goToView, openGame, waitUntilSettled, watchForErrors } from './helpers';
 
 test.describe('Duskwood World', () => {
-  test('starts without errors and streams in the world', async ({ page }) => {
+  test('starts without errors and streams in the world (with detail textures)', async ({ page }) => {
     const errors = watchForErrors(page);
-    await page.goto('/');
-    await waitUntilSettled(page);
+    await openGame(page, '', { textures: true });
     await page.waitForTimeout(500); // let the 5 Hz snapshot catch up
 
+    await page.waitForFunction(() => window.__duskwood!.debug().terrainTextures, undefined, { timeout: 60_000 });
     const d = await page.evaluate(() => window.__duskwood!.debug());
     expect(d.loadedChunks).toBeGreaterThan(300);
+    expect(d.textures, 'detail textures uploaded').toBeGreaterThanOrEqual(2);
     expect(d.pendingChunks).toBe(0);
     expect(d.lodCounts.every((n) => n > 0)).toBe(true);
     expect(d.drawCalls, 'draw-call budget from CLAUDE.md').toBeLessThanOrEqual(500);
@@ -19,8 +20,7 @@ test.describe('Duskwood World', () => {
   });
 
   test('WASD moves the player', async ({ page }) => {
-    await page.goto('/');
-    await waitUntilSettled(page);
+    await openGame(page);
     const before = await page.evaluate(() => window.__duskwood!.hud());
     await page.locator('canvas').first().focus();
     await page.keyboard.down('KeyW');
@@ -32,8 +32,7 @@ test.describe('Duskwood World', () => {
   });
 
   test('clicking the minimap teleports', async ({ page }) => {
-    await page.goto('/');
-    await waitUntilSettled(page);
+    await openGame(page);
     const map = page.getByRole('img', { name: /Kart over hele verdenen/ });
     const box = (await map.boundingBox())!;
     await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.4);
@@ -48,8 +47,7 @@ test.describe('Duskwood World', () => {
 
   test('every fixed camera view loads', async ({ page }, testInfo) => {
     const errors = watchForErrors(page);
-    await page.goto('/');
-    await waitUntilSettled(page);
+    await openGame(page);
     const views = await page.evaluate(() => window.__duskwood!.views);
     for (const id of views) {
       await goToView(page, id);
@@ -60,8 +58,7 @@ test.describe('Duskwood World', () => {
 });
 
 test('the player stands on the rendered ground, also between grid points', async ({ page }) => {
-  await page.goto('/');
-  await waitUntilSettled(page);
+  await openGame(page);
   // Fixed views, plus off-grid points: on the highest ridge, on a slope and in a valley.
   const spots: Array<[string, number, number]> = [
     ['ridge', 34_507.3, 49_511.1],
@@ -86,8 +83,7 @@ test('the player stands on the rendered ground, also between grid points', async
 
 test('LOD swaps do not pop (geomorphing)', async ({ page }) => {
   // Facing the snowy peak ~3 km away: relief in every LOD ring, so swaps would show.
-  await page.goto('/#v-mountain');
-  await waitUntilSettled(page);
+  await openGame(page, '#v-mountain');
   await page.addStyleTag({ content: '.dw-hud{display:none}' });
   const settle = async () => {
     await page.waitForTimeout(400);

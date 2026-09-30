@@ -41,6 +41,7 @@ export class ChunkManager {
   private listeners = new Set<() => void>();
   private version = 0;
   private disposed = false;
+  private lastUpload = 0;
 
   constructor(private pool: WorkerPool) {}
 
@@ -123,15 +124,24 @@ export class ChunkManager {
           this.inflight.delete(req.key);
           if (!this.disposed) this.ready.push({ req, data });
         })
-        .catch(() => this.inflight.delete(req.key));
+        .catch(() => this.inflight.delete(req.key))
+        // Refill the workers as soon as one is free, not once per frame: on a
+        // slow machine (or software rendering) building must not wait for frames.
+        .finally(() => {
+          if (!this.disposed) this.dispatch();
+        });
     }
   }
 
   private upload(): void {
     if (this.ready.length === 0 || !this.center) return;
     let changed = false;
-    // A time budget, not just a count, so slow devices still catch up.
-    const deadline = performance.now() + UPLOAD_BUDGET_MS;
+    // A time budget, not just a count, so slow devices still catch up. When a
+    // frame already takes long, a few more ms of uploads are not noticeable.
+    const now = performance.now();
+    const frameMs = this.lastUpload > 0 ? now - this.lastUpload : 16;
+    this.lastUpload = now;
+    const deadline = now + Math.max(UPLOAD_BUDGET_MS, Math.min(frameMs * 0.25, 100));
     for (let n = 0; this.ready.length > 0 && (n < MAX_MESH_UPLOADS_PER_FRAME || performance.now() < deadline); n++) {
       const { req, data } = this.ready.shift()!;
       // The player may have moved on while this was building: drop stale results.
@@ -144,6 +154,8 @@ export class ChunkManager {
       geometry.setAttribute('morphHeight', new THREE.BufferAttribute(data.morphHeights, 1));
       geometry.setAttribute('morphNormal', new THREE.BufferAttribute(data.morphNormals, 3));
       geometry.setAttribute('morphColor', new THREE.BufferAttribute(data.morphColors, 3));
+      geometry.setAttribute('surfaceWeights', new THREE.BufferAttribute(data.weights, 4));
+      geometry.setAttribute('morphWeights', new THREE.BufferAttribute(data.morphWeights, 4));
       geometry.setAttribute('color', new THREE.BufferAttribute(data.colors, 3));
       geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
       geometry.boundingBox = new THREE.Box3(

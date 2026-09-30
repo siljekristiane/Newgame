@@ -29,3 +29,16 @@ export async function goToView(page: Page, id: string): Promise<void> {
   await page.waitForTimeout(300);
   await waitUntilSettled(page);
 }
+
+/**
+ * Opens the game at an optional `#v-<id>` view. Detail textures are switched
+ * off unless asked for: under software rendering (CI) they make every frame
+ * several times slower, and most tests are about streaming, movement or ground
+ * contact, not texturing. The first smoke test and `npm run measure` keep them on.
+ */
+export async function openGame(page: Page, hash = '', { textures = false } = {}): Promise<void> {
+  await page.goto(`/${hash}`);
+  await page.waitForFunction(() => window.__duskwood !== undefined, undefined, { timeout: 60_000 });
+  if (!textures) await page.evaluate(() => window.__duskwood!.setTerrainTextures(false));
+  await waitUntilSettled(page);
+}

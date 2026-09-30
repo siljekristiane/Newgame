@@ -9,6 +9,8 @@ export interface DuskwoodTestApi {
   setView: (id: string) => boolean;
   /** Geomorphing on/off (to measure what it saves). */
   setGeomorph: (on: boolean) => void;
+  /** Terrain detail textures on/off. */
+  setTerrainTextures: (on: boolean) => void;
   /** Moves the player to world meters (x, z), like a minimap click. */
   teleport: (x: number, z: number) => void;
   /** True once every chunk wanted around the player is loaded. */

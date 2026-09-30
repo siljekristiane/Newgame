@@ -15,6 +15,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   materialvekter. Kyst, dal og fjell ligger andre steder enn før fordi
   terrenget endret seg.
 
+- `step-2c/`: prosedyrale detaljteksturer med normal maps (teksturer på).
+  `closeup-textures-on.jpg` / `closeup-textures-off.jpg` viser forskjellen på nært
+  hold; `texture-sheet.png` viser de fem teksturene og normal maps.
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

@@ -3,7 +3,8 @@ import { memo, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import { CHUNK_SIZE, LOD_LEVELS } from '../config/world';
 import { world } from '../design/tokens';
-import { createPropMaterial, createTerrainMaterial, morphEnabled, morphPlayer } from '../materials/terrainMaterials';
+import { TERRAIN_TEXTURE } from '../config/world';
+import { createPropMaterial, createTerrainMaterial, morphEnabled, morphPlayer, terrainDetail } from '../materials/terrainMaterials';
 import { useGameStore } from '../state/useGameStore';
 import { origin, player } from '../state/runtime';
 import { PROP_STRIDE } from '../world/buildChunk';
@@ -11,6 +12,8 @@ import type { ChunkManager, LoadedChunk } from '../world/ChunkManager';
 
 interface LodMaterials {
   terrain: THREE.Material;
+  /** Same without detail textures: switching textures off must cost nothing. */
+  terrainPlain: THREE.Material;
   cube: THREE.Material;
   sphere: THREE.Material;
 }
@@ -28,6 +31,7 @@ export function Terrain({ manager }: { manager: ChunkManager }) {
     () =>
       LOD_LEVELS.map((_, lod) => ({
         terrain: createTerrainMaterial(lod),
+        terrainPlain: createTerrainMaterial(lod, false),
         cube: createPropMaterial(world.stone, lod),
         sphere: createPropMaterial(world.canopy, lod),
       })),
@@ -37,6 +41,7 @@ export function Terrain({ manager }: { manager: ChunkManager }) {
     () => () =>
       materials.forEach((m) => {
         m.terrain.dispose();
+        m.terrainPlain.dispose();
         m.cube.dispose();
         m.sphere.dispose();
       }),
@@ -44,26 +49,40 @@ export function Terrain({ manager }: { manager: ChunkManager }) {
   );
 
   const geomorph = useGameStore((s) => s.geomorph);
+  const detail = useGameStore((s) => s.detailReady && s.detailOn);
   useFrame(() => {
     group.current?.position.set(-origin.x, 0, -origin.z);
     morphPlayer.value.set(player.x - origin.x, player.z - origin.z);
     morphEnabled.value = geomorph ? 1 : 0;
+    terrainDetail.on.value = detail ? 1 : 0;
+    // World-space UVs without big numbers: the offset repeats every uvWrap meters.
+    terrainDetail.uvOffset.value.set(origin.x % TERRAIN_TEXTURE.uvWrap, origin.z % TERRAIN_TEXTURE.uvWrap);
   });
 
   const chunks = Array.from(manager.chunks.values());
   return (
     <group ref={group}>
       {chunks.map((chunk) => (
-        <Chunk key={chunk.key} chunk={chunk} geometry={chunk.geometry} materials={materials[chunk.lod]!} />
+        <Chunk key={chunk.key} chunk={chunk} geometry={chunk.geometry} materials={materials[chunk.lod]!} detail={detail} />
       ))}
     </group>
   );
 }
 
-const Chunk = memo(function Chunk({ chunk, geometry, materials }: { chunk: LoadedChunk; geometry: THREE.BufferGeometry; materials: LodMaterials }) {
+const Chunk = memo(function Chunk({
+  chunk,
+  geometry,
+  materials,
+  detail,
+}: {
+  chunk: LoadedChunk;
+  geometry: THREE.BufferGeometry;
+  materials: LodMaterials;
+  detail: boolean;
+}) {
   return (
     <group position={[chunk.cx * CHUNK_SIZE, 0, chunk.cz * CHUNK_SIZE]}>
-      <mesh geometry={geometry} material={materials.terrain} matrixAutoUpdate={false} userData={{ terrain: true }} />
+      <mesh geometry={geometry} material={detail ? materials.terrain : materials.terrainPlain} matrixAutoUpdate={false} userData={{ terrain: true }} />
       {chunk.props.length > 0 && <ChunkProps props={chunk.props} materials={materials} />}
     </group>
   );

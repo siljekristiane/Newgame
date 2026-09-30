@@ -82,6 +82,7 @@ src/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     terrain.ts            heightAt(x, z): terrengformen som ren funksjon
     biomes.ts             Klima (temperatur, fuktighet) → biom → materialvekter og farge
+    terrainTextures.ts    Prosedyrale, flisbare detaljteksturer (5 materialer) + normal maps
     ground.ts             groundHeightAt / gridHeightAt: høyden på trekantene som tegnes
     chunkMath.ts          Koordinater, chunk-nøkler, LOD-valg, ønsket chunk-sett
     buildChunk.ts         Bygger vertex-data for én chunk + props + minikart (ren)
@@ -174,6 +175,18 @@ mot neste ring er helt morphet, så heller ingen sprekker. Props morpher med
 (`aMorphDelta` per instans). Målt: et LOD-bytte endrer 1,0 % av pikslene med
 morph mot 2,0 % uten (e2e-testen «LOD swaps do not pop»). Kan slås av i F3.
 
+**Detaljteksturer** (steg 2c, `world/terrainTextures.ts` + `materials/terrainMaterials.ts`):
+fem prosedyrale, flisbare teksturer (gress, jord, stein, sand, snø) lages i en
+worker ved oppstart (~1 s) og lastes opp som `DataArrayTexture`. Albedo er en
+*detaljfaktor* med snitt 1,0 som ganges med biomfargen, så farger, morph og
+minikart stemmer; i tillegg normal map og ruhet. Per piksel samples bare de to
+sterkeste materialene (den tredje vekten trekkes fra, så rangbytter er sømløse);
+stein er triplanar. UV er verdensrom via `uvOffset = origin mod 1024`
+(flisstørrelser er toerpotenser). Detaljene toner ut mellom `fadeStart` og
+`fadeEnd` (250–900 m), som ligger innenfor LOD 0, så **bare LOD 0-materialet har
+detaljshaderen**; LOD 1–3 og «av»-bryteren i F3 bruker en ren shader som koster
+det samme som før (testet). Vekter morpher som farger (`surfaceWeights`, `morphWeights`).
+
 **Normaler** regnes fra `heightAt` med fast avstand (`NORMAL_SAMPLE_STEP`) for
 alle LOD-er, så lyset er likt der LOD-er møtes. **Terrenget tegnes bare fra
 forsiden** (dobbeltsidig terreng lekker mørke baksider langs silhuetter);
@@ -239,6 +252,16 @@ Etter steg 2b (`docs/measurements/step-2b/`): 24–147 draw calls, 84–160 k
 trekanter, 11,2 s innlasting (klima og biomer per vertex i workerne). Terrenget
 endret form, så kyst-, dal- og fjellvinklene ble flyttet; sammenlign dem med
 2a som nytt utgangspunkt, ikke som samme sted.
+
+Etter steg 2c (`docs/measurements/step-2c/`, teksturer på): samme draw calls og
+trekanter som 2b, 2 teksturer. I programvare-rendering (SwiftShader) koster
+detaljshaderen mye: ~1 000 ms per bilde mot ~420 ms uten, og ferdig strømming tar
+16–44 s fordi nettleseren venter på hvert bilde. Det sier lite om ekte
+skjermkort (~9 teksturoppslag per piksel er vanlig for terreng), men bør måles på
+ekte maskinvare. Derfor kjører e2e med teksturer av, unntatt første test
+(`openGame(page, hash, { textures })` i `e2e/helpers.ts`); `measure` har dem på.
+Strømmingen er dessuten løsrevet fra bildefrekvensen: workerne fylles på så snart
+en jobb er ferdig, og trege bilder får større opplastingsbudsjett.
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig

@@ -1,9 +1,11 @@
 /// <reference lib="webworker" />
 import { buildChunk, buildMinimap, type ChunkRequest } from './buildChunk';
+import { buildTerrainTextures } from './terrainTextures';
 
 export type WorkerRequest =
   | ({ type: 'chunk'; id: number } & ChunkRequest)
-  | { type: 'minimap'; id: number; resolution: number };
+  | { type: 'minimap'; id: number; resolution: number }
+  | { type: 'textures'; id: number; size: number };
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -17,10 +19,15 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       data.morphHeights.buffer,
       data.morphNormals.buffer,
       data.morphColors.buffer,
+      data.weights.buffer,
+      data.morphWeights.buffer,
       data.colors.buffer,
       data.indices.buffer,
       data.props.buffer,
     ] as Transferable[]);
+  } else if (msg.type === 'textures') {
+    const textures = buildTerrainTextures(msg.size);
+    self.postMessage({ id: msg.id, textures }, [textures.albedo.buffer, textures.normal.buffer] as Transferable[]);
   } else {
     const image = buildMinimap(msg.resolution);
     self.postMessage({ id: msg.id, image }, [image.buffer] as Transferable[]);

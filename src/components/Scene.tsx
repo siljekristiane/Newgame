@@ -9,6 +9,7 @@ import { GameLoop } from './GameLoop';
 import { Player } from './Player';
 import { Sky } from './Sky';
 import { Terrain } from './Terrain';
+import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
 
 export function Scene() {
@@ -38,6 +39,7 @@ export function Scene() {
       <Sky />
       <Water />
       <Terrain manager={manager} />
+      <TerrainTextures pool={pool} />
       <Player />
       <GameLoop manager={manager} pool={pool} />
       <FollowCamera />

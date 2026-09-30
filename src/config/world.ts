@@ -71,6 +71,22 @@ export const MORPH_RANGE = 400;
 /** Normals sample heightAt() at this spacing for every LOD (the LOD 0 grid step), so shading doesn't pop. */
 export const NORMAL_SAMPLE_STEP = 1_000 / 64;
 
+/**
+ * Terrain detail textures (step 2c): one tile per material, in meters, all
+ * powers of two so the floating-origin UV offset (origin mod 1024) stays exact.
+ * MACRO_SCALE samples the same texture again at a larger scale to hide tiling.
+ */
+export const TERRAIN_TEXTURE = {
+  size: 256,
+  /** grass, dirt, rock, sand, snow */
+  tileMeters: [4, 4, 8, 4, 8],
+  macroScale: 8,
+  /** Detail fades out between these distances (m); beyond, only the biome colour remains. Must stay inside the LOD 0 ring, so only LOD 0 pays for it. */
+  fadeStart: 250,
+  fadeEnd: 900,
+  uvWrap: 1_024,
+} as const;
+
 /** Chunks farther than this (in chunks) are never loaded. */
 export const VIEW_RADIUS = LOD_LEVELS[LOD_LEVELS.length - 1]!.maxDistance;
 /** Loaded chunks are only unloaded past this, so they don't flicker at the edge. */

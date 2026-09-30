@@ -12,6 +12,9 @@ export function DebugPanel() {
   const show = useGameStore((s) => s.showDebug);
   const geomorph = useGameStore((s) => s.geomorph);
   const setGeomorph = useGameStore((s) => s.setGeomorph);
+  const detailOn = useGameStore((s) => s.detailOn);
+  const detailReady = useGameStore((s) => s.detailReady);
+  const setDetailOn = useGameStore((s) => s.setDetailOn);
   if (!show) return null;
 
   return (
@@ -51,6 +54,10 @@ export function DebugPanel() {
       </dl>
       <label className="dw-toggle">
         <input type="checkbox" checked={geomorph} onChange={(e) => setGeomorph(e.target.checked)} /> Myke LOD-overganger
+      </label>
+      <label className="dw-toggle">
+        <input type="checkbox" checked={detailOn} onChange={(e) => setDetailOn(e.target.checked)} /> Terrengteksturer
+        {!detailReady && ' (lages …)'}
       </label>
       <div className="dw-views" role="group" aria-label="Faste kameravinkler">
         {VIEWS.map((v) => (

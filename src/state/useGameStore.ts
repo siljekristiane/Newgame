@@ -30,6 +30,8 @@ export interface DebugSnapshot {
   lodCounts: number[];
   /** ms from the last start/teleport until every wanted chunk was loaded; null while streaming. */
   settleMs: number | null;
+  /** Terrain detail textures generated and switched on. */
+  terrainTextures: boolean;
 }
 
 interface GameState {
@@ -39,6 +41,9 @@ interface GameState {
   travelMode: boolean;
   /** Debug: terrain geomorphing between LODs. */
   geomorph: boolean;
+  /** Terrain detail textures: `detailReady` once generated, `detailOn` is the F3 switch. */
+  detailReady: boolean;
+  detailOn: boolean;
   minimap: ImageData | null;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
   lastJumpAt: number;
@@ -47,6 +52,8 @@ interface GameState {
   toggleDebug: () => void;
   toggleTravelMode: () => void;
   setGeomorph: (on: boolean) => void;
+  setDetailReady: (ready: boolean) => void;
+  setDetailOn: (on: boolean) => void;
   setMinimap: (image: ImageData) => void;
   teleport: (x: number, z: number) => void;
 }
@@ -67,10 +74,13 @@ export const useGameStore = create<GameState>((set) => ({
     pendingChunks: 0,
     lodCounts: [],
     settleMs: null,
+    terrainTextures: false,
   },
   showDebug: true,
   travelMode: false,
   geomorph: true,
+  detailReady: false,
+  detailOn: true,
   minimap: null,
   lastJumpAt: 0,
   setHud: (hud) => set({ hud }),
@@ -78,6 +88,8 @@ export const useGameStore = create<GameState>((set) => ({
   toggleDebug: () => set((s) => ({ showDebug: !s.showDebug })),
   toggleTravelMode: () => set((s) => ({ travelMode: !s.travelMode })),
   setGeomorph: (geomorph) => set({ geomorph }),
+  setDetailReady: (detailReady) => set({ detailReady }),
+  setDetailOn: (detailOn) => set({ detailOn }),
   setMinimap: (minimap) => set({ minimap }),
   teleport: (x, z) => {
     // The game loop notices the jump and rebases the origin on its next frame.

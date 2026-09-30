@@ -21,7 +21,7 @@ type PerformanceWithMemory = Performance & { memory?: { usedJSHeapSize: number }
 export function DebugProbe({ manager }: { manager: ChunkManager }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
-  const monitor = useRef(new PerfMonitor(120));
+  const monitor = useRef(new PerfMonitor(2000));
   const timer = useRef(0);
   const settleMs = useRef<number | null>(null);
   const jumpSeen = useRef(-1);
@@ -32,6 +32,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       setView: applyView,
       teleport: (x, z) => useGameStore.getState().teleport(x, z),
       setGeomorph: (on) => useGameStore.getState().setGeomorph(on),
+      setTerrainTextures: (on) => useGameStore.getState().setDetailOn(on),
       isSettled: () => settleMs.current !== null,
       debug: () => useGameStore.getState().debug,
       hud: () => useGameStore.getState().hud,
@@ -84,6 +85,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       pendingChunks: stats.pending,
       lodCounts: stats.lodCounts,
       settleMs: settleMs.current,
+      terrainTextures: useGameStore.getState().detailReady && useGameStore.getState().detailOn,
     });
   });
 

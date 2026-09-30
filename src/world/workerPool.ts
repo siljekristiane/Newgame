@@ -1,4 +1,5 @@
 import { buildChunk, buildMinimap, type ChunkData, type ChunkRequest } from './buildChunk';
+import { buildTerrainTextures, type TerrainTextureSet } from './terrainTextures';
 import type { WorkerRequest } from './terrain.worker';
 
 type Pending = { msg: WorkerRequest; resolve: (value: unknown) => void; reject: (err: unknown) => void };
@@ -33,6 +34,10 @@ export class WorkerPool {
     return this.post({ type: 'chunk', id: 0, ...req }) as Promise<ChunkData>;
   }
 
+  buildTerrainTextures(size: number): Promise<TerrainTextureSet> {
+    return this.post({ type: 'textures', id: 0, size }) as Promise<TerrainTextureSet>;
+  }
+
   buildMinimap(resolution: number): Promise<Uint8ClampedArray> {
     return this.post({ type: 'minimap', id: 0, resolution }) as Promise<Uint8ClampedArray>;
   }
@@ -46,11 +51,11 @@ export class WorkerPool {
 
   private spawn(): Worker {
     const worker = new Worker(new URL('./terrain.worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (e: MessageEvent<{ id: number; data?: ChunkData; image?: Uint8ClampedArray }>) => {
+    worker.onmessage = (e: MessageEvent<{ id: number; data?: ChunkData; image?: Uint8ClampedArray; textures?: TerrainTextureSet }>) => {
       const p = this.pending.get(e.data.id);
       if (!p) return;
       this.pending.delete(e.data.id);
-      p.resolve(e.data.data ?? e.data.image);
+      p.resolve(e.data.data ?? e.data.image ?? e.data.textures);
     };
     worker.onerror = (e) => this.useFallback(e.message || 'worker failed to load');
     return worker;
@@ -71,7 +76,9 @@ export class WorkerPool {
   private runInline(p: Pending): void {
     setTimeout(() => {
       const { msg } = p;
-      p.resolve(msg.type === 'chunk' ? buildChunk(msg) : buildMinimap(msg.resolution));
+      if (msg.type === 'chunk') p.resolve(buildChunk(msg));
+      else if (msg.type === 'textures') p.resolve(buildTerrainTextures(msg.size));
+      else p.resolve(buildMinimap(msg.resolution));
     }, 0);
   }
 

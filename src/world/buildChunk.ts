@@ -36,6 +36,9 @@ export interface ChunkData {
   morphHeights: Float32Array;
   morphNormals: Float32Array;
   morphColors: Float32Array;
+  /** Surface material weights per vertex: grass, dirt, rock, sand (snow = 1 - their sum). */
+  weights: Float32Array;
+  morphWeights: Float32Array;
   colors: Float32Array;
   indices: Uint16Array | Uint32Array;
   /** Placeholder props, PROP_STRIDE floats each: localX, y, localZ, size, kind (0 = cube, 1 = sphere), morphY. */
@@ -58,6 +61,8 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
   const morphHeights = new Float32Array(vertexCount);
   const morphNormals = new Float32Array(vertexCount * 3);
   const morphColors = new Float32Array(vertexCount * 3);
+  const weights = new Float32Array(vertexCount * 4);
+  const morphWeights = new Float32Array(vertexCount * 4);
   const colors = new Float32Array(vertexCount * 3);
   const originX = cx * CHUNK_SIZE;
   const originZ = cz * CHUNK_SIZE;
@@ -77,6 +82,10 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
       terrainNormal(originX + lx, originZ + lz, normals, v * 3);
       const surface = surfaceAt(originX + lx, originZ + lz, h, 1 - normals[v * 3 + 1]!);
       surfaceColor(surface, originX + lx, originZ + lz, h, colors, v * 3);
+      weights[v * 4] = surface.grass;
+      weights[v * 4 + 1] = surface.dirt;
+      weights[v * 4 + 2] = surface.rock;
+      weights[v * 4 + 3] = surface.sand;
       toLinear(colors, v * 3);
       if (h < minHeight) minHeight = h;
       if (h > maxHeight) maxHeight = h;
@@ -104,6 +113,7 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
       if (m < minHeight) minHeight = m;
       if (m > maxHeight) maxHeight = m;
       for (let k = 0; k < 3; k++) morphColors[v * 3 + k] = (colors[a * 3 + k]! + colors[b * 3 + k]!) / 2;
+      for (let k = 0; k < 4; k++) morphWeights[v * 4 + k] = (weights[a * 4 + k]! + weights[b * 4 + k]!) / 2;
       const nx = normals[a * 3]! + normals[b * 3]!;
       const ny = normals[a * 3 + 1]! + normals[b * 3 + 1]!;
       const nz = normals[a * 3 + 2]! + normals[b * 3 + 2]!;
@@ -127,6 +137,8 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
     morphHeights[dst] = morphHeights[src]! - skirtDepth;
     morphNormals.set(morphNormals.subarray(src * 3, src * 3 + 3), dst * 3);
     morphColors.set(morphColors.subarray(src * 3, src * 3 + 3), dst * 3);
+    weights.set(weights.subarray(src * 4, src * 4 + 4), dst * 4);
+    morphWeights.set(morphWeights.subarray(src * 4, src * 4 + 4), dst * 4);
     // Same normal and colour as the edge above: a skirt that peeks through a
     // crack then looks like ground, not a dark line.
     normals[dst * 3] = normals[src * 3]!;
@@ -171,6 +183,8 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
     morphHeights,
     morphNormals,
     morphColors,
+    weights,
+    morphWeights,
     colors,
     indices: indices.subarray(0, t),
     props: withProps ? buildProps(cx, cz, segments, morphSegments) : new Float32Array(0),

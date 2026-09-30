@@ -16,6 +16,7 @@ test('measure all fixed views @measure', async ({ page }) => {
 
   await page.goto('/');
   await waitUntilSettled(page);
+  await page.waitForFunction(() => window.__duskwood!.debug().terrainTextures, undefined, { timeout: 120_000 });
   const firstLoad = await page.evaluate(() => window.__duskwood!.debug().settleMs);
   const gpu = await page.evaluate(() => {
     const gl = document.createElement('canvas').getContext('webgl2');
