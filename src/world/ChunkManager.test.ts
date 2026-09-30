@@ -42,4 +42,28 @@ describe('ChunkManager', () => {
     }
     expect(m.stats().lodCounts.slice(0, coarsest)).toEqual(LOD_LEVELS.slice(0, coarsest).map((_, i) => [...wanted.values()].filter((l) => l === i).length));
   });
+
+  it('reuses recently left chunks instead of rebuilding them', async () => {
+    let builds = 0;
+    const counting = {
+      buildChunk: (req: ChunkRequest): Promise<ChunkData> => {
+        builds++;
+        return Promise.resolve(buildChunk({ ...req, segments: 4, morphSegments: 0, withProps: false }));
+      },
+    } as unknown as WorkerPool;
+    const m = new ChunkManager(counting);
+    await settle(m, 50.5 * CHUNK_SIZE, 50.5 * CHUNK_SIZE);
+    await settle(m, 51.5 * CHUNK_SIZE, 50.5 * CHUNK_SIZE); // one chunk east: ring LODs shift
+    const out = builds;
+    await settle(m, 50.5 * CHUNK_SIZE, 50.5 * CHUNK_SIZE); // and back
+    const back = builds - out;
+    expect(back).toBeLessThan(5); // (almost) everything came from the cache
+    expect(m.stats().cached).toBeGreaterThan(0);
+    const center = { cx: 50, cz: 50 };
+    for (const c of m.chunks.values()) {
+      const d = chunkDistance(center, c);
+      // Inside the view circle: the ring's LOD; the edge keeps coarse leftovers.
+      expect(c.lod).toBe(d <= VIEW_RADIUS ? lodForDistance(d) : LOD_LEVELS.length - 1);
+    }
+  });
 });

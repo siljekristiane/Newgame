@@ -59,9 +59,9 @@ export function DebugPanel() {
             <dd>{nb(d.heapMb)} MB</dd>
           </>
         )}
-        <dt>Chunks lastet/i kø</dt>
+        <dt>Chunks lastet/i kø/buffer</dt>
         <dd>
-          {d.loadedChunks} / {d.pendingChunks}
+          {d.loadedChunks} / {d.pendingChunks} / {d.cachedChunks}
         </dd>
         <dt>Per LOD</dt>
         <dd title={`Rutenett ${LOD_LEVELS.map((l) => l.segments).join('/')}`}>{LOD_LEVELS.map((_, i) => d.lodCounts[i] ?? 0).join(' / ')}</dd>

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { CHUNK_SIZE, LOD_LEVELS, MAX_INFLIGHT_BUILDS, MAX_MESH_UPLOADS_PER_FRAME, UNLOAD_RADIUS, UPLOAD_BUDGET_MS, VIEW_RADIUS } from '../config/world';
+import { CHUNK_CACHE_SIZE, CHUNK_SIZE, LOD_LEVELS, MAX_INFLIGHT_BUILDS, MAX_MESH_UPLOADS_PER_FRAME, UNLOAD_RADIUS, UPLOAD_BUDGET_MS, VIEW_RADIUS } from '../config/world';
 import type { ChunkData } from './buildChunk';
-import { chunkDistance, chunkKey, desiredChunks, worldToChunk, type ChunkCoord } from './chunkMath';
+import { chunkDistance, chunkKey, desiredChunks, lodForDistance, worldToChunk, type ChunkCoord } from './chunkMath';
+import { LruCache } from './lruCache';
 import type { WorkerPool } from './workerPool';
 
 export interface LoadedChunk {
@@ -30,7 +31,9 @@ interface Request {
  *   a few per frame (MAX_MESH_UPLOADS_PER_FRAME, or more within UPLOAD_BUDGET_MS)
  *   to avoid frame spikes.
  * - A chunk keeps its old mesh until the new LOD is ready, so there are no holes.
- * - Chunks past UNLOAD_RADIUS are disposed (geometry freed on the GPU).
+ * - Chunks that leave (or change LOD) go to a small LRU cache first, so walking
+ *   back and forth over a chunk border reuses them instead of rebuilding;
+ *   geometry is freed on the GPU when it falls out of the cache.
  */
 export class ChunkManager {
   readonly chunks = new Map<string, LoadedChunk>();
@@ -42,6 +45,7 @@ export class ChunkManager {
   private version = 0;
   private disposed = false;
   private lastUpload = 0;
+  private cache = new LruCache<LoadedChunk>(CHUNK_CACHE_SIZE, (c) => c.geometry.dispose());
 
   constructor(private pool: WorkerPool) {}
 
@@ -63,16 +67,17 @@ export class ChunkManager {
     return () => this.listeners.delete(fn);
   };
 
-  stats(): { loaded: number; pending: number; lodCounts: number[] } {
+  stats(): { loaded: number; pending: number; lodCounts: number[]; cached: number } {
     const lodCounts = LOD_LEVELS.map(() => 0);
     this.chunks.forEach((c) => lodCounts[c.lod]!++);
-    return { loaded: this.chunks.size, pending: this.queue.length + this.inflight.size + this.ready.length, lodCounts };
+    return { loaded: this.chunks.size, pending: this.queue.length + this.inflight.size + this.ready.length, lodCounts, cached: this.cache.size };
   }
 
   dispose(): void {
     this.disposed = true;
     this.chunks.forEach((c) => c.geometry.dispose());
     this.chunks.clear();
+    this.cache.clear();
     this.emit();
   }
 
@@ -89,7 +94,7 @@ export class ChunkManager {
       // would never be re-planned, so drop it.
       const unwanted = !wantedKeys.has(key);
       if (chunkDistance(center, chunk) > UNLOAD_RADIUS || (unwanted && chunk.lod !== coarsest)) {
-        chunk.geometry.dispose();
+        this.retire(chunk);
         this.chunks.delete(key);
         changed = true;
       }
@@ -100,6 +105,15 @@ export class ChunkManager {
       const key = chunkKey(want.cx, want.cz);
       const have = this.chunks.get(key);
       if (have?.lod === want.lod || this.inflight.get(key) === want.lod) continue;
+      // Built recently at this LOD? Use it again right away.
+      const cached = this.cache.take(cacheKey(key, want.lod));
+      if (cached) {
+        if (have) this.retire(have);
+        this.inflight.delete(key); // a build for another LOD is now stale
+        this.chunks.set(key, cached);
+        changed = true;
+        continue;
+      }
       this.queue.push({ key, ...want });
     }
     if (changed) this.emit();
@@ -146,7 +160,7 @@ export class ChunkManager {
       const { req, data } = this.ready.shift()!;
       // The player may have moved on while this was building: drop stale results.
       const distance = chunkDistance(this.center, req);
-      if (distance > VIEW_RADIUS) continue;
+      if (distance > VIEW_RADIUS || req.lod !== lodForDistance(distance)) continue;
 
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
@@ -164,11 +178,17 @@ export class ChunkManager {
       );
       geometry.computeBoundingSphere();
 
-      this.chunks.get(req.key)?.geometry.dispose();
+      const old = this.chunks.get(req.key);
+      if (old) this.retire(old);
       this.chunks.set(req.key, { key: req.key, cx: req.cx, cz: req.cz, lod: req.lod, geometry, props: data.props });
       changed = true;
     }
     if (changed) this.emit();
+  }
+
+  /** A chunk leaves the scene: keep it in the cache (which frees the oldest). */
+  private retire(chunk: LoadedChunk): void {
+    this.cache.put(cacheKey(chunk.key, chunk.lod), chunk);
   }
 
   private emit(): void {
@@ -176,3 +196,5 @@ export class ChunkManager {
     this.listeners.forEach((fn) => fn());
   }
 }
+
+const cacheKey = (key: string, lod: number) => `${key}@${lod}`;

@@ -32,6 +32,8 @@ export interface DebugSnapshot {
   heapMb: number | null;
   loadedChunks: number;
   pendingChunks: number;
+  /** Chunks kept in the LRU cache after leaving the view. */
+  cachedChunks: number;
   lodCounts: number[];
   /** ms from the last start/teleport until every wanted chunk was loaded; null while streaming. */
   settleMs: number | null;
@@ -106,6 +108,7 @@ export const useGameStore = create<GameState>((set) => ({
     heapMb: null,
     loadedChunks: 0,
     pendingChunks: 0,
+    cachedChunks: 0,
     lodCounts: [],
     settleMs: null,
     terrainTextures: false,

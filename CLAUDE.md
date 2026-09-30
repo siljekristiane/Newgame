@@ -382,7 +382,13 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
    `MAX_MESH_UPLOADS_PER_FRAME` per frame, mer hvis det er tid igjen innen
    `UPLOAD_BUDGET_MS`.
 4. Resultater som er utdaterte (spilleren har flyttet seg, eller en nyere LOD er
-   bestilt) kastes.
+   bestilt, eller LOD-en ikke lenger passer ringen) kastes.
+5. **Buffer** (steg 10b, `world/lruCache.ts`, `CHUNK_CACHE_SIZE` = 96): chunks
+   som forlater scenen eller bytter LOD legges i en LRU-buffer i stedet for å
+   frigjøres. Trengs samme chunk på samme LOD igjen (typisk når man går fram og
+   tilbake over en chunk-grense), tas den rett derfra uten worker-jobb. GPU-minnet
+   frigjøres når en chunk faller ut av bufferen. Testet: tilbaketuren etter ett
+   chunk-steg bygger nesten ingenting på nytt. F3 viser antall i bufferen.
 
 Data sendes fra workers som **Transferable** typed arrays (ingen kopiering).
 Hvis workers ikke kan starte (sandkasse/CSP), bygger `WorkerPool` på hovedtråden i stedet.
@@ -413,6 +419,7 @@ Bruk aldri positiv `useFrame`-prioritet uten å ta over renderingen bevisst.
 | Minne: 10 000 chunks passer ikke | Bare ~350 lastet; `dispose()` ved utlasting |
 | Terrenggenerering blokkerer frames | Web Workers + Transferables |
 | Opplastingstopper når mange chunks blir ferdige | Tidsbudsjett per frame |
+| Chunks bygges på nytt når man går fram og tilbake | LRU-buffer med ferdige geometrier (96) |
 | Mange draw calls | Delt materiale; planter som `InstancedMesh` (4 per chunk, én per art) |
 | Fjerne detaljer koster trekanter | LOD-ringer; planter bare i LOD 0–1, grovere mesh og færre i LOD 1 |
 | Stor fane på pause → enorm `delta` | `dt` klemmes til 0,1 s |
@@ -472,8 +479,8 @@ Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - Ingen allokering i `useFrame` i varme løkker (gjenbruk `Vector3` via `useRef`)
 
 Neste steg når verdenen vokser: slå sammen far-LOD-chunks til større
-«superchunks», dele props inn i én global `InstancedMesh` per type, og
-LRU-cache av geometrier for å slippe å bygge chunks man nettopp forlot.
+«superchunks» og dele planter inn i én global `InstancedMesh` per art
+(LRU-buffer for geometrier er gjort i steg 10b).
 
 ## Kodestandard
 

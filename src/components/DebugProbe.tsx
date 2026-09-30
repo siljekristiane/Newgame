@@ -89,6 +89,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       heapMb: memory ? memory.usedJSHeapSize / 1_048_576 : null,
       loadedChunks: stats.loaded,
       pendingChunks: stats.pending,
+      cachedChunks: stats.cached,
       lodCounts: stats.lodCounts,
       settleMs: settleMs.current,
       terrainTextures: useGameStore.getState().detailReady && useGameStore.getState().detailOn,
