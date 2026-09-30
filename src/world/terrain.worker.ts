@@ -38,7 +38,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     self.postMessage({ id: msg.id, image }, [image.buffer] as Transferable[]);
   } else if (msg.type === 'grass') {
     const patch = buildGrassPatch(msg.cx, msg.cz);
-    self.postMessage({ id: msg.id, data: patch }, [patch.heights.buffer, patch.ground.buffer] as Transferable[]);
+    self.postMessage({ id: msg.id, data: patch }, [patch.heights.buffer, patch.ground.buffer, patch.mask.buffer] as Transferable[]);
   } else if (msg.type === 'waterNormals') {
     const image = buildWaterNormals(msg.size);
     self.postMessage({ id: msg.id, image }, [image.buffer] as Transferable[]);

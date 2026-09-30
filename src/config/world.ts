@@ -133,6 +133,32 @@ export const SHADOWS = {
 export const SPAWN = { x: WORLD_SIZE / 2, z: WORLD_SIZE / 2 };
 
 /**
+ * The spawn area (step 6): a round plaza just north of the spawn point and
+ * paths that wind out from it, following the gentlest ground. The terrain is
+ * flattened under them (regions/stamps.ts); lengths in meters.
+ */
+export const SPAWN_AREA = {
+  plaza: { x: WORLD_SIZE / 2, z: WORLD_SIZE / 2 - 28, radius: 22, blend: 30 },
+  /** Start direction of each path, radians from north (−Z) clockwise. */
+  pathHeadings: [0.35, 2.2, 4.1],
+  pathLength: 1_400,
+  /** Route-finding step and the spacing of the smoothed path points. */
+  pathStep: 12,
+  pathSpacing: 4,
+  pathWidth: 3,
+  /** Terrain eased toward the path level this far beyond its edge. */
+  pathShoulder: 10,
+  /** Plants keep this far from a path edge or the plaza. */
+  plantClearance: 3,
+  /** Lamps along the paths (meters apart, meters from the centre line) and round the plaza. */
+  lampSpacing: 32,
+  lampOffset: 2.3,
+  plazaLamps: 10,
+  /** Lamps are drawn within this distance of the player. */
+  lampDrawDistance: 900,
+} as const;
+
+/**
  * Level of detail rings, by Chebyshev distance in chunks from the player's chunk.
  * `segments` is the grid resolution of one 1 km chunk at that level.
  * `props` says whether placeholder objects (cubes, spheres) are shown.

@@ -6,6 +6,9 @@ import { plantWind } from './plantMaterial';
 export const grassUniforms = {
   uHeights: { value: null as THREE.Texture | null },
   uGround: { value: null as THREE.Texture | null },
+  /** Paths and plazas: 1 = no grass. Covers the same square as the patch. */
+  uMask: { value: null as THREE.Texture | null },
+  uPatchSize: { value: 1 },
   /** Render-space xz of the patch's grid point (0, 0), grid step and grid points per side. */
   uPatchOrigin: { value: new THREE.Vector2() },
   uGridStep: { value: 1 },
@@ -35,6 +38,8 @@ export function createGrassMaterial(): THREE.MeshLambertMaterial {
         'void main() {',
         /* glsl */ `uniform sampler2D uHeights;
         uniform sampler2D uGround;
+        uniform sampler2D uMask;
+        uniform float uPatchSize;
         uniform vec2 uPatchOrigin;
         uniform float uGridStep;
         uniform float uPatchSide;
@@ -73,8 +78,9 @@ export function createGrassMaterial(): THREE.MeshLambertMaterial {
             : dwD + (dwC - dwD) * (1.0 - dwF.x) + (dwB - dwD) * (1.0 - dwF.y);
           vec4 dwGround = texture(uGround, (dwG + 0.5) / uPatchSide);
 
+          float dwClear = texture(uMask, (dwP - uPatchOrigin) / uPatchSize).r;
           float dwDist = distance(dwP, uPlayerR);
-          float dwSize = step(dwGrow, dwGround.a) * (1.0 - smoothstep(${(GRASS.radius * 0.55).toFixed(1)}, ${GRASS.radius.toFixed(1)}, dwDist)) * (0.5 + dwVary * dwVary * 1.2);`,
+          float dwSize = step(dwGrow, dwGround.a * (1.0 - dwClear)) * (1.0 - smoothstep(${(GRASS.radius * 0.55).toFixed(1)}, ${GRASS.radius.toFixed(1)}, dwDist)) * (0.5 + dwVary * dwVary * 1.2);`,
       )
       .replace(
         '#include <color_vertex>',

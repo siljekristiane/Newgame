@@ -41,3 +41,20 @@ describe('grass patch', () => {
     expect(Math.max(...sea.ground.filter((_, k) => k % 4 === 3))).toBe(0);
   });
 });
+
+describe('grass mask', () => {
+  it('keeps grass off the spawn paths and plaza, and is empty elsewhere', async () => {
+    const { spawnLayout } = await import('../regions/spawn/layout');
+    const { GRASS_MASK_CELL } = await import('./grass');
+    const patch = buildGrassPatch(50, 49);
+    expect(patch.maskSize).toBe((3 * CHUNK_SIZE) / GRASS_MASK_CELL);
+    const texel = (x: number, z: number) =>
+      patch.mask[Math.floor((z - patch.cz0 * CHUNK_SIZE) / GRASS_MASK_CELL) * patch.maskSize + Math.floor((x - patch.cx0 * CHUNK_SIZE) / GRASS_MASK_CELL)]!;
+    const { plaza, paths } = spawnLayout();
+    expect(texel(plaza.x, plaza.z)).toBe(255);
+    const p = paths[0]![20]!;
+    expect(texel(p.x, p.z)).toBeGreaterThan(200);
+    expect(texel(plaza.x + 60, plaza.z + 60)).toBe(0);
+    expect(buildGrassPatch(30, 30).maskSize).toBe(1);
+  });
+});

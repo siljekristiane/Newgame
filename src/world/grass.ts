@@ -1,6 +1,7 @@
 import { CHUNK_SIZE, LOD_LEVELS, NORMAL_SAMPLE_STEP, SEA_LEVEL, VEGETATION } from '../config/world';
 import { grassColor, surfaceAt } from './biomes';
 import { heightAt } from './terrain';
+import { rasterizeClearing } from '../regions/stamps';
 
 /**
  * Ground data for the grass around the player (pure, runs in a worker).
@@ -11,6 +12,8 @@ import { heightAt } from './terrain';
  */
 
 export const GRASS_PATCH_CHUNKS = 3;
+/** Meters per texel of the grass mask (paths are 3 m wide). */
+export const GRASS_MASK_CELL = 2;
 
 export interface GrassPatch {
   /** Chunk of the patch's north-west corner. */
@@ -22,6 +25,12 @@ export interface GrassPatch {
   heights: Float32Array;
   /** RGBA per grid point: grass colour (RGB, sRGB) and grass density (A). */
   ground: Uint8Array;
+  /**
+   * Where paths and plazas keep the grass off: maskSize² bytes over the whole
+   * patch (row 0 = north), 255 = no grass. 1×1 of zero where there are none.
+   */
+  mask: Uint8Array;
+  maskSize: number;
 }
 
 /** How much grass grows at a point: grass-covered, not steep, thinner on the forest floor. */
@@ -58,5 +67,9 @@ export function buildGrassPatch(cx: number, cz: number): GrassPatch {
       ground[o + 3] = Math.round(grassDensity(h, slope, s.grass, s.lush) * 255);
     }
   }
-  return { cx0, cz0, side, heights, ground };
+  const size = GRASS_PATCH_CHUNKS * CHUNK_SIZE;
+  const maskSize = Math.round(size / GRASS_MASK_CELL);
+  const mask = new Uint8Array(maskSize * maskSize);
+  const any = rasterizeClearing(mask, maskSize, cx0 * CHUNK_SIZE, cz0 * CHUNK_SIZE, GRASS_MASK_CELL);
+  return any ? { cx0, cz0, side, heights, ground, mask, maskSize } : { cx0, cz0, side, heights, ground, mask: new Uint8Array(1), maskSize: 1 };
 }

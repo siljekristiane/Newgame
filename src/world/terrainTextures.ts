@@ -66,7 +66,7 @@ export function tfbm(u: number, v: number, freq: number, octaves: number, seed: 
 }
 
 /** Tileable cellular noise: distance to the nearest feature point, ~0..1. */
-function tworley(u: number, v: number, freq: number, seed: number): number {
+export function tworley(u: number, v: number, freq: number, seed: number): number {
   const x = u * freq;
   const y = v * freq;
   const i = Math.floor(x);

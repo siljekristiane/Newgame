@@ -35,6 +35,7 @@ export function Grass({ pool }: { pool: WorkerPool }) {
       patch: null as GrassPatch | null,
       heights: null as THREE.DataTexture | null,
       ground: null as THREE.DataTexture | null,
+      mask: null as THREE.DataTexture | null,
       wantKey: '',
       pending: false,
       disposed: false,
@@ -47,6 +48,7 @@ export function Grass({ pool }: { pool: WorkerPool }) {
       state.disposed = true;
       state.heights?.dispose();
       state.ground?.dispose();
+      state.mask?.dispose();
       mesh.geometry.dispose();
       (mesh.material as THREE.Material).dispose();
     },
@@ -70,9 +72,15 @@ export function Grass({ pool }: { pool: WorkerPool }) {
           // Palette colours are sRGB; the GPU converts them to linear on sampling (alpha stays linear).
           ground.colorSpace = THREE.SRGBColorSpace;
           ground.needsUpdate = true;
+          const mask = new THREE.DataTexture(patch.mask as Uint8Array<ArrayBuffer>, patch.maskSize, patch.maskSize, THREE.RedFormat);
+          mask.magFilter = mask.minFilter = THREE.LinearFilter;
+          mask.needsUpdate = true;
           state.heights?.dispose();
           state.ground?.dispose();
-          Object.assign(state, { patch, heights, ground });
+          state.mask?.dispose();
+          Object.assign(state, { patch, heights, ground, mask });
+          grassUniforms.uMask.value = mask;
+          grassUniforms.uPatchSize.value = GRASS_PATCH_CHUNKS * CHUNK_SIZE;
           grassUniforms.uHeights.value = heights;
           grassUniforms.uGround.value = ground;
           grassUniforms.uPatchSide.value = patch.side;

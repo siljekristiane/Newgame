@@ -33,6 +33,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
 - `step-5b/`: gress rundt spilleren (én draw call, ~150 k trekanter alltid,
   også der tustene har størrelse 0). Maks 1,06 M trekanter (strand).
 
+- `step-6a/`: startområdet: brosteinsplass og grusstier stemplet inn i terrenget.
+  Samme draw calls og trekanter i målevinklene (plassen ligger bak spawn-kameraet);
+  `spawn-closeup.jpg` er spawn-vinkelen nordover mot plassen (skygger av).
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

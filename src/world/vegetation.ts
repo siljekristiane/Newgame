@@ -3,6 +3,7 @@ import { climateAt, surfaceAt } from './biomes';
 import { gridHeightAt } from './ground';
 import { hash2 } from './noise';
 import { heightAt } from './terrain';
+import { clearing } from '../regions/stamps';
 
 /**
  * Where trees, bushes and boulders grow. Pure and deterministic: the same
@@ -131,6 +132,7 @@ export function buildVegetation(cx: number, cz: number, segments: number, morphS
       // Not on the beach or in the water (checked on the true surface, so every LOD agrees).
       if (heightAt(x, z) < SEA_LEVEL + VEGETATION.minHeight) continue;
       if (Math.hypot(x - SPAWN.x, z - SPAWN.z) < VEGETATION.spawnClearing) continue;
+      if (clearing(x, z) > 0.5) continue; // paths and plazas
       const y = gridHeightAt(x, z, segments);
       const morphY = morphSegments ? gridHeightAt(x, z, morphSegments) : y;
       const scale = VEGETATION.scale[kind]! * (0.7 + hash2(gi, gj, seed + 4) * 0.6);

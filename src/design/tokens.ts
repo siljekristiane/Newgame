@@ -41,6 +41,13 @@ export const atmosphere = {
 } as const;
 
 /** Water body colours (art direction C): the shade under the surface, by depth. */
+/** Paths and paving in the spawn area. */
+export const pathPalette = {
+  gravel: '#8f7f66',
+  paving: '#857d72',
+  joint: '#5b544b',
+} as const;
+
 /** Trees, bushes and boulders (vertex colours, varied per instance). */
 export const vegetationPalette = {
   bark: '#4b3b2e',

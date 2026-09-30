@@ -79,9 +79,11 @@ src/
   debug/                  Faste kameravinkler, bildetidsmåler, testkrok (window.__duskwood)
   materials/              Materialer og shader-tillegg (terreng med geomorphing, planter)
   vegetation/             Prosedyrale plante- og steinmesher (three.js)
+  regions/                Håndlagde områder: stempling i terrenget + spawn/ (plass, stier)
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
-    terrain.ts            heightAt(x, z): terrengformen som ren funksjon
+    naturalTerrain.ts     naturalHeightAt(x, z): terrengformen uten regioner
+    terrain.ts            heightAt(x, z): naturlig terreng med regionene stemplet inn
     biomes.ts             Klima (temperatur, fuktighet) → biom → materialvekter og farge
     terrainTextures.ts    Prosedyrale, flisbare detaljteksturer (5 materialer) + normal maps
     timeOfDay.ts          Sol, måne, himmel- og lysfarger som ren funksjon av klokkeslett
@@ -266,6 +268,32 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   (testet). Bygges i en worker når spilleren bytter chunk. Normalen peker opp, så
   gresset lyses som bakken; Lambert (ingen spekulær glans på tynne strå).
 - Neste: tekstur på løv/bark, impostorer for skog på avstand.
+
+### Startområdet (steg 6)
+
+- **Regioner** (`src/regions/`): håndlagde områder presset inn i det naturlige
+  terrenget. `world/naturalTerrain.ts` er terrenget uten regioner;
+  `heightAt` (`world/terrain.ts`) = `stampHeight(naturalHeightAt)`, så alt som
+  bruker `heightAt` (chunks, bakkehøyde, vann, gress) ser det samme.
+- **Oppsett** (`regions/spawn/layout.ts`, `SPAWN_AREA`): en rund plass (22 m)
+  like nord for spawn, i snitthøyden av bakken under, og tre stier som går ca.
+  1,4 km ut. Stien velger for hvert steg retningen som klatrer minst, trekkes
+  mot startretningen og vandrer litt; så avrundes den (Chaikin), deles opp hver
+  4 m og får en glattet høydeprofil. Deterministisk, bygges én gang per tråd.
+- **Stempling** (`regions/stamps.ts`): plassen flates helt ut med myk overgang
+  (30 m); langs stiene dras bakken mot stiens høyde ut til 10 m forbi kanten.
+  Segmentene ligger i et rutenett (64 m), så et oppslag sjekker bare nære biter;
+  utenfor områdets boks koster det én sammenligning. Testet.
+- **Flater** (`regions/spawn/meshes.ts`, `SpawnArea.tsx`): stiene er bånd og
+  plassen en skive som ligger 4 cm over LOD 0-bakken (`groundHeightAt` i hver
+  vertex), med myke alfa-kanter, prosedyral grus/brostein
+  (`regions/spawn/textures.ts`) og uttoning 350–550 m unna (der terrenget
+  begynner å morphe). Vertekser er relative til plassen; gruppen står på
+  plass − origo.
+- **Planter og gress** holder seg unna: `clearing()` for trær/busker/steiner,
+  og en bytemaske (2 m per teksel) i gress-patchen (`rasterizeClearing`).
+- Akademibygningen fra planen venter på brukerens beskjed (bygninger skal være
+  CC0 etter ordre).
 
 ### Streaming (`ChunkManager`)
 
