@@ -48,6 +48,8 @@ interface GameState {
   detailOn: boolean;
   /** Sun shadows near the player (F3 switch). */
   shadows: boolean;
+  /** Trees, bushes and boulders (F3 switch). */
+  vegetation: boolean;
   timePaused: boolean;
   minimap: ImageData | null;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
@@ -60,6 +62,7 @@ interface GameState {
   setDetailReady: (ready: boolean) => void;
   setDetailOn: (on: boolean) => void;
   setShadows: (on: boolean) => void;
+  setVegetation: (on: boolean) => void;
   /** Sets the in-game clock (hours 0..24); `paused` stops it from advancing. */
   setTime: (hours: number, paused?: boolean) => void;
   setMinimap: (image: ImageData) => void;
@@ -90,6 +93,7 @@ export const useGameStore = create<GameState>((set) => ({
   detailReady: false,
   detailOn: true,
   shadows: true,
+  vegetation: true,
   timePaused: false,
   minimap: null,
   lastJumpAt: 0,
@@ -101,6 +105,7 @@ export const useGameStore = create<GameState>((set) => ({
   setDetailReady: (detailReady) => set({ detailReady }),
   setDetailOn: (detailOn) => set({ detailOn }),
   setShadows: (shadows) => set({ shadows }),
+  setVegetation: (vegetation) => set({ vegetation }),
   setTime: (hours, paused) => {
     clock.hours = ((hours % 24) + 24) % 24;
     if (paused !== undefined) clock.paused = paused;

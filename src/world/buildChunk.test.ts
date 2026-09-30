@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { CHUNK_SIZE, CHUNKS_PER_SIDE, WORLD_SIZE } from '../config/world';
-import { buildChunk, buildProps } from './buildChunk';
+import { buildChunk } from './buildChunk';
+import { buildVegetation } from './vegetation';
 import { heightAt } from './terrain';
 
 describe('terrain', () => {
   it('is deterministic', () => {
     expect(heightAt(23_456.5, 61_000.25)).toBe(heightAt(23_456.5, 61_000.25));
-    expect(buildProps(50, 50, 64)).toEqual(buildProps(50, 50, 64));
+    expect(buildVegetation(50, 50, 64, 32, false)).toEqual(buildVegetation(50, 50, 64, 32, false));
   });
 
   it('ends in ocean at the world edge', () => {

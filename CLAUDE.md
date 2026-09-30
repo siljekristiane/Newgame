@@ -77,7 +77,8 @@ src/
     useGameStore.ts       zustand: HUD-snapshot, hurtigreise, minikart, teleport
   input/useControls.ts    Tastatur (event.code) og mus/scroll
   debug/                  Faste kameravinkler, bildetidsmåler, testkrok (window.__duskwood)
-  materials/              Materialer og shader-tillegg (terreng med geomorphing, props)
+  materials/              Materialer og shader-tillegg (terreng med geomorphing, planter)
+  vegetation/             Prosedyrale plante- og steinmesher (three.js)
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     terrain.ts            heightAt(x, z): terrengformen som ren funksjon
@@ -86,7 +87,9 @@ src/
     timeOfDay.ts          Sol, måne, himmel- og lysfarger som ren funksjon av klokkeslett
     ground.ts             groundHeightAt / gridHeightAt: høyden på trekantene som tegnes
     chunkMath.ts          Koordinater, chunk-nøkler, LOD-valg, ønsket chunk-sett
-    buildChunk.ts         Bygger vertex-data for én chunk + props + minikart (ren)
+    buildChunk.ts         Bygger vertex-data for én chunk + planter + minikart (ren)
+    vegetation.ts         Hvor trær, busker og steiner står (ren, deterministisk)
+    water.ts              Havbunnskart og bølge-normaler (ren)
     terrain.worker.ts     Worker som kaller buildChunk/buildMinimap
     workerPool.ts         Pool av workers, med reserve på hovedtråden
     ChunkManager.ts       Streaming: plan → dispatch → upload → unload
@@ -157,10 +160,10 @@ Nye systemer får sin egen mappe (`src/quests/`, `src/npc/` …) og kobles inn i
 Ring-avstand (Chebyshev, i chunks) fra spillerens chunk bestemmer oppløsning
 (`LOD_LEVELS` i `config/world.ts`):
 
-| LOD | Ringer | Rutenett per km² | Props |
+| LOD | Ringer | Rutenett per km² | Planter |
 |---|---|---|---|
-| 0 | 0–1 | 64 × 64 (~16 m) | ja |
-| 1 | 2–3 | 32 × 32 (~31 m) | ja |
+| 0 | 0–1 | 64 × 64 (~16 m) | alle |
+| 1 | 2–3 | 32 × 32 (~31 m) | utvalg |
 | 2 | 4–6 | 16 × 16 (~62 m) | nei |
 | 3 | 7–10 | 8 × 8 (125 m) | nei |
 
@@ -231,6 +234,29 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   `timeOfDay`), solglitter, og roligere bølger på avstand så det ikke flimrer.
 - Ingen ekte speiling eller refraksjon ennå (krever ekstra render-pass).
 
+### Vegetasjon (steg 5)
+
+- **Plassering** (`world/vegetation.ts`, konstanter i `VEGETATION`): fire arter
+  (gran/furu, løvtre, busk, stein). Et grovt tetthetsrutenett per chunk (16²)
+  regner sannsynlighet per art fra klima, overflatevekter og helning: trær under
+  tregrensen (`treeLineTemperature`, ca. 400 m ved spawn), tett i fuktig skog,
+  spredt i åpent land; bartrær i kaldt klima, løvtrær der det er varmt; busker i
+  tørrere, åpent land; steiner der det er stein, ikke i stup. Kandidater på et
+  rutenett med tilfeldig forskyvning (`cell` = 10 m), én hash per rute velger art.
+  Ingenting under 2,5 m over havet, og en lysning rundt spawn.
+- **LOD:** hvilke planter som finnes avhenger bare av chunken. LOD 0 viser alle,
+  LOD 1 et utvalg (`coarseKeep`) med grovere mesher. Planter som neste LOD ikke
+  har, krymper bort mens chunken morpher (`fade`), så ingenting popper; LOD 2–3
+  har ingen planter. Testet i `vegetation.test.ts`.
+- **Mesher** (`vegetation/plantGeometry.ts`): stablede kjegler med hengende kant
+  (bartre), klumpete kuler (løvtre, busk), fasettert kule (stein), med
+  vertex-farger og `sway`. Delt per LOD; hver chunk har bare sine
+  instans-attributter.
+- **Materiale** (`materials/plantMaterial.ts`): `MeshStandardMaterial` med
+  farge per instans, vind (sving + flimring, fase fra verdensposisjon), LOD-morph
+  og lys gjennom løvet (himmellys og sol bakfra), så trær i motlys ikke blir svarte.
+- Neste: gress nær spilleren, tekstur på løv/bark, impostorer for skog på avstand.
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -273,8 +299,8 @@ Bruk aldri positiv `useFrame`-prioritet uten å ta over renderingen bevisst.
 | Minne: 10 000 chunks passer ikke | Bare ~350 lastet; `dispose()` ved utlasting |
 | Terrenggenerering blokkerer frames | Web Workers + Transferables |
 | Opplastingstopper når mange chunks blir ferdige | Tidsbudsjett per frame |
-| Mange draw calls | Delt materiale; props som `InstancedMesh` (2 per chunk) |
-| Fjerne detaljer koster trekanter | LOD-ringer; props bare i LOD 0–1 |
+| Mange draw calls | Delt materiale; planter som `InstancedMesh` (4 per chunk, én per art) |
+| Fjerne detaljer koster trekanter | LOD-ringer; planter bare i LOD 0–1, grovere mesh og færre i LOD 1 |
 | Stor fane på pause → enorm `delta` | `dt` klemmes til 0,1 s |
 | Høy DPI | `dpr={[1, 1.75]}` |
 
@@ -311,6 +337,14 @@ Etter steg 4 (`docs/measurements/step-4/`): samme draw calls og trekanter
 (vannet er fortsatt ett plan), 3 teksturer til (havbunn, bølger, reserve),
 2–5 MB mer JS-minne. Ny vinkel `shore`.
 
+Etter steg 5 (`docs/measurements/step-5/`, vegetasjon på): 148–174 draw
+calls, 0,3–0,9 M trekanter (skog ved spawn og strand er tyngst), 34–66 MB
+JS-minne. Planter som krymper bort før neste LOD tegnes ikke når hele chunken er
+forbi morph-sonen (sortert sist i instans-bufferen). e2e slår av vegetasjon
+unntatt i første test (`openGame(..., { vegetation })`); F3 har bryter.
+Merk: `npm run measure` gjenbruker en kjørende `vite preview` på port 4173, så
+kjør `npm run build` først hvis en slik server går.
+
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig
 - ≤ 2 ms på hovedtråden til streaming per frame
@@ -336,7 +370,7 @@ LRU-cache av geometrier for å slippe å bygge chunks man nettopp forlot.
 - Frigjør GPU-ressurser (`geometry.dispose()`, `material.dispose()`) når noe fjernes.
 - Kommentarer på engelsk i koden; UI-tekst på norsk (bokmål), tall med `nb-NO`-format.
 - Taster leses med `event.code` (fysisk posisjon), så WASD virker på norsk tastatur.
-- Placeholders er enkle former (plan, kuber, sfærer) til ekte modeller kommer.
+- Trær, busker og steiner er prosedyrale low-poly-mesher (`src/vegetation/`); spilleren er fortsatt en enkel form til en ekte figur kommer.
 
 ## Kunstretning og design
 

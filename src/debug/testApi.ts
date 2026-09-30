@@ -13,6 +13,8 @@ export interface DuskwoodTestApi {
   setTime: (hours: number, paused?: boolean) => void;
   /** Sun shadows on/off. */
   setShadows: (on: boolean) => void;
+  /** Trees, bushes and boulders on/off. */
+  setVegetation: (on: boolean) => void;
   /** Terrain detail textures on/off. */
   setTerrainTextures: (on: boolean) => void;
   /** Moves the player to world meters (x, z), like a minimap click. */

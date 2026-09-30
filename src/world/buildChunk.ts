@@ -1,9 +1,8 @@
-import { CHUNK_SIZE, MINIMAP_RESOLUTION, NORMAL_SAMPLE_STEP, SEA_LEVEL, WORLD_SIZE, WORLD_SEED } from '../config/world';
+import { CHUNK_SIZE, LOD_LEVELS, MINIMAP_RESOLUTION, NORMAL_SAMPLE_STEP, SEA_LEVEL, WORLD_SIZE } from '../config/world';
 import { hexToRgb, world } from '../design/tokens';
-import { hash2 } from './noise';
-import { gridHeightAt } from './ground';
 import { surfaceAt, surfaceColor } from './biomes';
 import { heightAt } from './terrain';
+import { buildVegetation, PLANT_STRIDE } from './vegetation';
 
 /**
  * Pure mesh-data builders. They run inside the terrain worker, but are plain
@@ -41,14 +40,13 @@ export interface ChunkData {
   morphWeights: Float32Array;
   colors: Float32Array;
   indices: Uint16Array | Uint32Array;
-  /** Placeholder props, PROP_STRIDE floats each: localX, y, localZ, size, kind (0 = cube, 1 = sphere), morphY. */
+  /** Trees, bushes and boulders, PROP_STRIDE floats each (see PLANT_STRIDE in world/vegetation.ts). */
   props: Float32Array;
   minHeight: number;
   maxHeight: number;
 }
 
-export const PROPS_PER_CHUNK = 36;
-export const PROP_STRIDE = 6;
+export const PROP_STRIDE = PLANT_STRIDE;
 
 export function buildChunk({ cx, cz, segments, morphSegments, withProps }: ChunkRequest): ChunkData {
   if (morphSegments !== 0 && morphSegments * 2 !== segments) throw new Error('morphSegments must be segments / 2');
@@ -187,7 +185,8 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
     morphWeights,
     colors,
     indices: indices.subarray(0, t),
-    props: withProps ? buildProps(cx, cz, segments, morphSegments) : new Float32Array(0),
+    // The finest LOD shows every plant; coarser ones a thinned subset.
+    props: withProps ? buildVegetation(cx, cz, segments, morphSegments, segments < LOD_LEVELS[0].segments) : new Float32Array(0),
     minHeight,
     maxHeight,
   };
@@ -222,31 +221,6 @@ function perimeterIndices(segments: number): number[] {
   for (let i = segments; i > 0; i--) out.push(segments * side + i);
   for (let j = segments; j > 0; j--) out.push(j * side);
   return out;
-}
-
-/**
- * Deterministic placeholder objects: same chunk, same props, every time.
- * Which props exist depends only on the chunk; their height is taken from the
- * mesh they stand on (`segments`), so they sit on the rendered ground at every LOD.
- */
-export function buildProps(cx: number, cz: number, segments: number, morphSegments = 0): Float32Array {
-  const out = new Float32Array(PROPS_PER_CHUNK * PROP_STRIDE);
-  let n = 0;
-  for (let k = 0; k < PROPS_PER_CHUNK; k++) {
-    const lx = hash2(cx * 97 + k, cz, WORLD_SEED) * CHUNK_SIZE;
-    const lz = hash2(cx, cz * 89 + k, WORLD_SEED + 7) * CHUNK_SIZE;
-    const h = heightAt(cx * CHUNK_SIZE + lx, cz * CHUNK_SIZE + lz);
-    if (h < SEA_LEVEL + 4 || h > 700) continue;
-    const kind = hash2(cx + k, cz - k, WORLD_SEED + 13) < 0.35 ? 0 : 1;
-    const size = 2 + hash2(cx - k, cz + k, WORLD_SEED + 21) * (kind === 0 ? 5 : 6);
-    const x = cx * CHUNK_SIZE + lx;
-    const z = cz * CHUNK_SIZE + lz;
-    const y = gridHeightAt(x, z, segments);
-    const morphY = morphSegments ? gridHeightAt(x, z, morphSegments) : y;
-    out.set([lx, y, lz, size, kind, morphY], n * PROP_STRIDE);
-    n++;
-  }
-  return out.subarray(0, n * PROP_STRIDE);
 }
 
 /** RGBA image of the whole world, for the minimap: surface colours with hill shading from the north-west. */

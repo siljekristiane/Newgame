@@ -41,6 +41,15 @@ export const atmosphere = {
 } as const;
 
 /** Water body colours (art direction C): the shade under the surface, by depth. */
+/** Trees, bushes and boulders (vertex colours, varied per instance). */
+export const vegetationPalette = {
+  bark: '#4b3b2e',
+  conifer: '#3a5732',
+  broadleaf: '#5b7a3a',
+  bush: '#66783f',
+  rock: '#7f7b73',
+} as const;
+
 export const waterPalette = {
   shallow: '#3d8c86',
   deep: '#0d2c3c',

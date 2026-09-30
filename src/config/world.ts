@@ -80,6 +80,36 @@ export const WATER = {
   waveTiles: [32, 16] as const,
 } as const;
 
+/**
+ * Trees, bushes and boulders (step 5). Candidates on a jittered grid of `cell`
+ * meters; the densities are probabilities per cell (see world/vegetation.ts).
+ * Kinds in order: conifer, broadleaf, bush, rock.
+ */
+export const VEGETATION = {
+  cell: 10,
+  /** Nothing grows below this height above sea level (beach, surf). */
+  minHeight: 2.5,
+  /** °C where trees stop (≈ 400 m up at the latitude of the spawn). */
+  treeLineTemperature: 3.5,
+  /** Tree probability per cell in open land and extra in forest. */
+  openTrees: 0.012,
+  forestTrees: 0.25,
+  bushes: 0.03,
+  rocks: 0.03,
+  /** Share of each kind still shown at LOD 1 (the rest shrink away before the switch). */
+  coarseKeep: [0.2, 0.2, 0.08, 0.2] as const,
+  /** Radius around the spawn kept clear, so the player never starts inside a tree. */
+  spawnClearing: 30,
+  /** Size multiplier per kind (the meshes are ~13 m, ~11 m, ~1.5 m and ~2 m). */
+  scale: [1, 1, 1, 1.3] as const,
+  /** Light through leaves: extra sky light on all sides, and sun from behind. */
+  foliageSkyLight: 0.6,
+  foliageTransmission: 0.5,
+  windSpeed: 0.9,
+  /** Sway at the tip of a plant, meters (before its own scale). */
+  windStrength: 0.12,
+} as const;
+
 export const SHADOWS = {
   /** Half-size of the sun's shadow box around the player, meters. */
   radius: 150,

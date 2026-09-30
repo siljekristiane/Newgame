@@ -26,6 +26,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   Ny vinkel `shore.jpg` (strand) viser vannet nært; `shore-18.jpg` er samme sted i
   skumringen (teksturer av).
 
+- `step-5/`: trær, busker og steiner etter biom (vegetasjon på). Trekanter
+  0,3–0,9 M (fra 0,08–0,16 M), draw calls 148–174 (fra 121–147), 2–7 MB mer
+  JS-minne. `spawn.jpg`, `mountain.jpg` og `shore.jpg` viser skog og åpent land.
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

@@ -76,7 +76,7 @@ export function morphRange(lod: number): THREE.Vector2 {
   return new THREE.Vector2(end - MORPH_RANGE, end);
 }
 
-const MORPH_HEAD = /* glsl */ `
+export const MORPH_HEAD = /* glsl */ `
 uniform vec2 uPlayer;
 uniform vec2 uMorph;
 uniform float uMorphOn;
@@ -234,33 +234,5 @@ export function createTerrainMaterial(lod: number, withDetail = true): THREE.Mes
     shader.vertexShader = vertex;
   };
   material.customProgramCacheKey = () => (detail ? 'dw-terrain-detail' : 'dw-terrain-plain');
-  return material;
-}
-
-/**
- * Placeholder props (instanced). Each instance has `aMorphDelta` = its height on
- * the coarser mesh minus its height on its own mesh, and follows the ground's morph.
- */
-export function createPropMaterial(color: THREE.ColorRepresentation, lod: number): THREE.MeshLambertMaterial {
-  const material = new THREE.MeshLambertMaterial({ color, flatShading: true });
-  const range = morphRange(lod);
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uPlayer = morphPlayer;
-    shader.uniforms.uMorph = { value: range };
-    shader.uniforms.uMorphOn = morphEnabled;
-    shader.vertexShader =
-      'attribute float aMorphDelta;\n' +
-      MORPH_HEAD +
-      shader.vertexShader.replace(
-        '#include <begin_vertex>',
-        /* glsl */ `#include <begin_vertex>
-        #ifdef USE_INSTANCING
-          float dwMorph = dwMorphFactor((modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz);
-          // transformed is scaled by the instance matrix afterwards, so undo its Y scale.
-          transformed.y += aMorphDelta * dwMorph / length(instanceMatrix[1].xyz);
-        #endif`,
-      );
-  };
-  material.customProgramCacheKey = () => 'dw-prop-morph';
   return material;
 }

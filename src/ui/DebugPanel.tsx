@@ -18,6 +18,8 @@ export function DebugPanel() {
   const setDetailOn = useGameStore((s) => s.setDetailOn);
   const shadows = useGameStore((s) => s.shadows);
   const setShadows = useGameStore((s) => s.setShadows);
+  const vegetation = useGameStore((s) => s.vegetation);
+  const setVegetation = useGameStore((s) => s.setVegetation);
   const hours = useGameStore((s) => s.hud.hours);
   const timePaused = useGameStore((s) => s.timePaused);
   const setTime = useGameStore((s) => s.setTime);
@@ -67,6 +69,9 @@ export function DebugPanel() {
       </label>
       <label className="dw-toggle">
         <input type="checkbox" checked={shadows} onChange={(e) => setShadows(e.target.checked)} /> Skygger
+      </label>
+      <label className="dw-toggle">
+        <input type="checkbox" checked={vegetation} onChange={(e) => setVegetation(e.target.checked)} /> Vegetasjon
       </label>
       <label className="dw-toggle dw-time">
         <span>Klokka {clockTime(hours)}</span>

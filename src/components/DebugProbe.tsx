@@ -35,7 +35,9 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       setTerrainTextures: (on) => useGameStore.getState().setDetailOn(on),
       setTime: (hours, paused) => useGameStore.getState().setTime(hours, paused),
       setShadows: (on) => useGameStore.getState().setShadows(on),
-      isSettled: () => settleMs.current !== null,
+      setVegetation: (on) => useGameStore.getState().setVegetation(on),
+      // A jump this probe has not processed yet (no frame since) is never settled.
+      isSettled: () => settleMs.current !== null && jumpSeen.current === useGameStore.getState().lastJumpAt,
       debug: () => useGameStore.getState().debug,
       hud: () => useGameStore.getState().hud,
       groundCheck: () => {

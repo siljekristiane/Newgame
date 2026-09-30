@@ -32,16 +32,17 @@ export async function goToView(page: Page, id: string): Promise<void> {
 
 /**
  * Opens the game at an optional `#v-<id>` view, with the clock stopped at 15:00.
- * Detail textures and shadows are switched off unless asked for: under software rendering (CI) they make every frame
+ * Detail textures, shadows and vegetation are switched off unless asked for: under software rendering (CI) they make every frame
  * several times slower, and most tests are about streaming, movement or ground
  * contact, not texturing. The first smoke test and `npm run measure` keep them on.
  */
-export async function openGame(page: Page, hash = '', { textures = false, shadows = false } = {}): Promise<void> {
+export async function openGame(page: Page, hash = '', { textures = false, shadows = false, vegetation = false } = {}): Promise<void> {
   await page.goto(`/${hash}`);
   await page.waitForFunction(() => window.__duskwood !== undefined, undefined, { timeout: 60_000 });
   // Fixed light, so screenshots taken seconds apart are comparable.
   await page.evaluate(() => window.__duskwood!.setTime(15, true));
   if (!textures) await page.evaluate(() => window.__duskwood!.setTerrainTextures(false));
   if (!shadows) await page.evaluate(() => window.__duskwood!.setShadows(false));
+  if (!vegetation) await page.evaluate(() => window.__duskwood!.setVegetation(false));
   await waitUntilSettled(page);
 }
