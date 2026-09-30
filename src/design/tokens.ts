@@ -57,6 +57,12 @@ export const vegetationPalette = {
   rock: '#7f7b73',
 } as const;
 
+/** Rain streaks and snow flakes. */
+export const weatherPalette = {
+  rain: '#c9d5e2',
+  snow: '#f4f7fb',
+} as const;
+
 export const waterPalette = {
   shallow: '#3d8c86',
   deep: '#0d2c3c',

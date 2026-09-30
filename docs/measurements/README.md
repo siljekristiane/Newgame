@@ -41,6 +41,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   og `spawn-closeup-20.jpg`: samme vinkel kl. 15 og 20 (lamper og krystall tent).
   Shadere 16 → 29: krystallens punktlys gir nye varianter av alle materialer.
 
+- `step-8/`: vær (målt i klart vær: samme tall som 6b, +1 tekstur for skystøy).
+  `weather-cloudy.jpg` (kysten, skyet), `weather-rain.jpg` (spawn i regn) og
+  `weather-snow.jpg` (fjelltoppen i snøvær).
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

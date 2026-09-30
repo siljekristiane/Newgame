@@ -132,6 +132,25 @@ export const WEATHER = {
   rainCover: 0.8,
   windCalm: 1.5,
   windStorm: 14,
+  /** Cloud layer height, the noise tile size on it, and how much faster than the wind it drifts (it is high up). */
+  cloudHeight: 2_500,
+  cloudTile: 12_000,
+  cloudDriftScale: 3,
+  /** Fog distances in heavy rain (clear weather uses CAMERA.fogNear/fogFar). */
+  rainFogNear: 400,
+  rainFogFar: 3_500,
+} as const;
+
+/** Rain and snow particles in a box around the camera (step 8). */
+export const PRECIPITATION = {
+  box: 40,
+  count: 8_000,
+  rainSpeed: 9, // m/s
+  snowSpeed: 1.2,
+  /** Snow flake size, meters. */
+  snowSize: 0.12,
+  /** °C at the player below which it snows instead of rains. */
+  snowBelow: 0,
 } as const;
 
 export const SHADOWS = {

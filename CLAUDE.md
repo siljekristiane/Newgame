@@ -80,6 +80,8 @@ src/
   materials/              Materialer og shader-tillegg (terreng med geomorphing, planter)
   vegetation/             Prosedyrale plante- og steinmesher (three.js)
   regions/                Håndlagde områder: stempling i terrenget + spawn/ (plass, stier)
+  player/                 Bevegelsesmodell (ren, testet)
+  weather/                Værmodell, skystøy, regn og snø
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     naturalTerrain.ts     naturalHeightAt(x, z): terrengformen uten regioner
@@ -319,6 +321,29 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   `CAMERA.clearance` over bakken; bakker og rygger kommer ikke lenger mellom.
 - Figuren er fortsatt plassholder (kule + sekk): figurer kommer som CC0-modell
   når brukeren ber om det, med animasjon da.
+
+### Vær og skyer (steg 8)
+
+- **Værmodell** (`weather/weather.ts`, ren og testet): skydekke som glatt støy
+  over spilltid (`clock.elapsed`, `WEATHER.changeHours`), kvadrert så fint vær er
+  vanligst (ca. halve tiden klart, ~9 % nedbør); nedbør over `rainCover`; vind
+  som dreier sakte og blåser hardere i dårlig vær. `GameLoop` oppdaterer
+  `runtime.weather`. F3 og testkroken kan låse været (Skifter/Klart/Skyet/Regn).
+  e2e og måling låser det til klart.
+- **Skylag** (i himmelshaderen, `Atmosphere.tsx`): et plan `cloudHeight` oppe med
+  flislagt skystøy (`weather/clouds.ts`, Worley + fbm) i tre skalaer, terskel
+  etter skydekke, mørkere der det er tykt, lysere mot sola, tonet ut mot
+  horisonten; driver med vinden og forskyves med kameraets verdensposisjon.
+  Overskyet legger et grått slør over hele himmelen (skjuler solskiva).
+- **Lys og tåke:** sola dempes (opptil 70 %), himmellyset blir gråere og litt
+  sterkere, tåka blir grå og trekker seg inn i regn (`rainFogNear/Far`).
+- **Vind:** `plantWind.strength` fra vindstyrken skalerer svingingen i trær og
+  gress (bare utslaget; fasen endres ikke, så ingenting hopper).
+- **Nedbør** (`weather/Precipitation.tsx`, `PRECIPITATION`): 8 000 partikler i en
+  40 m boks rundt kameraet, animert i shaderen: regn som streker langs
+  fallretningen, snø som myke punkter der det er under 0 °C hos spilleren.
+  Forflytningen summeres på CPU-en (float64), så vindskifter ikke får dråpene
+  til å hoppe, og de står stille i verden når du går gjennom dem.
 
 ### Streaming (`ChunkManager`)
 

@@ -2,8 +2,9 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
-import { CAMERA, SHADOWS, WORLD_SEED } from '../config/world';
-import { clock, origin, player } from '../state/runtime';
+import { CAMERA, SHADOWS, WEATHER, WORLD_SEED } from '../config/world';
+import { clock, cloudDrift, origin, player, weather } from '../state/runtime';
+import { buildCloudNoise } from '../weather/clouds';
 import { useGameStore } from '../state/useGameStore';
 import { atmosphere } from '../design/tokens';
 import { mulberry32 } from '../world/noise';
@@ -37,17 +38,61 @@ export function Atmosphere() {
     const night = { value: 0 };
     const nightZenith = { value: new THREE.Color() };
     const nightHorizon = { value: new THREE.Color() };
+    // Cloud layer: a plane WEATHER.cloudHeight up, textured with tiling noise
+    // and thresholded by cloud cover; lit from the sun side, grey underneath.
+    const cloudNoise = new THREE.DataTexture(buildCloudNoise(256) as Uint8Array<ArrayBuffer>, 256, 256, THREE.RedFormat);
+    cloudNoise.wrapS = cloudNoise.wrapT = THREE.RepeatWrapping;
+    cloudNoise.magFilter = THREE.LinearFilter;
+    cloudNoise.minFilter = THREE.LinearMipmapLinearFilter;
+    cloudNoise.generateMipmaps = true;
+    cloudNoise.needsUpdate = true;
+    const clouds = {
+      uCloudNoise: { value: cloudNoise },
+      uCloudCover: { value: 0 },
+      /** World position of the camera plus the wind drift, modulo the tile (meters). */
+      uCloudOffset: { value: new THREE.Vector2() },
+      uCloudLight: { value: new THREE.Color() },
+      uCloudShade: { value: new THREE.Color() },
+    };
     sky.material.onBeforeCompile = (shader) => {
       shader.uniforms.uNight = night;
       shader.uniforms.uNightZenith = nightZenith;
       shader.uniforms.uNightHorizon = nightHorizon;
+      Object.assign(shader.uniforms, clouds);
       shader.fragmentShader = shader.fragmentShader
-        .replace('void main() {', 'uniform float uNight;\nuniform vec3 uNightZenith;\nuniform vec3 uNightHorizon;\nvoid main() {')
+        .replace(
+          'void main() {',
+          `uniform float uNight;
+          uniform vec3 uNightZenith;
+          uniform vec3 uNightHorizon;
+          uniform sampler2D uCloudNoise;
+          uniform float uCloudCover;
+          uniform vec2 uCloudOffset;
+          uniform vec3 uCloudLight;
+          uniform vec3 uCloudShade;
+          void main() {`,
+        )
         .replace(
           '#include <tonemapping_fragment>',
           `vec3 dwDir = normalize(vWorldPosition - cameraPosition);
           vec3 dwNightSky = mix(uNightHorizon, uNightZenith, smoothstep(0.0, 0.5, dwDir.y));
           gl_FragColor.rgb = mix(gl_FragColor.rgb, dwNightSky, uNight);
+          if (dwDir.y > 0.0 && uCloudCover > 0.01) {
+            // Where the view ray meets the cloud plane (flattened toward the horizon).
+            vec2 dwP = (dwDir.xz / (dwDir.y + 0.06) * ${WEATHER.cloudHeight.toFixed(1)} + uCloudOffset) / ${WEATHER.cloudTile.toFixed(1)};
+            float dwN = texture2D(uCloudNoise, dwP).r * 0.55 + texture2D(uCloudNoise, dwP * 2.7 + 0.37).r * 0.3 + texture2D(uCloudNoise, dwP * 7.1 + 0.71).r * 0.15;
+            float dwEdge = 1.0 - uCloudCover;
+            float dwDensity = smoothstep(dwEdge * 0.9, dwEdge * 0.9 + 0.22, dwN);
+            // Thick parts are darker underneath; the sun side glows.
+            float dwThick = smoothstep(dwEdge, dwEdge + 0.45, dwN);
+            float dwSun = pow(max(dot(dwDir, vSunDirection), 0.0), 6.0);
+            vec3 dwCloud = mix(uCloudLight, uCloudShade, dwThick * 0.8) * (1.0 + dwSun * 0.6);
+            float dwFade = smoothstep(0.0, 0.1, dwDir.y);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, dwCloud, dwDensity * dwFade);
+          }
+          // Overcast: a grey veil over the whole sky (hides the sun disc too).
+          float dwVeil = smoothstep(0.55, 0.95, uCloudCover);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, mix(uCloudLight, uCloudShade, 0.35), dwVeil * 0.9);
           #include <tonemapping_fragment>`,
         );
     };
@@ -83,7 +128,7 @@ export function Atmosphere() {
     stars.renderOrder = 1;
 
     const fog = new THREE.Fog(0xffffff, CAMERA.fogNear, CAMERA.fogFar);
-    return { sky, sun, moon, hemi, stars, fog, night, nightZenith, nightHorizon };
+    return { sky, sun, moon, hemi, stars, fog, night, nightZenith, nightHorizon, clouds };
   }, []);
 
   useEffect(() => {
@@ -96,6 +141,7 @@ export function Atmosphere() {
       scene.fog = null;
       sky.geometry.dispose();
       sky.material.dispose();
+      objects.clouds.uCloudNoise.value.dispose();
       sun.dispose();
       moon.dispose();
       stars.geometry.dispose();
@@ -104,8 +150,10 @@ export function Atmosphere() {
   }, [objects, scene, gl]);
 
   useFrame(({ camera }) => {
-    const { sky, sun, moon, hemi, stars, fog, night, nightZenith, nightHorizon } = objects;
+    const { sky, sun, moon, hemi, stars, fog, night, nightZenith, nightHorizon, clouds } = objects;
     const l = lightingAt(clock.hours);
+    const cover = weather.cloudCover;
+    const wet = weather.precipitation;
     night.value = Math.pow(l.night, 0.6);
     setSrgb(nightZenith.value, l.zenithColor);
     setSrgb(nightHorizon.value, l.horizonColor);
@@ -124,8 +172,9 @@ export function Atmosphere() {
     sun.target.position.set(tx, ty, tz);
     sun.position.set(tx + dx * 1_000, ty + dy * 1_000, tz + dz * 1_000);
     setSrgb(sun.color, l.sunColor);
-    sun.intensity = l.sunIntensity;
-    sun.castShadow = shadows && l.sunIntensity > 0.05;
+    // Clouds dim the sun (and soften its shadows away under overcast).
+    sun.intensity = l.sunIntensity * (1 - 0.7 * cover * cover);
+    sun.castShadow = shadows && sun.intensity > 0.05;
 
     const [mx, my, mz] = l.moonDirection;
     moon.target.position.set(tx, ty, tz);
@@ -133,14 +182,32 @@ export function Atmosphere() {
     moon.intensity = l.moonIntensity;
 
     setSrgb(hemi.color, l.skyLightColor);
+    hemi.color.lerp(grey.setScalar(hemi.color.r * 0.3 + hemi.color.g * 0.55 + hemi.color.b * 0.15), cover * 0.7);
     setSrgb(hemi.groundColor, l.groundColor);
-    hemi.intensity = l.ambientIntensity;
+    hemi.intensity = l.ambientIntensity * (1 + 0.25 * cover);
     setSrgb(fog.color, l.horizonColor);
+    fog.color.lerp(grey.setScalar(fog.color.r * 0.3 + fog.color.g * 0.55 + fog.color.b * 0.15), cover * 0.6);
+    // Rain closes the view in.
+    fog.near = CAMERA.fogNear + (WEATHER.rainFogNear - CAMERA.fogNear) * wet;
+    fog.far = CAMERA.fogFar + (WEATHER.rainFogFar - CAMERA.fogFar) * wet;
     gl.toneMappingExposure = l.exposure;
+
+    // Cloud layer: lit by the sun and sky, darker the more overcast it is.
+    clouds.uCloudCover.value = cover;
+    const cam = camera.position;
+    clouds.uCloudOffset.value.set(mod(origin.x + cam.x + cloudDrift.x, WEATHER.cloudTile), mod(origin.z + cam.z + cloudDrift.z, WEATHER.cloudTile));
+    const lightK = (0.35 + 0.65 * (1 - l.night)) * (1 - 0.45 * cover);
+    setSrgb(clouds.uCloudLight.value, l.horizonColor);
+    clouds.uCloudLight.value.lerp(white.setRGB(l.sunColor[0], l.sunColor[1], l.sunColor[2], THREE.SRGBColorSpace), 0.5 * (1 - l.night)).multiplyScalar(lightK * 1.1);
+    clouds.uCloudShade.value.copy(clouds.uCloudLight.value).multiplyScalar(0.45);
   });
 
   return null;
 }
+
+const grey = new THREE.Color();
+const white = new THREE.Color();
+const mod = (v: number, m: number) => ((v % m) + m) % m;
 
 function setSrgb(color: THREE.Color, rgb: Rgb): void {
   color.setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace);

@@ -36,6 +36,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       setTime: (hours, paused) => useGameStore.getState().setTime(hours, paused),
       setShadows: (on) => useGameStore.getState().setShadows(on),
       setVegetation: (on) => useGameStore.getState().setVegetation(on),
+      setWeather: (mode) => useGameStore.getState().setWeatherMode(mode),
       // A jump this probe has not processed yet (no frame since) is never settled.
       isSettled: () => settleMs.current !== null && jumpSeen.current === useGameStore.getState().lastJumpAt,
       debug: () => useGameStore.getState().debug,

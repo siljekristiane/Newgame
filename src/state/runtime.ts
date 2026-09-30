@@ -1,6 +1,7 @@
 import { SPAWN, TIME } from '../config/world';
 import { groundHeightAt } from '../world/ground';
 import { createMoveState } from '../player/movement';
+import { weatherAt, type Weather } from '../weather/weather';
 
 /**
  * Per-frame mutable state. It changes 60 times a second, so it lives outside
@@ -32,11 +33,18 @@ export const cameraRig = {
   distance: 22, // meters behind the player
 };
 
-/** In-game clock: hours 0..24. Advanced by GameLoop unless paused. */
+/** In-game clock: hours 0..24, plus game hours elapsed in total (weather). Advanced by GameLoop unless paused. */
 export const clock = {
   hours: TIME.startHour as number,
+  elapsed: 0,
   paused: false,
 };
+
+/** Current weather (weather/weather.ts), updated by GameLoop. */
+export const weather: Weather = weatherAt(0);
+
+/** Wind-blown offset of the cloud layer, meters (wraps; see Atmosphere). */
+export const cloudDrift = { x: 0, z: 0 };
 
 export const input = {
   keys: new Set<string>(),

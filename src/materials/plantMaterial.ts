@@ -7,6 +7,8 @@ export const plantWind = {
   time: { value: 0 },
   /** origin mod 1000 m: keeps the wind phase continuous in world space without big numbers. */
   originMod: { value: new THREE.Vector2() },
+  /** Sway multiplier from the weather's wind (1 = a light breeze). */
+  strength: { value: 1 },
 };
 
 /**
@@ -23,6 +25,7 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
     shader.uniforms.uMorphOn = morphEnabled;
     shader.uniforms.uWindTime = plantWind.time;
     shader.uniforms.uOriginMod = plantWind.originMod;
+    shader.uniforms.uWindScale = plantWind.strength;
     shader.vertexShader =
       /* glsl */ `attribute float aMorphDelta;
       attribute float aFade;
@@ -30,6 +33,7 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
       varying float vFoliage;
       uniform float uWindTime;
       uniform vec2 uOriginMod;
+      uniform float uWindScale;
       ` +
       MORPH_HEAD +
       shader.vertexShader.replace(
@@ -46,7 +50,7 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
           vec2 dwW = dwBase.xz + uOriginMod;
           float dwPhase = uWindTime * ${VEGETATION.windSpeed.toFixed(2)} + dot(dwW, vec2(0.021, 0.017));
           vec2 dwSway = vec2(sin(dwPhase), cos(dwPhase * 0.7)) + 0.3 * sin(uWindTime * 3.1 + dwW.yx * 0.3);
-          transformed.xz += dwSway * sway * ${VEGETATION.windStrength.toFixed(2)};
+          transformed.xz += dwSway * sway * uWindScale * ${VEGETATION.windStrength.toFixed(2)};
         #endif`,
       );
     // Leaves let light through: some sky light on every side, and the sun

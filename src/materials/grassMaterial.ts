@@ -32,7 +32,7 @@ export function createGrassMaterial(): THREE.MeshLambertMaterial {
   // Lambert: thin blades seen edge-on should not pick up a grazing specular sheen.
   const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
   material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, grassUniforms, { uWindTime: plantWind.time, uOriginMod: plantWind.originMod });
+    Object.assign(shader.uniforms, grassUniforms, { uWindTime: plantWind.time, uOriginMod: plantWind.originMod, uWindScale: plantWind.strength });
     shader.vertexShader = shader.vertexShader
       .replace(
         'void main() {',
@@ -49,6 +49,7 @@ export function createGrassMaterial(): THREE.MeshLambertMaterial {
         uniform vec2 uPlayerR;
         uniform float uWindTime;
         uniform vec2 uOriginMod;
+        uniform float uWindScale;
         uint dwHash(uint x) {
           x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu; x ^= x >> 16;
           return x;
@@ -97,7 +98,7 @@ export function createGrassMaterial(): THREE.MeshLambertMaterial {
         vec2 dwW = dwP + uOriginMod;
         float dwPhase = uWindTime * 1.7 + dot(dwW, vec2(0.13, 0.09));
         float dwBend = position.y / ${GRASS.height.toFixed(3)};
-        transformed.xz += vec2(sin(dwPhase), cos(dwPhase * 0.8)) * dwBend * dwBend * dwSize * ${GRASS.windStrength.toFixed(3)};
+        transformed.xz += vec2(sin(dwPhase), cos(dwPhase * 0.8)) * dwBend * dwBend * dwSize * uWindScale * ${GRASS.windStrength.toFixed(3)};
         transformed += vec3(dwP.x, dwY, dwP.y);`,
       );
     // Blades are seen from both sides but lit like the ground: never flip the

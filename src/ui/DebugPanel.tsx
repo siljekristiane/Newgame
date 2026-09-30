@@ -2,6 +2,7 @@ import { LOD_LEVELS } from '../config/world';
 import { applyView, VIEWS } from '../debug/views';
 import { useGameStore } from '../state/useGameStore';
 import { clockTime } from './format';
+import type { WeatherMode } from '../weather/weather';
 
 /** Budgets from CLAUDE.md. Over budget shows a warning, in words as well as colour. */
 const BUDGET = { drawCalls: 500, triangles: 1_500_000, frameMs: 1000 / 60 };
@@ -20,6 +21,8 @@ export function DebugPanel() {
   const setShadows = useGameStore((s) => s.setShadows);
   const vegetation = useGameStore((s) => s.vegetation);
   const setVegetation = useGameStore((s) => s.setVegetation);
+  const weatherMode = useGameStore((s) => s.weatherMode);
+  const setWeatherMode = useGameStore((s) => s.setWeatherMode);
   const hours = useGameStore((s) => s.hud.hours);
   const timePaused = useGameStore((s) => s.timePaused);
   const setTime = useGameStore((s) => s.setTime);
@@ -72,6 +75,15 @@ export function DebugPanel() {
       </label>
       <label className="dw-toggle">
         <input type="checkbox" checked={vegetation} onChange={(e) => setVegetation(e.target.checked)} /> Vegetasjon
+      </label>
+      <label className="dw-toggle">
+        Vær
+        <select value={weatherMode} onChange={(e) => setWeatherMode(e.target.value as WeatherMode)}>
+          <option value="auto">Skifter</option>
+          <option value="clear">Klart</option>
+          <option value="cloudy">Skyet</option>
+          <option value="rain">Regn</option>
+        </select>
       </label>
       <label className="dw-toggle dw-time">
         <span>Klokka {clockTime(hours)}</span>

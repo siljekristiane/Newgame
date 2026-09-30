@@ -11,6 +11,7 @@ import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
 import { SpawnArea } from '../regions/spawn/SpawnArea';
+import { Precipitation } from '../weather/Precipitation';
 
 export function Scene() {
   // Created in an effect (not useMemo) so StrictMode's mount → unmount → mount
@@ -37,6 +38,7 @@ export function Scene() {
       <Terrain manager={manager} />
       <Grass pool={pool} />
       <SpawnArea />
+      <Precipitation />
       <TerrainTextures pool={pool} />
       <Player />
       <GameLoop manager={manager} pool={pool} />

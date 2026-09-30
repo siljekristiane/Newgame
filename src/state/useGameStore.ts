@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { SPAWN, TIME } from '../config/world';
 import { clampToWorld } from '../world/chunkMath';
 import { clock, player } from './runtime';
+import type { WeatherMode } from '../weather/weather';
 
 export interface HudSnapshot {
   x: number;
@@ -52,6 +53,8 @@ interface GameState {
   vegetation: boolean;
   /** The mouse is captured (pointer lock): it turns the camera until Esc. */
   pointerLocked: boolean;
+  /** Weather: 'auto' follows the weather model; the others pin it (F3). */
+  weatherMode: WeatherMode;
   timePaused: boolean;
   minimap: ImageData | null;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
@@ -66,6 +69,7 @@ interface GameState {
   setShadows: (on: boolean) => void;
   setVegetation: (on: boolean) => void;
   setPointerLocked: (locked: boolean) => void;
+  setWeatherMode: (mode: WeatherMode) => void;
   /** Sets the in-game clock (hours 0..24); `paused` stops it from advancing. */
   setTime: (hours: number, paused?: boolean) => void;
   setMinimap: (image: ImageData) => void;
@@ -98,6 +102,7 @@ export const useGameStore = create<GameState>((set) => ({
   shadows: true,
   vegetation: true,
   pointerLocked: false,
+  weatherMode: 'auto',
   timePaused: false,
   minimap: null,
   lastJumpAt: 0,
@@ -111,6 +116,7 @@ export const useGameStore = create<GameState>((set) => ({
   setShadows: (shadows) => set({ shadows }),
   setVegetation: (vegetation) => set({ vegetation }),
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),
+  setWeatherMode: (weatherMode) => set({ weatherMode }),
   setTime: (hours, paused) => {
     clock.hours = ((hours % 24) + 24) % 24;
     if (paused !== undefined) clock.paused = paused;

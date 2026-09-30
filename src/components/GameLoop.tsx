@@ -1,7 +1,8 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import { MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME } from '../config/world';
-import { cameraRig, clock, input, motion, origin, player, rebaseOrigin } from '../state/runtime';
+import { MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME, WEATHER } from '../config/world';
+import { cameraRig, clock, cloudDrift, input, motion, origin, player, rebaseOrigin, weather } from '../state/runtime';
+import { weatherAt } from '../weather/weather';
 import { useGameStore } from '../state/useGameStore';
 import { clampToWorld, worldToChunk } from '../world/chunkMath';
 import type { ChunkManager } from '../world/ChunkManager';
@@ -72,7 +73,14 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
 
     manager.update(player.x, player.z);
 
-    if (!clock.paused) clock.hours = wrapHours(clock.hours + dt / TIME.secondsPerHour);
+    if (!clock.paused) {
+      clock.hours = wrapHours(clock.hours + dt / TIME.secondsPerHour);
+      clock.elapsed += dt / TIME.secondsPerHour;
+    }
+    Object.assign(weather, weatherAt(clock.elapsed, useGameStore.getState().weatherMode));
+    // Clouds drift with the wind (in real time, so they move even with the clock stopped).
+    cloudDrift.x = (cloudDrift.x + weather.windX * WEATHER.cloudDriftScale * dt) % WEATHER.cloudTile;
+    cloudDrift.z = (cloudDrift.z + weather.windZ * WEATHER.cloudDriftScale * dt) % WEATHER.cloudTile;
 
     hudTimer.current += rawDelta;
     if (hudTimer.current >= HUD_INTERVAL) {

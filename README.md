@@ -25,8 +25,8 @@ npm run e2e      # nettlesertester (første gang: npx playwright install chromiu
 npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 ```
 
-Åpne en fast kameravinkel direkte med `#v-spawn`, `#v-coast`, `#v-valley`,
-`#v-mountain` eller `#v-edge` i adressen. **F3** viser ytelsespanelet.
+Åpne en fast kameravinkel direkte med `#v-spawn`, `#v-coast`, `#v-shore`,
+`#v-valley`, `#v-mountain` eller `#v-edge` i adressen. **F3** viser ytelsespanelet.
 
 ## Kontroller
 
@@ -34,11 +34,13 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 |---|---|
 | W A S D | Gå |
 | Shift | Løp (40 m/s) |
+| Mellomrom | Hopp |
+| Klikk i spillet | Styr kameraet med musa (Esc slipper) |
 | F | Hurtigreise av/på (500 m/s) |
 | Q / E, eller dra med musa | Snu kameraet |
 | Scroll | Zoom |
 | Klikk på minikartet | Teleporter dit |
-| F3 | Ytelsespanel av/på (også klokke, skygger og teksturer) |
+| F3 | Ytelsespanel av/på (også klokke, vær, skygger, teksturer og vegetasjon) |
 
 ## Hva som finnes nå
 
@@ -47,9 +49,13 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 - Glatt, lyssatt terreng med myke overganger mellom detaljnivåene
 - Prosedyrale detaljteksturer med relieff for gress, jord, stein, sand og snø
 - Fysisk basert himmel med døgnsyklus, sol- og måneskygger, stjerner om natten
+- Vann med havbunnsdybde, bølger, himmelrefleks, solglitter og skum mot land
+- Trær, busker og steiner etter biom, og gress rundt spilleren, som svaier i vinden
+- Startområde med brosteinsplass, fontene med krystall, grusstier og lamper som tennes om kvelden
+- Vær: skyer som driver, overskyet, regn og snø, tåke som tetner i regnvær
 - Chunk-streaming med Web Workers, 4 LOD-nivåer og skjørt mot sprekker
 - Flytende origo, så det ikke skjelver langt ute i verden
-- Spiller (sfære) med tredjepersonskamera
+- Spiller (plassholder) med myk bevegelse, hopp og musestyrt tredjepersonskamera
 - HUD med posisjon i km, høyde, retning, fart og ytelsestall
 - Minikart over hele verden med klikk-for-å-teleportere
 

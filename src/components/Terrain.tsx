@@ -9,7 +9,7 @@ import { createPlantGeometry } from '../vegetation/plantGeometry';
 import { PLANT_KINDS } from '../world/vegetation';
 import { ChunkPlants } from './ChunkPlants';
 import { useGameStore } from '../state/useGameStore';
-import { origin, player } from '../state/runtime';
+import { origin, player, weather } from '../state/runtime';
 import type { ChunkManager, LoadedChunk } from '../world/ChunkManager';
 
 interface LodMaterials {
@@ -60,6 +60,7 @@ export function Terrain({ manager }: { manager: ChunkManager }) {
   useFrame((_, dt) => {
     plantWind.time.value += Math.min(dt, 0.1);
     plantWind.originMod.value.set(origin.x % 1000, origin.z % 1000);
+    plantWind.strength.value = 0.4 + Math.hypot(weather.windX, weather.windZ) / 5;
     group.current?.position.set(-origin.x, 0, -origin.z);
     morphPlayer.value.set(player.x - origin.x, player.z - origin.z);
     morphEnabled.value = geomorph ? 1 : 0;

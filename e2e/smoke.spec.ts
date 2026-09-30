@@ -19,6 +19,18 @@ test.describe('Duskwood World', () => {
     expect(errors).toEqual([]);
   });
 
+  test('rain, snow and overcast skies render without errors', async ({ page }) => {
+    const errors = watchForErrors(page);
+    await openGame(page);
+    await page.evaluate(() => window.__duskwood!.setWeather('rain'));
+    await page.waitForTimeout(3000); // a few frames of rain at the spawn
+    await page.evaluate(() => window.__duskwood!.teleport(34_600, 49_700)); // the cold peak: snow
+    await page.waitForTimeout(300);
+    await waitUntilSettled(page);
+    await page.waitForTimeout(2000);
+    expect(errors).toEqual([]);
+  });
+
   test('WASD moves the player', async ({ page }) => {
     await openGame(page);
     const before = await page.evaluate(() => window.__duskwood!.hud());
