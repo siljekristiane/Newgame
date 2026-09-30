@@ -1,6 +1,7 @@
 import { buildChunk, buildMinimap, type ChunkData, type ChunkRequest } from './buildChunk';
 import { buildTerrainTextures, type TerrainTextureSet } from './terrainTextures';
 import type { WorkerRequest } from './terrain.worker';
+import { buildSeabedDepth, buildWaterNormals, type SeabedRequest } from './water';
 
 type Pending = { msg: WorkerRequest; resolve: (value: unknown) => void; reject: (err: unknown) => void };
 
@@ -42,6 +43,14 @@ export class WorkerPool {
     return this.post({ type: 'minimap', id: 0, resolution }) as Promise<Uint8ClampedArray>;
   }
 
+  buildSeabed(req: SeabedRequest): Promise<Uint8Array> {
+    return this.post({ type: 'seabed', id: 0, ...req }) as Promise<Uint8Array>;
+  }
+
+  buildWaterNormals(size: number): Promise<Uint8Array> {
+    return this.post({ type: 'waterNormals', id: 0, size }) as Promise<Uint8Array>;
+  }
+
   dispose(): void {
     this.workers.forEach((w) => w.terminate());
     this.workers = [];
@@ -51,7 +60,7 @@ export class WorkerPool {
 
   private spawn(): Worker {
     const worker = new Worker(new URL('./terrain.worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (e: MessageEvent<{ id: number; data?: ChunkData; image?: Uint8ClampedArray; textures?: TerrainTextureSet }>) => {
+    worker.onmessage = (e: MessageEvent<{ id: number; data?: ChunkData; image?: Uint8Array | Uint8ClampedArray; textures?: TerrainTextureSet }>) => {
       const p = this.pending.get(e.data.id);
       if (!p) return;
       this.pending.delete(e.data.id);
@@ -78,6 +87,8 @@ export class WorkerPool {
       const { msg } = p;
       if (msg.type === 'chunk') p.resolve(buildChunk(msg));
       else if (msg.type === 'textures') p.resolve(buildTerrainTextures(msg.size));
+      else if (msg.type === 'seabed') p.resolve(buildSeabedDepth(msg));
+      else if (msg.type === 'waterNormals') p.resolve(buildWaterNormals(msg.size));
       else p.resolve(buildMinimap(msg.resolution));
     }, 0);
   }

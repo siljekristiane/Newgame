@@ -1,0 +1,139 @@
+{
+  "stamp": "2026-09-30-12-58",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "firstLoadMs": 61236.5,
+  "rows": [
+    {
+      "view": "spawn",
+      "fps": 1,
+      "frameMs": 1383.6499999999069,
+      "frameMsP95": 1422.7000000001863,
+      "drawCalls": 121,
+      "triangles": 131626,
+      "geometries": 124,
+      "textures": 6,
+      "programs": 11,
+      "heapMb": 31.961215019226074,
+      "loadedChunks": 349,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        180
+      ],
+      "settleMs": 1.099999999627471,
+      "terrainTextures": true
+    },
+    {
+      "view": "coast",
+      "fps": 1,
+      "frameMs": 1233.6000000000931,
+      "frameMsP95": 1273,
+      "drawCalls": 122,
+      "triangles": 124678,
+      "geometries": 194,
+      "textures": 6,
+      "programs": 11,
+      "heapMb": 44.93997001647949,
+      "loadedChunks": 392,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        223
+      ],
+      "settleMs": 31315.199999999255,
+      "terrainTextures": true
+    },
+    {
+      "view": "shore",
+      "fps": 1,
+      "frameMs": 1238.5,
+      "frameMsP95": 1248.5,
+      "drawCalls": 146,
+      "triangles": 159166,
+      "geometries": 238,
+      "textures": 6,
+      "programs": 11,
+      "heapMb": 49.499338150024414,
+      "loadedChunks": 407,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        238
+      ],
+      "settleMs": 18291.199999999255,
+      "terrainTextures": true
+    },
+    {
+      "view": "valley",
+      "fps": 1,
+      "frameMs": 1423.3500000000931,
+      "frameMsP95": 1487,
+      "drawCalls": 129,
+      "triangles": 145078,
+      "geometries": 332,
+      "textures": 6,
+      "programs": 11,
+      "heapMb": 59.261990547180176,
+      "loadedChunks": 410,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        241
+      ],
+      "settleMs": 40396.60000000056,
+      "terrainTextures": true
+    },
+    {
+      "view": "mountain",
+      "fps": 1,
+      "frameMs": 1556.5999999996275,
+      "frameMsP95": 1616.0999999996275,
+      "drawCalls": 147,
+      "triangles": 158982,
+      "geometries": 317,
+      "textures": 6,
+      "programs": 11,
+      "heapMb": 44.2688570022583,
+      "loadedChunks": 384,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        215
+      ],
+      "settleMs": 51280.10000000056,
+      "terrainTextures": true
+    },
+    {
+      "view": "edge",
+      "fps": 1,
+      "frameMs": 860.4333333332712,
+      "frameMsP95": 885.6000000005588,
+      "drawCalls": 24,
+      "triangles": 82894,
+      "geometries": 149,
+      "textures": 6,
+      "programs": 11,
+      "heapMb": 30.24962043762207,
+      "loadedChunks": 248,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        81,
+        118
+      ],
+      "settleMs": 27871.099999999627,
+      "terrainTextures": true
+    }
+  ]
+}

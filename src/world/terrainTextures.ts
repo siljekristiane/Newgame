@@ -51,7 +51,7 @@ function pnoise(x: number, y: number, period: number, seed: number): number {
 }
 
 /** Tileable fbm over u, v in [0, 1): base frequency `freq` must be an integer. */
-function tfbm(u: number, v: number, freq: number, octaves: number, seed: number): number {
+export function tfbm(u: number, v: number, freq: number, octaves: number, seed: number): number {
   let sum = 0;
   let amp = 1;
   let norm = 0;

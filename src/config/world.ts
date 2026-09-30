@@ -64,6 +64,22 @@ export const TIME = {
   exposureNight: 0.9,
 } as const;
 
+/**
+ * Water (step 4). A seabed depth map (depthTextureRes² texels over
+ * depthTextureSize meters) is baked around the player in a worker and rebuilt
+ * when the player moves rebuildDistance away from its centre.
+ */
+export const WATER = {
+  depthTextureSize: 8_000,
+  depthTextureRes: 512,
+  rebuildDistance: 2_000,
+  /** Depth is stored in one byte: 0.1 m steps up to 25.5 m. */
+  maxDepth: 25.5,
+  normalTextureSize: 256,
+  /** Wave normal tiles, meters (powers of two, so the origin UV offset stays exact). */
+  waveTiles: [32, 16] as const,
+} as const;
+
 export const SHADOWS = {
   /** Half-size of the sun's shadow box around the player, meters. */
   radius: 150,

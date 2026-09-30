@@ -22,6 +22,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
 - `step-3/`: fysisk himmel, døgnsyklus, sol- og måneskygger, AgX-tonemapping
   (målt kl. 15). `time-07.jpg` … `time-23.jpg`: fjellvinkelen gjennom døgnet.
 
+- `step-4/`: vann med havbunnskart, bølger, Fresnel-refleks, solglitter og skum.
+  Ny vinkel `shore.jpg` (strand) viser vannet nært; `shore-18.jpg` er samme sted i
+  skumringen (teksturer av).
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

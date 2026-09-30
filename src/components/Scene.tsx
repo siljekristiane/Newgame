@@ -31,7 +31,7 @@ export function Scene() {
   return (
     <>
       <Atmosphere />
-      <Water />
+      <Water pool={pool} />
       <Terrain manager={manager} />
       <TerrainTextures pool={pool} />
       <Player />

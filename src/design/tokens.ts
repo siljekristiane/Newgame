@@ -40,6 +40,13 @@ export const atmosphere = {
   groundBounce: '#5b5a45',
 } as const;
 
+/** Water body colours (art direction C): the shade under the surface, by depth. */
+export const waterPalette = {
+  shallow: '#3d8c86',
+  deep: '#0d2c3c',
+  foam: '#eef4f2',
+} as const;
+
 /**
  * Natural surface materials for the near-realistic terrain (art direction C).
  * Muted albedos; biomes blend them by weight (see world/biomes.ts).

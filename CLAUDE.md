@@ -41,8 +41,8 @@ kjører det samme ved hver push.
 - **F3** viser ytelsespanelet: FPS, bildetid (snitt og 95 %), draw calls,
   trekanter, geometrier, teksturer, shadere, JS-minne, chunks per LOD og hvor
   lenge strømmingen brukte. Rødt = over budsjett (se «Ytelse»).
-- **Faste kameravinkler** (`src/debug/views.ts`): spawn, coast, valley,
-  mountain, edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
+- **Faste kameravinkler** (`src/debug/views.ts`): spawn, coast, shore (strand,
+  fra steg 4), valley, mountain, edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
   knappene i F3-panelet. Samme vinkel før og etter = sammenlignbare bilder.
 - `npm run measure` skriver tall og skjermbilder til `measurements/<tid>/`.
   Referansen før fase 2 ligger i `docs/measurements/baseline/`. En større visuell
@@ -215,6 +215,22 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   terreng over kilometer krever en annen teknikk (f.eks. horisont-kart) og er ikke
   gjort. Kan slås av i F3.
 
+### Vann (steg 4)
+
+- **`components/Water.tsx`:** ett plan over hele verden i havnivå, med egen
+  `ShaderMaterial` (tåke og logaritmisk dybde fra three.js' shader-biter).
+- **Havbunnskart** (`world/water.ts`, `buildSeabedDepth`): vanndybde fra
+  `heightAt` på et 512² rutenett over 8 × 8 km rundt spilleren, én byte per
+  teksel (0,1 m, maks 25,5 m, `WATER` i `config/world.ts`). Bygges i en worker og
+  på nytt når spilleren er 2 km fra sentrum; gammelt kart vises til nytt er klart.
+  Utenfor kartet regnes vannet som dypt.
+- **Shaderen:** farge fra grunt til dypt (`waterPalette`), klart i grunna så
+  sanden synes, skum der dybden går mot 0 (brutt opp av bølgehøyden), to
+  bølge-normalkart som driver hver sin vei (32 og 16 m, UV-forskyvning
+  origo mod 1024 som terrengteksturene), himmelrefleks med Fresnel (farger fra
+  `timeOfDay`), solglitter, og roligere bølger på avstand så det ikke flimrer.
+- Ingen ekte speiling eller refraksjon ennå (krever ekstra render-pass).
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -290,6 +306,10 @@ Etter steg 3 (`docs/measurements/step-3/`, kl. 15, teksturer og skygger på):
 samme draw calls, 11 shadere (himmel, stjerner, skyggedybde). `time-07/12/15/18/23.jpg`
 viser samme vinkel gjennom døgnet. e2e og measure stopper klokka på 15:00 for
 sammenlignbare bilder; e2e slår av skygger og teksturer unntatt i første test.
+
+Etter steg 4 (`docs/measurements/step-4/`): samme draw calls og trekanter
+(vannet er fortsatt ett plan), 3 teksturer til (havbunn, bølger, reserve),
+2–5 MB mer JS-minne. Ny vinkel `shore`.
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig
