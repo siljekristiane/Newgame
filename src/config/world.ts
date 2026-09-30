@@ -110,6 +110,19 @@ export const VEGETATION = {
   windStrength: 0.12,
 } as const;
 
+/**
+ * Grass tufts around the player (step 5b), placed on the GPU on a world grid of
+ * `cell` meters out to `radius`, thinning out over the last 45 %.
+ */
+export const GRASS = {
+  cell: 0.7,
+  radius: 45,
+  /** Tuft height before the per-tuft size variation, meters. */
+  height: 0.55,
+  /** Sway at the blade tips, meters. */
+  windStrength: 0.12,
+} as const;
+
 export const SHADOWS = {
   /** Half-size of the sun's shadow box around the player, meters. */
   radius: 150,

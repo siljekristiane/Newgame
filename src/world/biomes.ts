@@ -113,6 +113,13 @@ export function surfaceColor(s: Surface, x: number, z: number, height: number, o
   }
 }
 
+/** Colour of the grass alone (dry → lush → forest floor), as used inside surfaceColor. */
+export function grassColor(lush: number, out: Float32Array | Uint8Array, offset: number, scale = 1): void {
+  const lushT = smooth(0.3, 0.8, lush);
+  const forest = smooth(0.6, 0.75, lush);
+  for (let k = 0; k < 3; k++) out[offset + k] = mix(mix(C.grassDry[k]!, C.grassLush[k]!, lushT), C.forestFloor[k]!, forest) * scale;
+}
+
 function smooth(a: number, b: number, x: number): number {
   const t = clamp01((x - a) / (b - a));
   return t * t * (3 - 2 * t);

@@ -90,6 +90,7 @@ src/
     buildChunk.ts         Bygger vertex-data for én chunk + planter + minikart (ren)
     vegetation.ts         Hvor trær, busker og steiner står (ren, deterministisk)
     water.ts              Havbunnskart og bølge-normaler (ren)
+    grass.ts              Bakkekart for gresset rundt spilleren (ren)
     terrain.worker.ts     Worker som kaller buildChunk/buildMinimap
     workerPool.ts         Pool av workers, med reserve på hovedtråden
     ChunkManager.ts       Streaming: plan → dispatch → upload → unload
@@ -255,7 +256,16 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - **Materiale** (`materials/plantMaterial.ts`): `MeshStandardMaterial` med
   farge per instans, vind (sving + flimring, fase fra verdensposisjon), LOD-morph
   og lys gjennom løvet (himmellys og sol bakfra), så trær i motlys ikke blir svarte.
-- Neste: gress nær spilleren, tekstur på løv/bark, impostorer for skog på avstand.
+- **Gress (steg 5b):** tuster innen `GRASS.radius` (45 m) rundt spilleren i én
+  draw call (`components/Grass.tsx`, `materials/grassMaterial.ts`). Ingen
+  instans-data: shaderen finner rutens verdensposisjon fra `gl_InstanceID`, og en
+  heltalls-hash av ruten gir forskyvning, vinkel, størrelse og om den vokser, så
+  tustene står stille når rutenettet følger spilleren. Høyden gjenskaper LOD
+  0-trekanten fra et bakkekart (`world/grass.ts`: høyder for spillerens chunk og
+  naboene, pluss gressfarge i sRGB og tetthet), nøyaktig som `gridHeightAt`
+  (testet). Bygges i en worker når spilleren bytter chunk. Normalen peker opp, så
+  gresset lyses som bakken; Lambert (ingen spekulær glans på tynne strå).
+- Neste: tekstur på løv/bark, impostorer for skog på avstand.
 
 ### Streaming (`ChunkManager`)
 
@@ -344,6 +354,9 @@ forbi morph-sonen (sortert sist i instans-bufferen). e2e slår av vegetasjon
 unntatt i første test (`openGame(..., { vegetation })`); F3 har bryter.
 Merk: `npm run measure` gjenbruker en kjørende `vite preview` på port 4173, så
 kjør `npm run build` først hvis en slik server går.
+
+Etter steg 5b (`docs/measurements/step-5b/`): +1 draw call og ~150 k
+trekanter for gresset (0,23–1,06 M totalt), 2 teksturer til.
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig

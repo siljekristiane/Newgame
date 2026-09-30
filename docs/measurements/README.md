@@ -30,6 +30,9 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   0,3–0,9 M (fra 0,08–0,16 M), draw calls 148–174 (fra 121–147), 2–7 MB mer
   JS-minne. `spawn.jpg`, `mountain.jpg` og `shore.jpg` viser skog og åpent land.
 
+- `step-5b/`: gress rundt spilleren (én draw call, ~150 k trekanter alltid,
+  også der tustene har størrelse 0). Maks 1,06 M trekanter (strand).
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

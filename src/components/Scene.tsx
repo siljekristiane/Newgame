@@ -5,6 +5,7 @@ import { Atmosphere } from './Atmosphere';
 import { DebugProbe } from './DebugProbe';
 import { FollowCamera } from './FollowCamera';
 import { GameLoop } from './GameLoop';
+import { Grass } from './Grass';
 import { Player } from './Player';
 import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
@@ -33,6 +34,7 @@ export function Scene() {
       <Atmosphere />
       <Water pool={pool} />
       <Terrain manager={manager} />
+      <Grass pool={pool} />
       <TerrainTextures pool={pool} />
       <Player />
       <GameLoop manager={manager} pool={pool} />
