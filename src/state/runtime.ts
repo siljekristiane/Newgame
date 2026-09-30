@@ -1,5 +1,6 @@
 import { SPAWN, TIME } from '../config/world';
 import { groundHeightAt } from '../world/ground';
+import { createMoveState } from '../player/movement';
 
 /**
  * Per-frame mutable state. It changes 60 times a second, so it lives outside
@@ -18,6 +19,9 @@ export const player = {
   heading: 0,
   speed: 0,
 };
+
+/** Velocity, jump and facing, advanced by player/movement.ts. */
+export const motion = createMoveState();
 
 /** The floating origin: world position of render-space (0, 0, 0). */
 export const origin = { x: SPAWN.x, z: SPAWN.z, version: 0 };

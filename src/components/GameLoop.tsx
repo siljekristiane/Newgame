@@ -1,11 +1,12 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME } from '../config/world';
-import { cameraRig, clock, input, origin, player, rebaseOrigin } from '../state/runtime';
+import { cameraRig, clock, input, motion, origin, player, rebaseOrigin } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 import { clampToWorld, worldToChunk } from '../world/chunkMath';
 import type { ChunkManager } from '../world/ChunkManager';
 import { groundHeightAt } from '../world/ground';
+import { stepMovement } from '../player/movement';
 import { wrapHours } from '../world/timeOfDay';
 import type { WorkerPool } from '../world/workerPool';
 
@@ -44,21 +45,25 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
     const travel = useGameStore.getState().travelMode;
     const speed = travel ? PLAYER.travelSpeed : k.has('ShiftLeft') || k.has('ShiftRight') ? PLAYER.runSpeed : PLAYER.walkSpeed;
     const len = Math.hypot(fwd, side);
+    let dirX = 0;
+    let dirZ = 0;
     if (len > 0) {
       const s = Math.sin(cameraRig.yaw);
       const c = Math.cos(cameraRig.yaw);
       // forward = (-sin, -cos), right = (cos, -sin)
-      const dx = (-s * fwd + c * side) / len;
-      const dz = (-c * fwd - s * side) / len;
-      player.x = clampToWorld(player.x + dx * speed * dt);
-      player.z = clampToWorld(player.z + dz * speed * dt);
-      player.heading = Math.atan2(dx, dz);
-      player.speed = speed;
-    } else {
-      player.speed = 0;
+      dirX = (-s * fwd + c * side) / len;
+      dirZ = (-c * fwd - s * side) / len;
     }
-    // Stand on the ground, or on the water surface.
-    player.y = Math.max(SEA_LEVEL, groundHeightAt(player.x, player.z));
+    // Slope ahead, on the ground the player is drawn on (or the flat sea).
+    const here = Math.max(SEA_LEVEL, groundHeightAt(player.x, player.z));
+    const slope = len > 0 ? Math.max(SEA_LEVEL, groundHeightAt(player.x + dirX, player.z + dirZ)) - here : 0;
+    stepMovement(motion, { dirX, dirZ, speed, jump: k.has('Space'), slope }, dt);
+    player.x = clampToWorld(player.x + motion.vx * dt);
+    player.z = clampToWorld(player.z + motion.vz * dt);
+    player.heading = motion.heading;
+    player.speed = Math.hypot(motion.vx, motion.vz);
+    // Stand on the ground (or the water surface), plus the height of a jump.
+    player.y = Math.max(SEA_LEVEL, groundHeightAt(player.x, player.z)) + motion.air;
 
     // Floating origin: keep render-space coordinates small.
     if (Math.abs(player.x - origin.x) > REBASE_DISTANCE || Math.abs(player.z - origin.z) > REBASE_DISTANCE) {

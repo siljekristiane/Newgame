@@ -303,6 +303,23 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - Akademibygningen fra planen venter på brukerens beskjed (bygninger skal være
   CC0 etter ordre).
 
+### Bevegelse og kamera (steg 7)
+
+- **Bevegelse** (`player/movement.ts`, ren og testet): farten nærmer seg ønsket
+  fart eksponentielt (`PLAYER.acceleration`/`deceleration`, mindre grep i
+  lufta), figuren snur seg mot bevegelsesretningen med begrenset fart
+  (`turnRate`), oppover går saktere (ned til 40 %), og Mellomrom hopper
+  (`jumpSpeed`, `gravity`). Tilstanden ligger i `runtime.motion`; `GameLoop`
+  kaller `stepMovement` og setter `player.y` = bakke + hopphøyde.
+- **Mus:** et klikk i spillet låser pekeren (pointer lock), og musa snur da
+  kameraet (`mouseSensitivity`) til Esc. Uten lås (eller om nettleseren nekter)
+  virker dra med musa som før. HUD viser hint etter tilstand (`pointerLocked`).
+- **Kamera** (`FollowCamera`): sikten fra spillerens hode til kameraet sjekkes
+  mot bakken i fire punkter og kameraet heves så linja går minst
+  `CAMERA.clearance` over bakken; bakker og rygger kommer ikke lenger mellom.
+- Figuren er fortsatt plassholder (kule + sekk): figurer kommer som CC0-modell
+  når brukeren ber om det, med animasjon da.
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -453,6 +470,6 @@ vurderes senere).
 
 ## Kontroller
 
-W A S D gå · Shift løp · Q/E eller dra med musa: snu kamera · scroll: zoom ·
+W A S D gå · Shift løp · Mellomrom hopp · klikk: styr kamera med musa (Esc slipper) · Q/E eller dra: snu kamera · scroll: zoom ·
 F: hurtigreise (500 m/s) · klikk på minikartet: teleporter · F3: ytelsespanel
 (også tid på døgnet, skygger, teksturer, myke LOD-overganger).

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { PLAYER } from '../config/world';
 import { cameraRig, input } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 
@@ -7,6 +8,10 @@ const GAME_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'Shif
 /**
  * Keyboard + mouse. Keys use `event.code` (physical position), so WASD works
  * on Norwegian, AZERTY and other layouts too.
+ *
+ * A click on the game captures the mouse (pointer lock), as in most PC games:
+ * then moving the mouse turns the camera, and Esc lets it go. Without the
+ * lock (or where the browser refuses it), dragging turns the camera.
  */
 export function useControls(target: HTMLElement | null): void {
   useEffect(() => {
@@ -38,13 +43,23 @@ export function useControls(target: HTMLElement | null): void {
     let dragging = false;
     let lastX = 0;
     let lastY = 0;
+    const locked = () => document.pointerLockElement === target;
     const onDown = (e: PointerEvent) => {
+      if (e.button === 0 && !locked() && target.requestPointerLock) {
+        // Newer browsers return a promise that rejects when the lock is refused.
+        Promise.resolve(target.requestPointerLock()).catch(() => undefined);
+      }
       dragging = true;
       lastX = e.clientX;
       lastY = e.clientY;
       target.setPointerCapture(e.pointerId);
     };
     const onMove = (e: PointerEvent) => {
+      if (locked()) {
+        cameraRig.yaw -= e.movementX * PLAYER.mouseSensitivity;
+        cameraRig.pitch = clamp(cameraRig.pitch + e.movementY * PLAYER.mouseSensitivity, 0.05, 1.4);
+        return;
+      }
       if (!dragging) return;
       cameraRig.yaw -= (e.clientX - lastX) * 0.005;
       cameraRig.pitch = clamp(cameraRig.pitch + (e.clientY - lastY) * 0.004, 0.05, 1.4);
@@ -59,12 +74,15 @@ export function useControls(target: HTMLElement | null): void {
       e.preventDefault();
       cameraRig.distance = clamp(cameraRig.distance * Math.exp(e.deltaY * 0.001), 6, 2_000);
     };
+    const onLockChange = () => useGameStore.getState().setPointerLocked(locked());
+    document.addEventListener('pointerlockchange', onLockChange);
     target.addEventListener('pointerdown', onDown);
     target.addEventListener('pointermove', onMove);
     target.addEventListener('pointerup', onUp);
     target.addEventListener('pointercancel', onUp);
     target.addEventListener('wheel', onWheel, { passive: false });
     return () => {
+      document.removeEventListener('pointerlockchange', onLockChange);
       target.removeEventListener('pointerdown', onDown);
       target.removeEventListener('pointermove', onMove);
       target.removeEventListener('pointerup', onUp);

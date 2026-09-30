@@ -6,6 +6,7 @@ import { Minimap } from './Minimap';
 export function Hud() {
   const hud = useGameStore((s) => s.hud);
   const travel = useGameStore((s) => s.travelMode);
+  const pointerLocked = useGameStore((s) => s.pointerLocked);
   const toggleTravel = useGameStore((s) => s.toggleTravelMode);
 
   return (
@@ -30,7 +31,8 @@ export function Hud() {
       <div className="dw-panel dw-help">
         <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gå</span>
         <span><kbd>Shift</kbd> løp</span>
-        <span><kbd>Q</kbd><kbd>E</kbd> / dra med mus: snu kamera</span>
+        <span><kbd>Mellomrom</kbd> hopp</span>
+        <span>{pointerLocked ? <><kbd>Esc</kbd> slipp musa</> : <>Klikk: styr kamera med musa · <kbd>Q</kbd><kbd>E</kbd> snu</>}</span>
         <span>Scroll: zoom</span>
         <span><kbd>F3</kbd> ytelse</span>
         <button type="button" className={travel ? 'dw-btn dw-btn-primary' : 'dw-btn'} onClick={toggleTravel} aria-pressed={travel}>

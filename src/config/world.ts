@@ -123,6 +123,17 @@ export const GRASS = {
   windStrength: 0.12,
 } as const;
 
+/**
+ * Weather (step 8): cloud cover drifts over `changeHours` of game time; rain
+ * starts above `rainCover`; wind speed in m/s from calm to stormy.
+ */
+export const WEATHER = {
+  changeHours: 8,
+  rainCover: 0.8,
+  windCalm: 1.5,
+  windStorm: 14,
+} as const;
+
 export const SHADOWS = {
   /** Half-size of the sun's shadow box around the player, meters. */
   radius: 150,
@@ -214,6 +225,8 @@ export const CAMERA = {
   far: 14_000,
   fogNear: 2_000,
   fogFar: 10_500,
+  /** How far the line of sight to the player stays above the ground, meters. */
+  clearance: 1.2,
 } as const;
 
 export const PLAYER = {
@@ -221,6 +234,15 @@ export const PLAYER = {
   walkSpeed: 8, // m/s
   runSpeed: 40, // m/s with Shift
   travelSpeed: 500, // m/s in fast-travel mode (F), to cross 100 km in ~3 minutes
+  /** How fast velocity approaches the wanted one (1/s): moving, and stopping. */
+  acceleration: 10,
+  deceleration: 14,
+  /** Max turn toward the direction of travel, radians per second. */
+  turnRate: 10,
+  jumpSpeed: 6.5, // m/s up
+  gravity: 20, // m/s², a bit more than real for a snappy jump
+  /** Mouse look: radians per pixel of movement. */
+  mouseSensitivity: 0.0025,
 } as const;
 
 export const MINIMAP_RESOLUTION = 256;
