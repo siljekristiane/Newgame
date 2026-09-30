@@ -22,6 +22,22 @@ export const world = {
 
 export type WorldColor = keyof typeof world;
 
+/**
+ * Natural surface materials for the near-realistic terrain (art direction C).
+ * Muted albedos; biomes blend them by weight (see world/biomes.ts).
+ */
+export const terrainPalette = {
+  grassLush: '#4d6a2b',
+  grassDry: '#8a8350',
+  forestFloor: '#3f4f26',
+  dirt: '#6d5a43',
+  rock: '#7a756c',
+  rockDark: '#57534d',
+  sand: '#c8b88e',
+  seabed: '#8a7f63',
+  snow: '#e9edf0',
+} as const;
+
 /** '#rrggbb' → [r, g, b] in 0..1, for vertex colours. */
 export function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);

@@ -18,13 +18,13 @@ export interface CameraView {
   distance: number;
 }
 
-const PEAK = { x: 34_000, z: 50_000 }; // highest point, ~1 470 m
+const PEAK = { x: 34_500, z: 49_500 }; // highest snowy peak, ~1 070 m
 
 export const VIEWS: readonly CameraView[] = [
   { id: 'spawn', label: 'Spawn', x: SPAWN.x, z: SPAWN.z, target: { x: SPAWN.x, z: SPAWN.z - 1_000 }, pitch: 0.35, distance: 22 },
-  { id: 'coast', label: 'Kyst', x: 50_500, z: 49_500, target: { x: 51_500, z: 48_500 }, pitch: 0.3, distance: 26 },
-  { id: 'valley', label: 'Dal', x: 49_500, z: 53_500, target: PEAK, pitch: 0.25, distance: 22 },
-  { id: 'mountain', label: 'Fjell', x: 37_500, z: 50_600, target: PEAK, pitch: 0.2, distance: 30 },
+  { id: 'coast', label: 'Kyst', x: 50_500, z: 47_000, target: { x: 50_700, z: 45_500 }, pitch: 0.3, distance: 26 },
+  { id: 'valley', label: 'Dal', x: 47_000, z: 47_000, target: PEAK, pitch: 0.25, distance: 22 },
+  { id: 'mountain', label: 'Fjell', x: 37_500, z: 49_800, target: PEAK, pitch: 0.2, distance: 30 },
   { id: 'edge', label: 'Verdenskanten', x: 3_500, z: WORLD_SIZE / 2, target: { x: 0, z: WORLD_SIZE / 2 }, pitch: 0.3, distance: 60 },
 ];
 

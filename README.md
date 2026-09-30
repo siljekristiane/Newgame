@@ -42,7 +42,9 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 
 ## Hva som finnes nå
 
-- 100 × 100 km verden med høydekart (kontinenter, fjellkjeder, åser) som ender i hav
+- 100 × 100 km verden med kontinenter, eroderte fjellkjeder og åser som ender i hav
+- Klima og biomer: strand, eng, tørt land, skog, fjell og snø, kaldere mot nord og i høyden
+- Glatt, lyssatt terreng med myke overganger mellom detaljnivåene
 - Chunk-streaming med Web Workers, 4 LOD-nivåer og skjørt mot sprekker
 - Flytende origo, så det ikke skjelver langt ute i verden
 - Spiller (sfære) med tredjepersonskamera

@@ -1,6 +1,5 @@
-import { SEA_LEVEL, TERRAIN, WORLD_SEED, WORLD_SIZE } from '../config/world';
-import { hexToRgb, world } from '../design/tokens';
-import { createNoise2D } from './noise';
+import { TERRAIN, WORLD_SEED, WORLD_SIZE } from '../config/world';
+import { createNoise2D, type Noise2D } from './noise';
 
 /**
  * The terrain is a pure function of world position: heightAt(x, z) in meters.
@@ -11,8 +10,10 @@ const continent = createNoise2D(WORLD_SEED);
 const mountains = createNoise2D(WORLD_SEED + 1);
 const hills = createNoise2D(WORLD_SEED + 2);
 const detail = createNoise2D(WORLD_SEED + 3);
+const warpX = createNoise2D(WORLD_SEED + 4);
+const warpZ = createNoise2D(WORLD_SEED + 5);
 
-function fbm(noise: (x: number, y: number) => number, x: number, z: number, octaves: number): number {
+export function fbm(noise: Noise2D, x: number, z: number, octaves: number): number {
   let sum = 0;
   let amp = 1;
   let freq = 1;
@@ -26,6 +27,29 @@ function fbm(noise: (x: number, y: number) => number, x: number, z: number, octa
   return sum / norm;
 }
 
+/**
+ * Ridged multifractal (Musgrave), 0..1. Each octave is weighted by the one
+ * before it, so detail piles up on the ridges and valleys stay smooth: it
+ * reads like eroded mountains, sharp crests over soft, wide valley floors.
+ */
+function ridged(noise: Noise2D, x: number, z: number, octaves: number): number {
+  let sum = 0;
+  let amp = 1;
+  let freq = 1;
+  let norm = 0;
+  let weight = 1;
+  for (let i = 0; i < octaves; i++) {
+    let n = 1 - Math.abs(noise(x * freq, z * freq));
+    n *= n * weight;
+    weight = Math.min(1, n * 2);
+    sum += n * amp;
+    norm += amp;
+    amp *= 0.5;
+    freq *= 2.1;
+  }
+  return sum / norm;
+}
+
 /** 0 at the world edge, 1 from TERRAIN.coastWidth inside it: the world ends in ocean. */
 function edgeFalloff(x: number, z: number): number {
   const d = Math.min(x, z, WORLD_SIZE - x, WORLD_SIZE - z);
@@ -34,39 +58,20 @@ function edgeFalloff(x: number, z: number): number {
 }
 
 export function heightAt(x: number, z: number): number {
+  // Bend the large shapes so coasts and ranges curve like real ones.
+  const px = x + fbm(warpX, x / TERRAIN.warpScale, z / TERRAIN.warpScale, 3) * TERRAIN.warpStrength;
+  const pz = z + fbm(warpZ, x / TERRAIN.warpScale, z / TERRAIN.warpScale, 3) * TERRAIN.warpStrength;
+
   // Large landmasses, biased so most of the world is land.
-  const c = fbm(continent, x / TERRAIN.continentScale, z / TERRAIN.continentScale, 4) + 0.25;
+  const c = fbm(continent, px / TERRAIN.continentScale, pz / TERRAIN.continentScale, 4) + 0.25;
   // Mountain ranges only where the continent is high.
-  const mountainMask = Math.max(0, c - 0.1) * 1.6;
-  const ridge = 1 - Math.abs(fbm(mountains, x / TERRAIN.mountainScale, z / TERRAIN.mountainScale, 4));
-  const m = ridge * ridge * mountainMask;
-  const hill = fbm(hills, x / TERRAIN.hillScale, z / TERRAIN.hillScale, 3);
+  const mountainMask = Math.min(1, Math.max(0, c - 0.1) * 1.6);
+  const m = ridged(mountains, px / TERRAIN.mountainScale, pz / TERRAIN.mountainScale, 5) * mountainMask;
+  // Rolling hills, flattened near the coast so beaches and lowlands stay gentle.
+  const hill = fbm(hills, x / TERRAIN.hillScale, z / TERRAIN.hillScale, 3) * Math.min(1, Math.max(0.2, c * 2));
   const small = detail(x / TERRAIN.detailScale, z / TERRAIN.detailScale);
 
-  const h = c * 220 + m * 900 + hill * 50 + small * 3;
+  const h = c * 220 + m * TERRAIN.mountainHeight + hill * 50 + small * 3;
   const edge = edgeFalloff(x, z);
   return h * edge + (1 - edge) * TERRAIN.oceanFloor;
-}
-
-/** Height colours from the Duskwood World palette. */
-const WATER_BED = hexToRgb(world.sandShade);
-const SAND = hexToRgb(world.sand);
-const MEADOW = hexToRgb(world.meadow);
-const CANOPY = hexToRgb(world.canopy);
-const PINE = hexToRgb(world.pine);
-const STONE = hexToRgb(world.stone);
-const IVORY = hexToRgb(world.ivory);
-
-export function colorAt(height: number, x: number, z: number, out: Float32Array, offset: number): void {
-  const jitter = detail(x / 60, z / 60) * 0.04;
-  let c: readonly number[];
-  if (height < SEA_LEVEL - 2) c = WATER_BED;
-  else if (height < SEA_LEVEL + 6) c = SAND;
-  else if (height < 70) c = jitter > 0.01 ? CANOPY : MEADOW;
-  else if (height < 380) c = PINE;
-  else if (height < 650) c = STONE;
-  else c = IVORY;
-  out[offset] = Math.min(1, c[0]! + jitter);
-  out[offset + 1] = Math.min(1, c[1]! + jitter);
-  out[offset + 2] = Math.min(1, c[2]! + jitter);
 }

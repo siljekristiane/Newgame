@@ -64,9 +64,9 @@ test('the player stands on the rendered ground, also between grid points', async
   await waitUntilSettled(page);
   // Fixed views, plus off-grid points: on the highest ridge, on a slope and in a valley.
   const spots: Array<[string, number, number]> = [
-    ['ridge', 34_007.3, 50_011.1],
-    ['slope', 37_503.9, 50_605.2],
-    ['valley', 49_508.8, 53_492.6],
+    ['ridge', 34_507.3, 49_511.1],
+    ['slope', 37_503.9, 49_805.2],
+    ['valley', 47_008.8, 46_992.6],
     ['spawn', 50_000, 50_000],
   ];
   let worstOld = 0;
@@ -85,7 +85,8 @@ test('the player stands on the rendered ground, also between grid points', async
 });
 
 test('LOD swaps do not pop (geomorphing)', async ({ page }) => {
-  await page.goto('/#v-valley');
+  // Facing the snowy peak ~3 km away: relief in every LOD ring, so swaps would show.
+  await page.goto('/#v-mountain');
   await waitUntilSettled(page);
   await page.addStyleTag({ content: '.dw-hud{display:none}' });
   const settle = async () => {
@@ -116,18 +117,20 @@ test('LOD swaps do not pop (geomorphing)', async ({ page }) => {
       for (let i = 0; i < da.length; i += 4) if (Math.abs(da[i]! - db[i]!) + Math.abs(da[i + 1]! - db[i + 1]!) + Math.abs(da[i + 2]! - db[i + 2]!) > 24) n++;
       return n / (da.length / 4);
     }, [a, b]);
-  // Walk 2 m west across a chunk border: every LOD ring shifts by one chunk.
+  // Walk 2 m west across a chunk border (x = 37 km): every LOD ring shifts by one chunk.
   const cross = async (morph: boolean) => {
     await page.evaluate((m) => window.__duskwood!.setGeomorph(m), morph);
-    await page.evaluate(() => window.__duskwood!.teleport(49_001, 53_500));
+    await page.evaluate(() => window.__duskwood!.teleport(37_001, 49_800));
     await settle();
     const before = await shot();
-    await page.evaluate(() => window.__duskwood!.teleport(48_999, 53_500));
+    await page.evaluate(() => window.__duskwood!.teleport(36_999, 49_800));
     await settle();
     return changed(before, await shot());
   };
   const withMorph = await cross(true);
   const withoutMorph = await cross(false);
   console.log(`changed pixels at a LOD swap: ${(withMorph * 100).toFixed(2)} % with geomorphing, ${(withoutMorph * 100).toFixed(2)} % without`);
+  // Guard: the spot must actually show LOD swaps, or this test proves nothing.
+  expect(withoutMorph, 'test spot too flat to show LOD swaps').toBeGreaterThan(0.008);
   expect(withMorph).toBeLessThan(withoutMorph * 0.8);
 });

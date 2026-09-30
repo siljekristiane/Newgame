@@ -80,7 +80,8 @@ src/
   materials/              Materialer og shader-tillegg (terreng med geomorphing, props)
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
-    terrain.ts            heightAt(x, z) og colorAt(): verdenen som ren funksjon
+    terrain.ts            heightAt(x, z): terrengformen som ren funksjon
+    biomes.ts             Klima (temperatur, fuktighet) → biom → materialvekter og farge
     ground.ts             groundHeightAt / gridHeightAt: høyden på trekantene som tegnes
     chunkMath.ts          Koordinater, chunk-nøkler, LOD-valg, ønsket chunk-sett
     buildChunk.ts         Bygger vertex-data for én chunk + props + minikart (ren)
@@ -122,8 +123,19 @@ Nye systemer får sin egen mappe (`src/quests/`, `src/npc/` …) og kobles inn i
 
 - Chunk = 1 × 1 km (`CHUNK_SIZE`). Verden har 100 × 100 = 10 000 chunks, men bare
   ca. 350 er lastet om gangen (sirkel med radius `VIEW_RADIUS` = 10 chunks).
-- Terrengets form styres av `TERRAIN` i `config/world.ts` (skala på kontinenter,
-  fjell, åser, og kystbredden mot verdenskanten).
+- Terrengets form styres av `TERRAIN` i `config/world.ts`: kontinenter og
+  fjellkjeder er bøyd med domain warping (`warpScale`/`warpStrength`), fjellene
+  er ridged multifractal (skarpe rygger, myke dalbunner, som erosjon), og åsene
+  dempes nær kysten.
+- **Klima og overflate** (`world/biomes.ts`, konstanter i `CLIMATE`):
+  temperatur = grunntemperatur + varmere mot sør + støy − 6,5 °C per km høyde;
+  fuktighet fra støy (litt våtere i lavlandet). `biomeAt` gir ocean, beach,
+  grassland, dryland, forest, alpine eller snow. `surfaceAt` gir vekter for fem
+  materialer (grass, dirt, rock, sand, snow, sum = 1) ut fra klima, høyde og
+  helning (stein i bratt terreng, snø under 0 °C, sand ved havet), pluss `lush`
+  (tørt → frodig gress). Farger i `terrainPalette` (`design/tokens.ts`). I dag blir
+  vektene til vertex-farger; steg 2c bruker dem til å blande teksturer, og
+  vegetasjon (steg 5) skal plasseres etter `biomeAt`.
 - Chunk-nøkkel: `"cx,cz"`. `worldToChunk()` gjør om fra meter til chunk.
 - Terrenget er en **ren funksjon** (`heightAt`), så ingenting lagres: en chunk kan
   bygges på nytt når som helst og blir helt lik. Samme seed = samme verden overalt.
@@ -222,6 +234,11 @@ innlasting i programvare-rendering.
 Etter steg 2a (`docs/measurements/step-2a/`): samme draw calls, ca. 10 % flere
 trekanter (skjørt i begge retninger), 5–8 MB mer JS-minne (morph-attributter),
 10,1 s innlasting.
+
+Etter steg 2b (`docs/measurements/step-2b/`): 24–147 draw calls, 84–160 k
+trekanter, 11,2 s innlasting (klima og biomer per vertex i workerne). Terrenget
+endret form, så kyst-, dal- og fjellvinklene ble flyttet; sammenlign dem med
+2a som nytt utgangspunkt, ikke som samme sted.
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig

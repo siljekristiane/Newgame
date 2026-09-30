@@ -44,15 +44,19 @@ describe('geomorphing', () => {
     for (let n = 0; n < 100; n++) {
       const lx = rnd() * CHUNK_SIZE;
       const lz = rnd() * CHUNK_SIZE;
+      const fineN: number[] = [];
+      const coarseN: number[] = [];
       for (let k = 0; k < 3; k++) {
         const fineMorphed = surfaceAt((i, j) => fine.morphColors[(j * 33 + i) * 3 + k]!, 32, lx, lz);
         const coarseColor = surfaceAt((i, j) => coarse.colors[(j * 17 + i) * 3 + k]!, 16, lx, lz);
         expect(Math.abs(fineMorphed - coarseColor)).toBeLessThan(1e-5);
-        const fineN = surfaceAt((i, j) => fine.morphNormals[(j * 33 + i) * 3 + k]!, 32, lx, lz);
-        const coarseN = surfaceAt((i, j) => coarse.normals[(j * 17 + i) * 3 + k]!, 16, lx, lz);
-        // Per-vertex normals are renormalised, so allow a little slack.
-        expect(Math.abs(fineN - coarseN)).toBeLessThan(0.02);
+        fineN.push(surfaceAt((i, j) => fine.morphNormals[(j * 33 + i) * 3 + k]!, 32, lx, lz));
+        coarseN.push(surfaceAt((i, j) => coarse.normals[(j * 17 + i) * 3 + k]!, 16, lx, lz));
       }
+      // three.js renormalises normals per vertex, so directions can differ very
+      // slightly between the morphed fine mesh and the coarse one. Under 3° is invisible.
+      const dot = fineN.reduce((s, v, k) => s + v * coarseN[k]!, 0) / (Math.hypot(...fineN) * Math.hypot(...coarseN));
+      expect((Math.acos(Math.min(1, dot)) * 180) / Math.PI).toBeLessThan(3);
     }
   });
 

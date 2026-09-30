@@ -11,6 +11,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   terreng bare fra forsiden. `ridge-before-front-side.png` / `ridge-after.png`
   viser de prikkete silhuett-strekene før og etter.
 
+- `step-2b/`: ny terrengform (domain warping, ridged fjell), klima, biomer og
+  materialvekter. Kyst, dal og fjell ligger andre steder enn før fordi
+  terrenget endret seg.
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

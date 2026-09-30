@@ -2,7 +2,8 @@ import { CHUNK_SIZE, MINIMAP_RESOLUTION, NORMAL_SAMPLE_STEP, SEA_LEVEL, WORLD_SI
 import { hexToRgb, world } from '../design/tokens';
 import { hash2 } from './noise';
 import { gridHeightAt } from './ground';
-import { colorAt, heightAt } from './terrain';
+import { surfaceAt, surfaceColor } from './biomes';
+import { heightAt } from './terrain';
 
 /**
  * Pure mesh-data builders. They run inside the terrain worker, but are plain
@@ -73,11 +74,12 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
       positions[v * 3] = lx;
       positions[v * 3 + 1] = h;
       positions[v * 3 + 2] = lz;
-      colorAt(h, originX + lx, originZ + lz, colors, v * 3);
+      terrainNormal(originX + lx, originZ + lz, normals, v * 3);
+      const surface = surfaceAt(originX + lx, originZ + lz, h, 1 - normals[v * 3 + 1]!);
+      surfaceColor(surface, originX + lx, originZ + lz, h, colors, v * 3);
       toLinear(colors, v * 3);
       if (h < minHeight) minHeight = h;
       if (h > maxHeight) maxHeight = h;
-      terrainNormal(originX + lx, originZ + lz, normals, v * 3);
     }
   }
 
@@ -233,10 +235,11 @@ export function buildProps(cx: number, cz: number, segments: number, morphSegmen
   return out.subarray(0, n * PROP_STRIDE);
 }
 
-/** RGBA image of the whole world, for the minimap. */
+/** RGBA image of the whole world, for the minimap: surface colours with hill shading from the north-west. */
 export function buildMinimap(resolution = MINIMAP_RESOLUTION): Uint8ClampedArray {
   const img = new Uint8ClampedArray(resolution * resolution * 4);
   const rgb = new Float32Array(3);
+  const n = new Float32Array(3);
   const water = hexToRgb(world.water);
   const cell = WORLD_SIZE / resolution;
   for (let j = 0; j < resolution; j++) {
@@ -251,10 +254,12 @@ export function buildMinimap(resolution = MINIMAP_RESOLUTION): Uint8ClampedArray
         img[o + 1] = water[1] * 255 * (1 - deep);
         img[o + 2] = water[2] * 255 * (1 - deep);
       } else {
-        colorAt(h, x, z, rgb, 0);
-        img[o] = rgb[0]! * 255;
-        img[o + 1] = rgb[1]! * 255;
-        img[o + 2] = rgb[2]! * 255;
+        terrainNormal(x, z, n, 0);
+        surfaceColor(surfaceAt(x, z, h, 1 - n[1]!), x, z, h, rgb, 0);
+        const shade = Math.min(1.25, Math.max(0.55, 0.9 + (-n[0]! - n[2]!) * 1.4));
+        img[o] = rgb[0]! * 255 * shade;
+        img[o + 1] = rgb[1]! * 255 * shade;
+        img[o + 2] = rgb[2]! * 255 * shade;
       }
       img[o + 3] = 255;
     }

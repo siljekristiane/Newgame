@@ -18,9 +18,33 @@ export const TERRAIN = {
   mountainScale: 7_000,
   hillScale: 2_500,
   detailScale: 180,
+  /** Domain warp: continents and ranges are bent by up to warpStrength meters, so they don't look like noise blobs. */
+  warpScale: 12_000,
+  warpStrength: 4_000,
+  /** Height of the tallest ridges above the continent. */
+  mountainHeight: 1_000,
   /** Land fades into ocean over this distance from the world edge. */
   coastWidth: 6_000,
   oceanFloor: -120,
+} as const;
+
+/**
+ * Climate, which decides the biome and the surface materials.
+ * Temperature is °C at sea level, falling LAPSE_RATE per meter of height.
+ */
+export const CLIMATE = {
+  seaLevelTemperature: 6,
+  /** Extra warmth toward the south (+Z), across the whole world. */
+  northSouthGradient: 8,
+  temperatureVariation: 3,
+  temperatureScale: 40_000,
+  lapseRate: 0.0065,
+  moistureScale: 14_000,
+  /** Snow lies below this temperature (fades over ±1.5 °C). */
+  snowTemperature: 0,
+  /** Slope (1 - normal.y) where bare rock takes over from soil. */
+  rockSlope: 0.3,
+  beachHeight: 5,
 } as const;
 
 /** Where the player starts: the middle of the world. */
