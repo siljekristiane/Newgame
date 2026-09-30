@@ -1,4 +1,4 @@
-import { SPAWN } from '../config/world';
+import { SPAWN, TIME } from '../config/world';
 import { groundHeightAt } from '../world/ground';
 
 /**
@@ -26,6 +26,12 @@ export const cameraRig = {
   yaw: 0, // radians, 0 = looking north (-Z)
   pitch: 0.35, // radians above the horizon
   distance: 22, // meters behind the player
+};
+
+/** In-game clock: hours 0..24. Advanced by GameLoop unless paused. */
+export const clock = {
+  hours: TIME.startHour as number,
+  paused: false,
 };
 
 export const input = {

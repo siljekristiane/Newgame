@@ -10,3 +10,9 @@ export function compass(heading: number): string {
   const deg = (((180 - (heading * 180) / Math.PI) % 360) + 360) % 360;
   return COMPASS[Math.round(deg / 45) % 8]!;
 }
+
+/** 15.5 → "15:30" */
+export function clockTime(hours: number): string {
+  const total = Math.floor((((hours % 24) + 24) % 24) * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}

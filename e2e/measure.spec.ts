@@ -10,11 +10,15 @@ import { goToView, waitUntilSettled } from './helpers';
  * Compare two runs to see what a change cost or saved.
  */
 test('measure all fixed views @measure', async ({ page }) => {
+  // Full quality (textures, shadows) under software rendering is slow; this is a measurement, not a smoke test.
+  test.setTimeout(20 * 60_000);
   const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
   const dir = join('measurements', stamp);
   mkdirSync(dir, { recursive: true });
 
   await page.goto('/');
+  await page.waitForFunction(() => window.__duskwood !== undefined, undefined, { timeout: 60_000 });
+  await page.evaluate(() => window.__duskwood!.setTime(15, true)); // same light every run
   await waitUntilSettled(page);
   await page.waitForFunction(() => window.__duskwood!.debug().terrainTextures, undefined, { timeout: 120_000 });
   const firstLoad = await page.evaluate(() => window.__duskwood!.debug().settleMs);

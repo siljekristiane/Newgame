@@ -47,6 +47,29 @@ export const CLIMATE = {
   beachHeight: 5,
 } as const;
 
+/**
+ * Day–night cycle. The sun rises in the east (+X) at 6, peaks in the south
+ * (+Z) at 12 and sets in the west at 18.
+ */
+export const TIME = {
+  startHour: 15,
+  /** Real seconds per in-game hour: 60 = a full day in 24 minutes. */
+  secondsPerHour: 60,
+  /** Highest sun elevation at noon, degrees. */
+  maxSunElevation: 55,
+  sunIntensity: 3.2,
+  moonIntensity: 0.25,
+  /** Tone-mapping exposure at noon and at night. */
+  exposureDay: 0.65,
+  exposureNight: 0.9,
+} as const;
+
+export const SHADOWS = {
+  /** Half-size of the sun's shadow box around the player, meters. */
+  radius: 150,
+  mapSize: 2048,
+} as const;
+
 /** Where the player starts: the middle of the world. */
 export const SPAWN = { x: WORLD_SIZE / 2, z: WORLD_SIZE / 2 };
 
@@ -104,7 +127,7 @@ export const UPLOAD_BUDGET_MS = 3;
 export const CAMERA = {
   near: 0.5,
   far: 14_000,
-  fogNear: 3_000,
+  fogNear: 2_000,
   fogFar: 10_500,
 } as const;
 

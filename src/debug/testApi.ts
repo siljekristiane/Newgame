@@ -9,6 +9,10 @@ export interface DuskwoodTestApi {
   setView: (id: string) => boolean;
   /** Geomorphing on/off (to measure what it saves). */
   setGeomorph: (on: boolean) => void;
+  /** In-game clock (hours 0..24); `paused` stops it. */
+  setTime: (hours: number, paused?: boolean) => void;
+  /** Sun shadows on/off. */
+  setShadows: (on: boolean) => void;
   /** Terrain detail textures on/off. */
   setTerrainTextures: (on: boolean) => void;
   /** Moves the player to world meters (x, z), like a minimap click. */

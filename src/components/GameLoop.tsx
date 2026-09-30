@@ -1,11 +1,12 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import { MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL } from '../config/world';
-import { cameraRig, input, origin, player, rebaseOrigin } from '../state/runtime';
+import { MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME } from '../config/world';
+import { cameraRig, clock, input, origin, player, rebaseOrigin } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 import { clampToWorld, worldToChunk } from '../world/chunkMath';
 import type { ChunkManager } from '../world/ChunkManager';
 import { groundHeightAt } from '../world/ground';
+import { wrapHours } from '../world/timeOfDay';
 import type { WorkerPool } from '../world/workerPool';
 
 const HUD_INTERVAL = 0.2; // seconds
@@ -66,6 +67,8 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
 
     manager.update(player.x, player.z);
 
+    if (!clock.paused) clock.hours = wrapHours(clock.hours + dt / TIME.secondsPerHour);
+
     hudTimer.current += rawDelta;
     if (hudTimer.current >= HUD_INTERVAL) {
       const { cx, cz } = worldToChunk(player.x, player.z);
@@ -77,6 +80,7 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
         speed: player.speed,
         cx,
         cz,
+        hours: clock.hours,
       });
       hudTimer.current = 0;
     }

@@ -33,6 +33,8 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       teleport: (x, z) => useGameStore.getState().teleport(x, z),
       setGeomorph: (on) => useGameStore.getState().setGeomorph(on),
       setTerrainTextures: (on) => useGameStore.getState().setDetailOn(on),
+      setTime: (hours, paused) => useGameStore.getState().setTime(hours, paused),
+      setShadows: (on) => useGameStore.getState().setShadows(on),
       isSettled: () => settleMs.current !== null,
       debug: () => useGameStore.getState().debug,
       hud: () => useGameStore.getState().hud,

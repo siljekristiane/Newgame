@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { SPAWN } from '../config/world';
+import { SPAWN, TIME } from '../config/world';
 import { clampToWorld } from '../world/chunkMath';
-import { player } from './runtime';
+import { clock, player } from './runtime';
 
 export interface HudSnapshot {
   x: number;
@@ -11,6 +11,8 @@ export interface HudSnapshot {
   speed: number;
   cx: number;
   cz: number;
+  /** In-game time, hours 0..24. */
+  hours: number;
 }
 
 /** Performance and streaming numbers for the F3 panel and the e2e measurements. */
@@ -44,6 +46,9 @@ interface GameState {
   /** Terrain detail textures: `detailReady` once generated, `detailOn` is the F3 switch. */
   detailReady: boolean;
   detailOn: boolean;
+  /** Sun shadows near the player (F3 switch). */
+  shadows: boolean;
+  timePaused: boolean;
   minimap: ImageData | null;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
   lastJumpAt: number;
@@ -54,12 +59,15 @@ interface GameState {
   setGeomorph: (on: boolean) => void;
   setDetailReady: (ready: boolean) => void;
   setDetailOn: (on: boolean) => void;
+  setShadows: (on: boolean) => void;
+  /** Sets the in-game clock (hours 0..24); `paused` stops it from advancing. */
+  setTime: (hours: number, paused?: boolean) => void;
   setMinimap: (image: ImageData) => void;
   teleport: (x: number, z: number) => void;
 }
 
 export const useGameStore = create<GameState>((set) => ({
-  hud: { x: SPAWN.x, z: SPAWN.z, y: 0, heading: 0, speed: 0, cx: 0, cz: 0 },
+  hud: { x: SPAWN.x, z: SPAWN.z, y: 0, heading: 0, speed: 0, cx: 0, cz: 0, hours: TIME.startHour },
   debug: {
     fps: 0,
     frameMs: 0,
@@ -81,6 +89,8 @@ export const useGameStore = create<GameState>((set) => ({
   geomorph: true,
   detailReady: false,
   detailOn: true,
+  shadows: true,
+  timePaused: false,
   minimap: null,
   lastJumpAt: 0,
   setHud: (hud) => set({ hud }),
@@ -90,6 +100,12 @@ export const useGameStore = create<GameState>((set) => ({
   setGeomorph: (geomorph) => set({ geomorph }),
   setDetailReady: (detailReady) => set({ detailReady }),
   setDetailOn: (detailOn) => set({ detailOn }),
+  setShadows: (shadows) => set({ shadows }),
+  setTime: (hours, paused) => {
+    clock.hours = ((hours % 24) + 24) % 24;
+    if (paused !== undefined) clock.paused = paused;
+    set((s) => ({ timePaused: clock.paused, hud: { ...s.hud, hours: clock.hours } }));
+  },
   setMinimap: (minimap) => set({ minimap }),
   teleport: (x, z) => {
     // The game loop notices the jump and rebases the origin on its next frame.

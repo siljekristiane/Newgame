@@ -23,6 +23,24 @@ export const world = {
 export type WorldColor = keyof typeof world;
 
 /**
+ * Sky and light colours through the day (art direction C). timeOfDay.ts blends
+ * them by sun elevation: day, golden hour, twilight, night.
+ */
+export const atmosphere = {
+  zenithDay: '#4f86c6',
+  zenithTwilight: '#3a4a78',
+  zenithNight: '#070b16',
+  horizonDay: '#b8cbd9',
+  horizonGolden: '#e2a878',
+  horizonTwilight: '#6c5a78',
+  horizonNight: '#111726',
+  sunHigh: '#fff3e2',
+  sunLow: '#ffae6a',
+  moon: '#a8bde0',
+  groundBounce: '#5b5a45',
+} as const;
+
+/**
  * Natural surface materials for the near-realistic terrain (art direction C).
  * Muted albedos; biomes blend them by weight (see world/biomes.ts).
  */

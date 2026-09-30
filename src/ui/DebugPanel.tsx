@@ -1,6 +1,7 @@
 import { LOD_LEVELS } from '../config/world';
 import { applyView, VIEWS } from '../debug/views';
 import { useGameStore } from '../state/useGameStore';
+import { clockTime } from './format';
 
 /** Budgets from CLAUDE.md. Over budget shows a warning, in words as well as colour. */
 const BUDGET = { drawCalls: 500, triangles: 1_500_000, frameMs: 1000 / 60 };
@@ -15,6 +16,11 @@ export function DebugPanel() {
   const detailOn = useGameStore((s) => s.detailOn);
   const detailReady = useGameStore((s) => s.detailReady);
   const setDetailOn = useGameStore((s) => s.setDetailOn);
+  const shadows = useGameStore((s) => s.shadows);
+  const setShadows = useGameStore((s) => s.setShadows);
+  const hours = useGameStore((s) => s.hud.hours);
+  const timePaused = useGameStore((s) => s.timePaused);
+  const setTime = useGameStore((s) => s.setTime);
   if (!show) return null;
 
   return (
@@ -58,6 +64,24 @@ export function DebugPanel() {
       <label className="dw-toggle">
         <input type="checkbox" checked={detailOn} onChange={(e) => setDetailOn(e.target.checked)} /> Terrengteksturer
         {!detailReady && ' (lages …)'}
+      </label>
+      <label className="dw-toggle">
+        <input type="checkbox" checked={shadows} onChange={(e) => setShadows(e.target.checked)} /> Skygger
+      </label>
+      <label className="dw-toggle dw-time">
+        <span>Klokka {clockTime(hours)}</span>
+        <input
+          type="range"
+          min={0}
+          max={24}
+          step={0.25}
+          value={hours}
+          onChange={(e) => setTime(Number(e.target.value))}
+          aria-label="Tid på døgnet"
+        />
+      </label>
+      <label className="dw-toggle">
+        <input type="checkbox" checked={timePaused} onChange={(e) => setTime(hours, e.target.checked)} /> Stopp tiden
       </label>
       <div className="dw-views" role="group" aria-label="Faste kameravinkler">
         {VIEWS.map((v) => (

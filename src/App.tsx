@@ -16,6 +16,7 @@ export function App() {
       <Canvas
         ref={setCanvas}
         camera={{ fov: 60, near: CAMERA.near, far: CAMERA.far, position: [0, 20, 30] }}
+        shadows="soft"
         gl={{ antialias: true, logarithmicDepthBuffer: true, powerPreference: 'high-performance' }}
         dpr={[1, 1.75]}
       >

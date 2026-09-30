@@ -1,5 +1,5 @@
 import { useGameStore } from '../state/useGameStore';
-import { compass, km, meters } from './format';
+import { clockTime, compass, km, meters } from './format';
 import { DebugPanel } from './DebugPanel';
 import { Minimap } from './Minimap';
 
@@ -19,6 +19,7 @@ export function Hud() {
           <dt>Retning</dt><dd>{compass(hud.heading)}</dd>
           <dt>Fart</dt><dd>{Math.round(hud.speed * 3.6).toLocaleString('nb-NO')} km/t</dd>
           <dt>Chunk</dt><dd>{hud.cx}, {hud.cz}</dd>
+          <dt>Klokka</dt><dd>{clockTime(hud.hours)}</dd>
         </dl>
       </div>
 

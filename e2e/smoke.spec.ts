@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test';
 import { goToView, openGame, waitUntilSettled, watchForErrors } from './helpers';
 
 test.describe('Duskwood World', () => {
-  test('starts without errors and streams in the world (with detail textures)', async ({ page }) => {
+  test('starts without errors and streams in the world (with textures and shadows)', async ({ page }) => {
     const errors = watchForErrors(page);
-    await openGame(page, '', { textures: true });
+    await openGame(page, '', { textures: true, shadows: true });
     await page.waitForTimeout(500); // let the 5 Hz snapshot catch up
 
     await page.waitForFunction(() => window.__duskwood!.debug().terrainTextures, undefined, { timeout: 60_000 });

@@ -83,6 +83,7 @@ src/
     terrain.ts            heightAt(x, z): terrengformen som ren funksjon
     biomes.ts             Klima (temperatur, fuktighet) → biom → materialvekter og farge
     terrainTextures.ts    Prosedyrale, flisbare detaljteksturer (5 materialer) + normal maps
+    timeOfDay.ts          Sol, måne, himmel- og lysfarger som ren funksjon av klokkeslett
     ground.ts             groundHeightAt / gridHeightAt: høyden på trekantene som tegnes
     chunkMath.ts          Koordinater, chunk-nøkler, LOD-valg, ønsket chunk-sett
     buildChunk.ts         Bygger vertex-data for én chunk + props + minikart (ren)
@@ -90,8 +91,9 @@ src/
     workerPool.ts         Pool av workers, med reserve på hovedtråden
     ChunkManager.ts       Streaming: plan → dispatch → upload → unload
     *.test.ts             Enhetstester
-  components/             R3F-komponenter: Scene, GameLoop, Terrain, Player,
-                          FollowCamera, Sky, Water, DebugProbe
+  components/             R3F-komponenter: Scene, GameLoop, Terrain, TerrainTextures,
+                          Atmosphere (himmel, sol, måne, stjerner, tåke), Player,
+                          FollowCamera, Water, DebugProbe
   ui/                     HUD, minikart, F3-panel, formattering (norsk tallformat)
 e2e/                      Playwright: smoke.spec.ts (hver endring), measure.spec.ts
 docs/measurements/        Lagrede målinger (baseline = før fase 2)
@@ -192,6 +194,27 @@ alle LOD-er, så lyset er likt der LOD-er møtes. **Terrenget tegnes bare fra
 forsiden** (dobbeltsidig terreng lekker mørke baksider langs silhuetter);
 skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 
+### Lys, himmel og døgn (steg 3)
+
+- **Klokke:** `runtime.clock` (timer 0–24), går med `TIME.secondsPerHour`
+  (60 s = én spilltime) i `GameLoop`; start `TIME.startHour` (15). F3 har
+  glidebryter og «Stopp tiden»; HUD viser klokka.
+- **`world/timeOfDay.ts`** (ren, testet): solen står opp i øst (+X) kl. 6, står
+  høyest i sør (+Z) kl. 12 (`maxSunElevation`) og går ned i vest kl. 18. Gir
+  sol-/månelys, farger på senit, horisont, himmellys og bakkerefleks, stjerner
+  og eksponering, blandet etter solhøyde (dag, gyllen time, skumring, natt).
+  Farger i `atmosphere` (`design/tokens.ts`).
+- **`components/Atmosphere.tsx`:** three.js `Sky` (fysisk basert) som følger
+  kameraet, blandet over i en mørk gradient om natten (shader-tillegg); sol og
+  måne som `DirectionalLight`; `HemisphereLight` med blekt himmellys; stjerner;
+  lineær tåke med horisontfargen (skjuler kanten ved 10 km); AgX-tonemapping med
+  eksponering etter tid på døgnet.
+- **Skygger:** solen kaster skygge i en boks på ±`SHADOWS.radius` (150 m) rundt
+  spilleren, festet til teksel-rutenettet i verdensrom så de ikke flimrer. Bare
+  objekter og spilleren kaster skygge; terrenget mottar. Terreng som skygger for
+  terreng over kilometer krever en annen teknikk (f.eks. horisont-kart) og er ikke
+  gjort. Kan slås av i F3.
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -263,6 +286,11 @@ ekte maskinvare. Derfor kjører e2e med teksturer av, unntatt første test
 Strømmingen er dessuten løsrevet fra bildefrekvensen: workerne fylles på så snart
 en jobb er ferdig, og trege bilder får større opplastingsbudsjett.
 
+Etter steg 3 (`docs/measurements/step-3/`, kl. 15, teksturer og skygger på):
+samme draw calls, 11 shadere (himmel, stjerner, skyggedybde). `time-07/12/15/18/23.jpg`
+viser samme vinkel gjennom døgnet. e2e og measure stopper klokka på 15:00 for
+sammenlignbare bilder; e2e slår av skygger og teksturer unntatt i første test.
+
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig
 - ≤ 2 ms på hovedtråden til streaming per frame
@@ -319,4 +347,5 @@ vurderes senere).
 ## Kontroller
 
 W A S D gå · Shift løp · Q/E eller dra med musa: snu kamera · scroll: zoom ·
-F: hurtigreise (500 m/s) · klikk på minikartet: teleporter · F3: ytelsespanel.
+F: hurtigreise (500 m/s) · klikk på minikartet: teleporter · F3: ytelsespanel
+(også tid på døgnet, skygger, teksturer, myke LOD-overganger).

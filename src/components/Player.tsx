@@ -18,11 +18,11 @@ export function Player() {
 
   return (
     <group ref={ref}>
-      <mesh>
+      <mesh castShadow>
         <icosahedronGeometry args={[PLAYER.radius, 2]} />
         <meshLambertMaterial color={world.crystal} flatShading emissive={world.crystalDeep} emissiveIntensity={0.25} />
       </mesh>
-      <mesh position={[0, 0.1, -0.85]}>
+      <mesh position={[0, 0.1, -0.85]} castShadow>
         <boxGeometry args={[0.9, 1, 0.5]} />
         <meshLambertMaterial color={world.wood} flatShading />
       </mesh>

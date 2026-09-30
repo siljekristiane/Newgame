@@ -38,7 +38,7 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 | Q / E, eller dra med musa | Snu kameraet |
 | Scroll | Zoom |
 | Klikk på minikartet | Teleporter dit |
-| F3 | Ytelsespanel av/på |
+| F3 | Ytelsespanel av/på (også klokke, skygger og teksturer) |
 
 ## Hva som finnes nå
 
@@ -46,6 +46,7 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 - Klima og biomer: strand, eng, tørt land, skog, fjell og snø, kaldere mot nord og i høyden
 - Glatt, lyssatt terreng med myke overganger mellom detaljnivåene
 - Prosedyrale detaljteksturer med relieff for gress, jord, stein, sand og snø
+- Fysisk basert himmel med døgnsyklus, sol- og måneskygger, stjerner om natten
 - Chunk-streaming med Web Workers, 4 LOD-nivåer og skjørt mot sprekker
 - Flytende origo, så det ikke skjelver langt ute i verden
 - Spiller (sfære) med tredjepersonskamera

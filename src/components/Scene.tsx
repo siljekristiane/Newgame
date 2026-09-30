@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import { CAMERA } from '../config/world';
-import { world } from '../design/tokens';
 import { ChunkManager } from '../world/ChunkManager';
 import { WorkerPool } from '../world/workerPool';
+import { Atmosphere } from './Atmosphere';
 import { DebugProbe } from './DebugProbe';
 import { FollowCamera } from './FollowCamera';
 import { GameLoop } from './GameLoop';
 import { Player } from './Player';
-import { Sky } from './Sky';
 import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
@@ -32,11 +30,7 @@ export function Scene() {
 
   return (
     <>
-      <fog attach="fog" args={[world.skyGlow, CAMERA.fogNear, CAMERA.fogFar]} />
-      <hemisphereLight args={[world.skyGlow, world.meadow, 1.3]} />
-      {/* Warm late-afternoon sun from the south-west. */}
-      <directionalLight color="#ffe2b8" intensity={2.6} position={[-0.8, 1, 0.6]} />
-      <Sky />
+      <Atmosphere />
       <Water />
       <Terrain manager={manager} />
       <TerrainTextures pool={pool} />

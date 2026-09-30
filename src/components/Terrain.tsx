@@ -82,7 +82,7 @@ const Chunk = memo(function Chunk({
 }) {
   return (
     <group position={[chunk.cx * CHUNK_SIZE, 0, chunk.cz * CHUNK_SIZE]}>
-      <mesh geometry={geometry} material={detail ? materials.terrain : materials.terrainPlain} matrixAutoUpdate={false} userData={{ terrain: true }} />
+      <mesh geometry={geometry} material={detail ? materials.terrain : materials.terrainPlain} matrixAutoUpdate={false} userData={{ terrain: true }} receiveShadow />
       {chunk.props.length > 0 && <ChunkProps props={chunk.props} materials={materials} />}
     </group>
   );
@@ -150,5 +150,5 @@ function Instances({ data, material }: { data: { geometry: THREE.BufferGeometry;
     mesh.computeBoundingSphere();
   }, [data]);
   if (data.n === 0) return null;
-  return <instancedMesh ref={ref} args={[data.geometry, material, data.n]} />;
+  return <instancedMesh ref={ref} args={[data.geometry, material, data.n]} castShadow receiveShadow />;
 }

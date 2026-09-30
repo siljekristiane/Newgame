@@ -1,0 +1,117 @@
+{
+  "stamp": "2026-09-30-12-34",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "firstLoadMs": 55959.40000000037,
+  "rows": [
+    {
+      "view": "spawn",
+      "fps": 1,
+      "frameMs": 1360.2000000001863,
+      "frameMsP95": 1424.5,
+      "drawCalls": 121,
+      "triangles": 131626,
+      "geometries": 124,
+      "textures": 3,
+      "programs": 11,
+      "heapMb": 30.653883934020996,
+      "loadedChunks": 349,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        180
+      ],
+      "settleMs": 1,
+      "terrainTextures": true
+    },
+    {
+      "view": "coast",
+      "fps": 1,
+      "frameMs": 1204.3500000000931,
+      "frameMsP95": 1234.2999999998137,
+      "drawCalls": 122,
+      "triangles": 124678,
+      "geometries": 194,
+      "textures": 3,
+      "programs": 11,
+      "heapMb": 43.39090919494629,
+      "loadedChunks": 392,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        223
+      ],
+      "settleMs": 29041.299999999814,
+      "terrainTextures": true
+    },
+    {
+      "view": "valley",
+      "fps": 1,
+      "frameMs": 1357.2999999998137,
+      "frameMsP95": 1398.7000000001863,
+      "drawCalls": 129,
+      "triangles": 145078,
+      "geometries": 311,
+      "textures": 3,
+      "programs": 11,
+      "heapMb": 53.87377071380615,
+      "loadedChunks": 415,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        246
+      ],
+      "settleMs": 28818.60000000056,
+      "terrainTextures": true
+    },
+    {
+      "view": "mountain",
+      "fps": 1,
+      "frameMs": 1285,
+      "frameMsP95": 1303.5,
+      "drawCalls": 147,
+      "triangles": 158982,
+      "geometries": 294,
+      "textures": 3,
+      "programs": 11,
+      "heapMb": 43.252726554870605,
+      "loadedChunks": 389,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        120,
+        220
+      ],
+      "settleMs": 47622,
+      "terrainTextures": true
+    },
+    {
+      "view": "edge",
+      "fps": 1,
+      "frameMs": 690.8000000001242,
+      "frameMsP95": 787.4000000003725,
+      "drawCalls": 24,
+      "triangles": 82894,
+      "geometries": 123,
+      "textures": 3,
+      "programs": 11,
+      "heapMb": 29.233787536621094,
+      "loadedChunks": 248,
+      "pendingChunks": 0,
+      "lodCounts": [
+        9,
+        40,
+        81,
+        118
+      ],
+      "settleMs": 21463.400000000373,
+      "terrainTextures": true
+    }
+  ]
+}
