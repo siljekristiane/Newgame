@@ -4,10 +4,12 @@ import type * as THREE from 'three';
 import { origin } from '../../state/runtime';
 import { spawnLayout } from './layout';
 import { buildPathGeometry, buildPlazaGeometry, createGroundMaterial } from './meshes';
+import { SpawnProps } from './SpawnProps';
 import { gravelTexture, pavingTexture } from './textures';
 
 /**
- * The spawn area (step 6): paved plaza and gravel paths on the terrain.
+ * The spawn area (step 6): paved plaza and gravel paths on the terrain, the
+ * fountain and the lamps (SpawnProps).
  * Everything is built relative to the plaza centre; the group sits at
  * plaza − origin, so the GPU only sees small numbers.
  */
@@ -47,6 +49,7 @@ export function SpawnArea() {
         <mesh key={i} geometry={g} material={parts.gravel} receiveShadow renderOrder={1} />
       ))}
       <mesh geometry={parts.plaza} material={parts.paving} receiveShadow renderOrder={2} />
+      <SpawnProps layout={layout} />
     </group>
   );
 }

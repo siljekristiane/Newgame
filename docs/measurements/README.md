@@ -37,6 +37,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   Samme draw calls og trekanter i målevinklene (plassen ligger bak spawn-kameraet);
   `spawn-closeup.jpg` er spawn-vinkelen nordover mot plassen (skygger av).
 
+- `step-6b/`: fontene med krystall og lamper langs stiene. `spawn-closeup-15.jpg`
+  og `spawn-closeup-20.jpg`: samme vinkel kl. 15 og 20 (lamper og krystall tent).
+  Shadere 16 → 29: krystallens punktlys gir nye varianter av alle materialer.
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

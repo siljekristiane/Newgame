@@ -292,6 +292,14 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   plass − origo.
 - **Planter og gress** holder seg unna: `clearing()` for trær/busker/steiner,
   og en bytemaske (2 m per teksel) i gress-patchen (`rasterizeClearing`).
+- **Møbler (6b)** (`regions/spawn/furniture.ts`, `props.ts`, `SpawnProps.tsx`):
+  totrinns fontene (lathe) med vann og en lilla krystall på toppen (lyser mer om
+  kvelden, med ett punktlys), og lamper rundt plassen og langs stiene hver
+  32 m på vekselvis side, med armen over stien (`lampSpacing`, `lampOffset`).
+  Lampene er instansiert (stolpe + lanterne), tennes fra gyllen time
+  (`sunElevation`), og har glød (additive punkter) og lyskjegler på bakken
+  (additive rutenett som følger bakken). Ingen ekte lys per lampe: det ville
+  kostet i hver shader. Lamper krymper bort 630–900 m unna (bakken morpher der).
 - Akademibygningen fra planen venter på brukerens beskjed (bygninger skal være
   CC0 etter ordre).
 
@@ -385,6 +393,10 @@ kjør `npm run build` først hvis en slik server går.
 
 Etter steg 5b (`docs/measurements/step-5b/`): +1 draw call og ~150 k
 trekanter for gresset (0,23–1,06 M totalt), 2 teksturer til.
+
+Etter steg 6 (`docs/measurements/step-6a/`, `step-6b/`): +5 draw calls og
++28 k trekanter ved spawn (fontene, lamper, flater), 13 teksturer, 29 shadere
+(krystallens punktlys gir egne varianter av materialene).
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig
