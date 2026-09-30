@@ -102,7 +102,7 @@ export function Grass({ pool }: { pool: WorkerPool }) {
       player.x + GRASS.radius < x0 + size &&
       player.z - GRASS.radius > z0 &&
       player.z + GRASS.radius < z0 + size;
-    mesh.visible = vegetation && covered;
+    mesh.visible = vegetation && covered && p.hasGrass;
     if (!mesh.visible) return;
 
     const baseX = Math.floor(player.x / GRASS.cell) - Math.floor(GRID / 2);

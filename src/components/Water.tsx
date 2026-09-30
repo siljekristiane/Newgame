@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { SEA_LEVEL, TERRAIN_TEXTURE, WATER, WORLD_SIZE } from '../config/world';
 import { waterPalette } from '../design/tokens';
-import { clock, origin, player } from '../state/runtime';
+import { clock, origin, player, weather } from '../state/runtime';
 import { lightingAt, type Rgb } from '../world/timeOfDay';
 import type { WorkerPool } from '../world/workerPool';
 
@@ -36,6 +36,7 @@ uniform sampler2D uNormals;
 uniform vec2 uUvOffset;    // origin mod a multiple of the wave tiles: world UVs without big numbers
 uniform vec2 uTiles;
 uniform float uTime;
+uniform float uWaveScale; // rougher water in stronger wind
 uniform vec3 uSunDir;
 uniform vec3 uSunColor;    // colour * intensity
 uniform vec3 uAmbient;     // sky light colour * intensity
@@ -66,7 +67,7 @@ void main() {
   vec2 p = vRender.xz + uUvOffset;
   vec2 slope = slopeAt(p / uTiles.x + uTime * vec2(0.011, 0.006))
              + slopeAt(p / uTiles.y + uTime * vec2(-0.013, 0.017));
-  slope *= 0.5 * mix(1.0, 0.12, smoothstep(40.0, 1500.0, dist)) * mix(0.4, 1.0, smoothstep(0.0, 3.0, depth));
+  slope *= 0.5 * uWaveScale * mix(1.0, 0.12, smoothstep(40.0, 1500.0, dist)) * mix(0.4, 1.0, smoothstep(0.0, 3.0, depth));
   vec3 N = normalize(vec3(slope.x, 1.0, slope.y));
 
   // Sky reflection (Schlick fresnel) over the water body's own colour.
@@ -126,6 +127,7 @@ export function Water({ pool }: { pool: WorkerPool }) {
           uUvOffset: { value: new THREE.Vector2() },
           uTiles: { value: new THREE.Vector2(WATER.waveTiles[0], WATER.waveTiles[1]) },
           uTime: { value: 0 },
+          uWaveScale: { value: 1 },
           uSunDir: { value: new THREE.Vector3(0, 1, 0) },
           uSunColor: { value: new THREE.Color() },
           uAmbient: { value: new THREE.Color() },
@@ -204,6 +206,7 @@ export function Water({ pool }: { pool: WorkerPool }) {
     (u.uDepthRect!.value as THREE.Vector4).set(depth.x - half - origin.x, depth.z - half - origin.z, WATER.depthTextureSize, depth.texture ? 1 : 0);
     (u.uUvOffset!.value as THREE.Vector2).set(origin.x % TERRAIN_TEXTURE.uvWrap, origin.z % TERRAIN_TEXTURE.uvWrap);
     u.uTime!.value = (u.uTime!.value as number) + Math.min(dt, 0.1);
+    u.uWaveScale!.value = 0.6 + Math.min(1.2, Math.hypot(weather.windX, weather.windZ) / 8);
 
     const l = lightingAt(clock.hours);
     (u.uSunDir!.value as THREE.Vector3).set(...l.sunDirection);

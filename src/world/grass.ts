@@ -31,6 +31,8 @@ export interface GrassPatch {
    */
   mask: Uint8Array;
   maskSize: number;
+  /** False when nothing grows anywhere in the patch (open sea, bare rock): skip drawing. */
+  hasGrass: boolean;
 }
 
 /** How much grass grows at a point: grass-covered, not steep, thinner on the forest floor. */
@@ -71,5 +73,9 @@ export function buildGrassPatch(cx: number, cz: number): GrassPatch {
   const maskSize = Math.round(size / GRASS_MASK_CELL);
   const mask = new Uint8Array(maskSize * maskSize);
   const any = rasterizeClearing(mask, maskSize, cx0 * CHUNK_SIZE, cz0 * CHUNK_SIZE, GRASS_MASK_CELL);
-  return any ? { cx0, cz0, side, heights, ground, mask, maskSize } : { cx0, cz0, side, heights, ground, mask: new Uint8Array(1), maskSize: 1 };
+  let hasGrass = false;
+  for (let p = 3; p < ground.length && !hasGrass; p += 4) hasGrass = ground[p]! > 0;
+  return any
+    ? { cx0, cz0, side, heights, ground, mask, maskSize, hasGrass }
+    : { cx0, cz0, side, heights, ground, mask: new Uint8Array(1), maskSize: 1, hasGrass };
 }

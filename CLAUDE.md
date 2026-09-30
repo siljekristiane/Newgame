@@ -174,7 +174,7 @@ Ring-avstand (Chebyshev, i chunks) fra spillerens chunk bestemmer oppløsning
 | 3 | 7–10 | 8 × 8 (125 m) | nei |
 
 En chunk beholder gammelt mesh til ny LOD er klar, så det blir aldri hull.
-Tåke (`CAMERA.fogNear/fogFar`) skjuler kanten ved 10 km.
+Bak chunkene (~10 km) tar fjernringen over (steg 10c); tåka skjuler kanten ved 30 km.
 
 **Geomorphing** (`materials/terrainMaterials.ts`): hver vertex har også høyde,
 normal og farge slik de ser ut på neste, grovere LOD (`morphHeight`,
@@ -371,6 +371,19 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - `QualityInit` monteres først i scenen; e2e og `measure` setter `high` etterpå
   og slår så av det testen ikke trenger, så resultatene er like på alle maskiner.
 
+### Horisont (steg 10c)
+
+- **Fjernring** (`world/farTerrain.ts`, `components/FarTerrain.tsx`,
+  `FAR_TERRAIN`): 4 km-fliser med 250 m rutenett (16²) fra kanten av chunkene ut
+  til ~30 km (Chebyshev-ring 2–7 rundt spillerens flis), samme `heightAt` og
+  overflatefarger. Bygges i workerne når spilleren går inn i en ny flis, men
+  først når chunkene nær spilleren er ferdige. Innenfor `innerRadius` (9 km)
+  forkastes fjernringen i shaderen, og den ligger `sink` (12 m) lavere, så de
+  finere chunkene alltid vinner der begge finnes.
+- **Dis:** tåka går nå lineært fra 1,5 km til 30 km (`CAMERA.fogNear/fogFar`,
+  kamera `far` 34 km), så fjerne fjell står som disige silhuetter. Regn trekker
+  tåka inn som før.
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -415,7 +428,7 @@ Bruk aldri positiv `useFrame`-prioritet uten å ta over renderingen bevisst.
 | Begrensning | Løsning her |
 |---|---|
 | float32 på GPU → skjelving langt fra origo | Flytende origo + lokale chunk-vertekser |
-| Z-fighting over 14 km siktlinje | `logarithmicDepthBuffer: true`, near 0.5 m |
+| Z-fighting over 34 km siktlinje | `logarithmicDepthBuffer: true`, near 0.5 m |
 | Minne: 10 000 chunks passer ikke | Bare ~350 lastet; `dispose()` ved utlasting |
 | Terrenggenerering blokkerer frames | Web Workers + Transferables |
 | Opplastingstopper når mange chunks blir ferdige | Tidsbudsjett per frame |
@@ -472,6 +485,11 @@ trekanter for gresset (0,23–1,06 M totalt), 2 teksturer til.
 Etter steg 6 (`docs/measurements/step-6a/`, `step-6b/`): +5 draw calls og
 +28 k trekanter ved spawn (fontene, lamper, flater), 13 teksturer, 29 shadere
 (krystallens punktlys gir egne varianter av materialene).
+
+Etter steg 10c (`docs/measurements/step-10c/`): 202–241 draw calls og
+0,49–1,09 M trekanter i målevinklene (fjernringen legger til ~60 draw calls og
+~30 k trekanter). Gresset hoppes over der patchen ikke har gress, og bølgene
+blir grovere i sterk vind.
 
 Budsjett å holde seg under (mellomklasse-laptop, 60 FPS):
 - ≤ 500 draw calls, ≤ 1,5 M trekanter synlig

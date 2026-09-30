@@ -3,6 +3,7 @@ import { buildChunk, buildMinimap, type ChunkRequest } from './buildChunk';
 import { buildTerrainTextures } from './terrainTextures';
 import { buildSeabedDepth, buildWaterNormals, type SeabedRequest } from './water';
 import { buildGrassPatch } from './grass';
+import { buildFarTile } from './farTerrain';
 
 export type WorkerRequest =
   | ({ type: 'chunk'; id: number } & ChunkRequest)
@@ -10,7 +11,8 @@ export type WorkerRequest =
   | { type: 'textures'; id: number; size: number }
   | ({ type: 'seabed'; id: number } & SeabedRequest)
   | { type: 'waterNormals'; id: number; size: number }
-  | { type: 'grass'; id: number; cx: number; cz: number };
+  | { type: 'grass'; id: number; cx: number; cz: number }
+  | { type: 'far'; id: number; tx: number; tz: number };
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -36,6 +38,9 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   } else if (msg.type === 'seabed') {
     const image = buildSeabedDepth(msg);
     self.postMessage({ id: msg.id, image }, [image.buffer] as Transferable[]);
+  } else if (msg.type === 'far') {
+    const tile = buildFarTile(msg.tx, msg.tz);
+    self.postMessage({ id: msg.id, data: tile }, [tile.positions.buffer, tile.normals.buffer, tile.colors.buffer, tile.indices.buffer] as Transferable[]);
   } else if (msg.type === 'grass') {
     const patch = buildGrassPatch(msg.cx, msg.cz);
     self.postMessage({ id: msg.id, data: patch }, [patch.heights.buffer, patch.ground.buffer, patch.mask.buffer] as Transferable[]);

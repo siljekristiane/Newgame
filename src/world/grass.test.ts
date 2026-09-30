@@ -39,6 +39,8 @@ describe('grass patch', () => {
     expect(sum / (patch.side * patch.side)).toBeGreaterThan(40);
     const sea = buildGrassPatch(1, 50); // open sea at the west edge
     expect(Math.max(...sea.ground.filter((_, k) => k % 4 === 3))).toBe(0);
+    expect(sea.hasGrass).toBe(false);
+    expect(patch.hasGrass).toBe(true);
   });
 });
 

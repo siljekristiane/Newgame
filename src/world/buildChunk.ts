@@ -205,7 +205,7 @@ function terrainNormal(x: number, z: number, out: Float32Array, o: number): void
 }
 
 /** Palette colours are sRGB; Three.js expects vertex colours in linear space. */
-function toLinear(c: Float32Array, o: number): void {
+export function toLinear(c: Float32Array, o: number): void {
   for (let k = o; k < o + 3; k++) {
     const v = c[k]!;
     c[k] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);

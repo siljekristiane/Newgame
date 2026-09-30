@@ -4,6 +4,7 @@ import { WorkerPool } from '../world/workerPool';
 import { Atmosphere } from './Atmosphere';
 import { DebugProbe } from './DebugProbe';
 import { FollowCamera } from './FollowCamera';
+import { FarTerrain } from './FarTerrain';
 import { GameLoop } from './GameLoop';
 import { Grass } from './Grass';
 import { Player } from './Player';
@@ -38,6 +39,7 @@ export function Scene() {
       <Atmosphere />
       <Water pool={pool} />
       <Terrain manager={manager} />
+      <FarTerrain pool={pool} manager={manager} />
       <Grass pool={pool} />
       <SpawnArea />
       <Precipitation />

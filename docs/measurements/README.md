@@ -53,6 +53,11 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   begge variantene. `spawn-quality-low.jpg`: automatisk «Lav» (uten teksturer,
   skygger og gress).
 
+- `step-10c/`: fjernring til ~30 km og dis i stedet for tåkevegg ved 10 km.
+  +60 draw calls, +30 k trekanter. `horizon-high.jpg` (ovenfra over dalen) og
+  `horizon-spawn.jpg` viser fjerne fjellkjeder. Ved verdenskanten −150 k
+  trekanter: gresset tegnes ikke der patchen ikke har gress (hav).
+
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
 posisjon, så de kan legges oppå hverandre.

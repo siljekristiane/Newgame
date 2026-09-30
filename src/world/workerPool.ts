@@ -3,6 +3,7 @@ import { buildTerrainTextures, type TerrainTextureSet } from './terrainTextures'
 import type { WorkerRequest } from './terrain.worker';
 import { buildSeabedDepth, buildWaterNormals, type SeabedRequest } from './water';
 import { buildGrassPatch, type GrassPatch } from './grass';
+import { buildFarTile, type FarTile } from './farTerrain';
 
 type Pending = { msg: WorkerRequest; resolve: (value: unknown) => void; reject: (err: unknown) => void };
 
@@ -56,6 +57,10 @@ export class WorkerPool {
     return this.post({ type: 'grass', id: 0, cx, cz }) as Promise<GrassPatch>;
   }
 
+  buildFarTile(tx: number, tz: number): Promise<FarTile> {
+    return this.post({ type: 'far', id: 0, tx, tz }) as Promise<FarTile>;
+  }
+
   dispose(): void {
     this.workers.forEach((w) => w.terminate());
     this.workers = [];
@@ -65,7 +70,7 @@ export class WorkerPool {
 
   private spawn(): Worker {
     const worker = new Worker(new URL('./terrain.worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (e: MessageEvent<{ id: number; data?: ChunkData | GrassPatch; image?: Uint8Array | Uint8ClampedArray; textures?: TerrainTextureSet }>) => {
+    worker.onmessage = (e: MessageEvent<{ id: number; data?: ChunkData | GrassPatch | FarTile; image?: Uint8Array | Uint8ClampedArray; textures?: TerrainTextureSet }>) => {
       const p = this.pending.get(e.data.id);
       if (!p) return;
       this.pending.delete(e.data.id);
@@ -95,6 +100,7 @@ export class WorkerPool {
       else if (msg.type === 'seabed') p.resolve(buildSeabedDepth(msg));
       else if (msg.type === 'waterNormals') p.resolve(buildWaterNormals(msg.size));
       else if (msg.type === 'grass') p.resolve(buildGrassPatch(msg.cx, msg.cz));
+      else if (msg.type === 'far') p.resolve(buildFarTile(msg.tx, msg.tz));
       else p.resolve(buildMinimap(msg.resolution));
     }, 0);
   }

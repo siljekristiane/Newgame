@@ -234,6 +234,22 @@ export const UNLOAD_RADIUS = VIEW_RADIUS + 1;
 export const REBASE_DISTANCE = 2_000;
 
 /** How many chunk builds may be in flight at once, and meshes added per frame. */
+/**
+ * The far ring (step 10c): coarse terrain tiles beyond the streamed chunks,
+ * out to the horizon, so distant mountains stand as hazy silhouettes.
+ * Tiles within Chebyshev `innerRings` of the player's tile are skipped (the
+ * chunks cover that); inside `innerRadius` meters the far terrain is not drawn,
+ * and it sits `sink` meters low so the finer chunks win where both exist.
+ */
+export const FAR_TERRAIN = {
+  tileSize: 4_000,
+  segments: 16,
+  rings: 7,
+  innerRings: 1,
+  innerRadius: 9_000,
+  sink: 12,
+} as const;
+
 /** Chunks kept (with their GPU geometry) after they leave, for a quick return. */
 export const CHUNK_CACHE_SIZE = 96;
 
@@ -244,9 +260,10 @@ export const UPLOAD_BUDGET_MS = 3;
 
 export const CAMERA = {
   near: 0.5,
-  far: 14_000,
-  fogNear: 2_000,
-  fogFar: 10_500,
+  far: 34_000,
+  fogNear: 1_500,
+  /** Haze grows linearly to full at the edge of the far ring. */
+  fogFar: 30_000,
   /** How far the line of sight to the player stays above the ground, meters. */
   clearance: 1.2,
 } as const;
