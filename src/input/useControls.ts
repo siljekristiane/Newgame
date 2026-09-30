@@ -20,6 +20,7 @@ export function useControls(target: HTMLElement | null): void {
       const store = useGameStore.getState();
       if (e.code === 'KeyF' && !e.repeat) store.toggleTravelMode();
       if (e.code === 'KeyN' && !e.repeat) store.toggleMinimap();
+      if (e.code === 'KeyU' && !e.repeat) store.toggleMute();
       if (e.code === 'KeyM' && !e.repeat) {
         const open = !store.bigMapOpen;
         store.setBigMapOpen(open);
@@ -61,7 +62,13 @@ export function useControls(target: HTMLElement | null): void {
       dragging = true;
       lastX = e.clientX;
       lastY = e.clientY;
-      target.setPointerCapture(e.pointerId);
+      // Capture keeps a drag going outside the canvas. It throws while the
+      // pointer is being locked (the lock takes over), which is fine to skip.
+      try {
+        target.setPointerCapture(e.pointerId);
+      } catch {
+        // Pointer lock in progress: no capture needed.
+      }
     };
     const onMove = (e: PointerEvent) => {
       if (locked()) {

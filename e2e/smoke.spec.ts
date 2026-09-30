@@ -79,6 +79,23 @@ test.describe('Duskwood World', () => {
     await expect(page.getByText('Verdenskart')).toBeVisible();
   });
 
+  test('sound unlocks on the first click, and U mutes it', async ({ page }) => {
+    const errors = watchForErrors(page);
+    await openGame(page);
+    expect((await page.evaluate(() => window.__duskwood!.audio())).unlocked).toBe(false);
+    const canvas = page.locator('canvas').first();
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForFunction(() => window.__duskwood!.audio().unlocked);
+    await page.keyboard.press('Escape'); // release pointer lock if the browser granted it
+    expect((await page.evaluate(() => window.__duskwood!.audio())).muted).toBe(false);
+    await page.keyboard.press('KeyU');
+    expect((await page.evaluate(() => window.__duskwood!.audio())).muted).toBe(true);
+    await page.keyboard.press('KeyU');
+    expect((await page.evaluate(() => window.__duskwood!.audio())).muted).toBe(false);
+    expect(errors).toEqual([]);
+  });
+
   test('every fixed camera view loads', async ({ page }, testInfo) => {
     const errors = watchForErrors(page);
     await openGame(page);

@@ -141,6 +141,19 @@ export const WEATHER = {
   rainFogFar: 3_500,
 } as const;
 
+/**
+ * Sound (music and audio plan, phase A). Channel volumes are 0..1 sliders;
+ * the gain is volume² so the sliders feel even to the ear.
+ */
+export const AUDIO = {
+  volumes: { master: 0.8, music: 0.6, ambience: 0.7, effects: 0.8, voice: 0.8 },
+  /** Seconds for a volume change (or mute) to ease in, so it never clicks. */
+  volumeRamp: 0.08,
+  /** How far music drops while the avatar speaks or hums, and how fast. */
+  duckLevel: 0.45,
+  duckRamp: 0.25,
+} as const;
+
 /** Rain and snow particles in a box around the camera (step 8). */
 export const PRECIPITATION = {
   box: 40,

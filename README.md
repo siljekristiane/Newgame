@@ -39,6 +39,7 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 | F | Hurtigreise av/på (500 m/s) |
 | Q / E, eller dra med musa | Snu kameraet |
 | Scroll | Zoom |
+| U | Lyd av/på (volum per kanal i F3) |
 | M | Stort kart (klikk for å teleportere, Esc lukker) |
 | N | Skjul/vis minikartet |
 | Klikk på minikartet | Teleporter dit |

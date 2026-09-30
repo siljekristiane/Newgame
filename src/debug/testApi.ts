@@ -1,6 +1,7 @@
 import type { DebugSnapshot, HudSnapshot } from '../state/useGameStore';
 import type { WeatherMode } from '../weather/weather';
 import type { QualityLevel } from '../config/world';
+import type { AudioVolumes } from '../audio/mixer';
 
 /**
  * A small window API for automated browser tests and measurements
@@ -36,6 +37,8 @@ export interface DuskwoodTestApi {
    * terrain is loaded under the player.
    */
   groundCheck: () => { playerY: number; meshY: number; smoothY: number } | null;
+  /** Sound: unlocked after the first click/key, context state, mute and volumes; zone and track once music is in. */
+  audio: () => { unlocked: boolean; state: string; muted: boolean; volumes: AudioVolumes; zone: string | null; track: string | null };
 }
 
 declare global {

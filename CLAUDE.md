@@ -83,6 +83,7 @@ src/
   player/                 Bevegelsesmodell (ren, testet)
   weather/                Værmodell, skystøy, regn og snø
   settings/               Kvalitetsnivåer: valg fra GPU-navn, lagring i nettleseren
+  audio/                  Lydmotor (Web Audio), mikser og lydinnstillinger
   world/
     noise.ts              Seedet simplex-støy + hash (deterministisk)
     naturalTerrain.ts     naturalHeightAt(x, z): terrengformen uten regioner
@@ -384,6 +385,23 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   kamera `far` 34 km), så fjerne fjell står som disige silhuetter. Regn trekker
   tåka inn som før.
 
+### Lyd (fase A av lydplanen)
+
+- **Plan:** `docs/audio/lydplan.md` (fasene A–E). Musikk
+  skal være klassiske stykker i **CC0/offentlig eie** (innspillingene, ikke bare
+  verkene), lastet ned av brukeren og ført i `CREDITS.md`. All annen lyd
+  (vind, regn, skritt, avatarens stemme) lages prosedyralt i Web Audio.
+- **`audio/audioEngine.ts`:** én `AudioContext` med kanaler master → musikk
+  (via en «duck»-gain så stemmen kan dempe musikken) / omgivelser / effekter /
+  stemme. Nettlesere tillater lyd først etter en brukerhandling, så konteksten
+  lages ved første klikk eller tastetrykk (`AudioSystem.tsx`), og den stoppes
+  når fanen skjules. Lydsystemer kobler seg på `audioEngine.bus(kanal)`.
+- **`audio/mixer.ts`** (ren, testet): gain = volum² (jevnere for øret), mute via
+  master, innstillinger i `localStorage` (try/catch). Volum og mute ligger i
+  storen (`audio`, `setVolume`, `toggleMute`); F3 har glidebrytere, **U** slår
+  lyd av og på. Konstanter i `AUDIO` (`config/world.ts`).
+- Testkroken `__duskwood.audio()` gir status; `zone`/`track` fylles i fase C.
+
 ### Streaming (`ChunkManager`)
 
 1. **plan** (bare når spilleren bytter chunk): fjern chunks utenfor
@@ -547,5 +565,5 @@ vurderes senere).
 ## Kontroller
 
 W A S D gå · Shift løp · Mellomrom hopp · klikk: styr kamera med musa (Esc slipper) · Q/E eller dra: snu kamera · scroll: zoom ·
-F: hurtigreise (500 m/s) · M: stort kart · N: skjul/vis minikart · klikk på kartet: teleporter · F3: ytelsespanel
+F: hurtigreise (500 m/s) · U: lyd av/på · M: stort kart · N: skjul/vis minikart · klikk på kartet: teleporter · F3: ytelsespanel
 (også tid på døgnet, skygger, teksturer, myke LOD-overganger).

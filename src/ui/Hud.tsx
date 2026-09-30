@@ -9,6 +9,7 @@ export function Hud() {
   const hud = useGameStore((s) => s.hud);
   const travel = useGameStore((s) => s.travelMode);
   const pointerLocked = useGameStore((s) => s.pointerLocked);
+  const muted = useGameStore((s) => s.audio.muted);
   const toggleTravel = useGameStore((s) => s.toggleTravelMode);
 
   return (
@@ -41,6 +42,7 @@ export function Hud() {
         <span>{pointerLocked ? <><kbd>Esc</kbd> slipp musa</> : <>Klikk: styr kamera med musa · <kbd>Q</kbd><kbd>E</kbd> snu</>}</span>
         <span>Scroll: zoom</span>
         <span><kbd>M</kbd> kart</span>
+        <span><kbd>U</kbd> lyd {muted ? 'av' : 'på'}</span>
         <span><kbd>F3</kbd> ytelse</span>
         <button type="button" className={travel ? 'dw-btn dw-btn-primary' : 'dw-btn'} onClick={toggleTravel} aria-pressed={travel}>
           <kbd>F</kbd> Hurtigreise {travel ? 'på' : 'av'}

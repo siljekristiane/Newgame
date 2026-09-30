@@ -5,6 +5,7 @@ import { clock, player } from './runtime';
 import type { WeatherMode } from '../weather/weather';
 import { QUALITY, type QualityLevel } from '../config/world';
 import { saveQuality } from '../settings/quality';
+import { loadAudioSettings, saveAudioSettings, type AudioChannel, type AudioSettings } from '../audio/mixer';
 
 export interface HudSnapshot {
   x: number;
@@ -63,6 +64,10 @@ interface GameState {
   quality: QualityLevel | null;
   /** Grass tufts round the player (part of the quality presets). */
   grass: boolean;
+  /** Channel volumes and mute (U); kept in this browser. */
+  audio: AudioSettings;
+  /** Sound can play (the player has clicked or pressed a key once). */
+  audioUnlocked: boolean;
   timePaused: boolean;
   minimap: ImageData | null;
   /** Sharper world map for the big map (M), made after the minimap. */
@@ -85,6 +90,9 @@ interface GameState {
   /** Applies a preset: pixel ratio, shadows, textures, vegetation, grass. `remember` stores the choice in this browser. */
   setQuality: (level: QualityLevel, remember?: boolean) => void;
   setGrass: (on: boolean) => void;
+  setVolume: (channel: AudioChannel, volume: number) => void;
+  toggleMute: () => void;
+  setAudioUnlocked: (unlocked: boolean) => void;
   /** Sets the in-game clock (hours 0..24); `paused` stops it from advancing. */
   setTime: (hours: number, paused?: boolean) => void;
   setMinimap: (image: ImageData) => void;
@@ -124,6 +132,8 @@ export const useGameStore = create<GameState>((set) => ({
   weatherMode: 'auto',
   quality: null,
   grass: true,
+  audio: loadAudioSettings(),
+  audioUnlocked: false,
   timePaused: false,
   minimap: null,
   bigMap: null,
@@ -147,6 +157,19 @@ export const useGameStore = create<GameState>((set) => ({
     set({ quality: level, shadows: q.shadows, detailOn: q.textures, vegetation: q.vegetation, grass: q.grass });
   },
   setGrass: (grass) => set({ grass }),
+  setVolume: (channel, volume) =>
+    set((s) => {
+      const audio = { ...s.audio, volumes: { ...s.audio.volumes, [channel]: Math.min(1, Math.max(0, volume)) } };
+      saveAudioSettings(audio);
+      return { audio };
+    }),
+  toggleMute: () =>
+    set((s) => {
+      const audio = { ...s.audio, muted: !s.audio.muted };
+      saveAudioSettings(audio);
+      return { audio };
+    }),
+  setAudioUnlocked: (audioUnlocked) => set({ audioUnlocked }),
   setTime: (hours, paused) => {
     clock.hours = ((hours % 24) + 24) % 24;
     if (paused !== undefined) clock.paused = paused;

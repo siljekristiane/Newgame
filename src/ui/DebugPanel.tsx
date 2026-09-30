@@ -1,6 +1,7 @@
 import { LOD_LEVELS } from '../config/world';
 import { applyView, VIEWS } from '../debug/views';
 import { useGameStore } from '../state/useGameStore';
+import { AudioControls } from './AudioControls';
 import { clockTime } from './format';
 import type { WeatherMode } from '../weather/weather';
 import type { QualityLevel } from '../config/world';
@@ -116,6 +117,7 @@ export function DebugPanel() {
       <label className="dw-toggle">
         <input type="checkbox" checked={timePaused} onChange={(e) => setTime(hours, e.target.checked)} /> Stopp tiden
       </label>
+      <AudioControls />
       <div className="dw-views" role="group" aria-label="Faste kameravinkler">
         {VIEWS.map((v) => (
           <button key={v.id} type="button" className="dw-btn dw-btn-sm" onClick={() => applyView(v.id)}>

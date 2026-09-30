@@ -9,6 +9,7 @@ import { GameLoop } from './GameLoop';
 import { Grass } from './Grass';
 import { Player } from './Player';
 import { QualityInit } from './QualityInit';
+import { AudioSystem } from '../audio/AudioSystem';
 import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
@@ -36,6 +37,7 @@ export function Scene() {
   return (
     <>
       <QualityInit />
+      <AudioSystem />
       <Atmosphere />
       <Water pool={pool} />
       <Terrain manager={manager} />
