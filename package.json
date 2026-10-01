@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "e2e": "playwright test --grep-invert @measure",
     "measure": "playwright test --grep @measure",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "audio:encode": "node scripts/encode-audio.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.4.0",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.20.4",
     "@types/react": "^19.2.0",

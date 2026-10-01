@@ -112,8 +112,17 @@ test.describe('Duskwood World', () => {
     const music = () => page.evaluate(() => window.__duskwood!.audio());
     await page.waitForFunction(() => window.__duskwood!.audio().zone === 'start');
     expect((await music()).target).toBe('start');
-    // No recordings yet (phase D): the zones work, but nothing plays.
-    expect((await music()).track).toBeNull();
+    // Music needs sound: unlock it with a click, skip the first pause, and the start zone's music plays.
+    const canvas = page.locator('canvas').first();
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.__duskwood!.audio().unlocked);
+    await page.evaluate(() => window.__duskwood!.musicSkipGap());
+    await page.waitForFunction(() => window.__duskwood!.audio().track !== null);
+    expect(['bach-goldberg-aria', 'bach-air', 'satie-gymnopedie-1', 'bach-prelude-c']).toContain((await music()).track);
+    await page.waitForFunction(() => window.__duskwood!.audio().musicTime > 1, undefined, { timeout: 30_000 });
+
 
     // The zone right now changes at once; the music follows once it has held (8–10 s).
     await page.evaluate(() => window.__duskwood!.teleport(34_500, 49_500));

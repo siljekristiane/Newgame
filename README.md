@@ -62,5 +62,7 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 - HUD med posisjon i km, høyde, retning, fart og ytelsestall
 - Kvalitetsnivåer (Lav/Middels/Høy) valgt automatisk etter skjermkortet, kan endres i F3
 - Kompass, minikart som kan skjules og stort kart med rutenett, alle med klikk-for-å-teleportere
+- Lyd: syntetisert vind, regn, snøsus og skritt etter underlaget
+- Rolig klassisk musikk (Bach, Satie, Grieg, Beethoven, Vivaldi, Debussy, Chopin) som følger stedet, natt og regn, med innspillinger i offentlig eie/CC0 (se [CREDITS.md](./CREDITS.md))
 
 Arkitektur og kodestandard står i [CLAUDE.md](./CLAUDE.md).

@@ -6,3 +6,4 @@ dist-single
 /test-results
 /playwright-report
 /measurements
+audio-src/

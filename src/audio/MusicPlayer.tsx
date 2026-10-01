@@ -97,6 +97,7 @@ export function MusicPlayer() {
     if (!ds || !ctx) return; // no music before sound is unlocked
     const cmd = musicScheduler.update(dt, zone);
     soundStatus.track = musicScheduler.track?.id ?? null;
+    soundStatus.musicTime = ds[active.current]!.track ? ds[active.current]!.element.currentTime : 0;
     if (!cmd) return;
 
     const fade = AUDIO.music.crossfade / 3;

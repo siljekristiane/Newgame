@@ -13,4 +13,6 @@ export const soundStatus = {
   zone: null as MusicZone | null,
   target: null as string | null,
   track: null as string | null,
+  /** Seconds into the piece playing (0 when silent). */
+  musicTime: 0,
 };

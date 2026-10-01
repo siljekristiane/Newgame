@@ -20,26 +20,37 @@ føres i `CREDITS.md`.
 - Format: helst FLAC eller OGG/WAV. Fase D koder om til Opus 96 kbit/s med lik
   lydstyrke.
 
-## Stykker
+## Valgte innspillinger (fase D, hentet fra Wikimedia Commons)
 
-| Id | Stykke | Soner |
-|---|---|---|
-| `bach-goldberg-aria` | Bach: Goldberg-variasjonene, Aria | start |
-| `bach-air` | Bach: Orkestersuite nr. 3, Air | start, meadow |
-| `satie-gymnopedie-1` | Satie: Gymnopédie nr. 1 | start, coast |
-| `grieg-morning` | Grieg: Peer Gynt, Morgenstemning | forest, meadow |
-| `beethoven-pastoral-2` | Beethoven: Symfoni nr. 6, 2. sats | forest, meadow |
-| `vivaldi-winter-largo` | Vivaldi: Vinter, Largo | mountain |
-| `bach-prelude-c` | Bach: Das wohltemperierte Klavier I, Preludium i C-dur | mountain, start |
-| `debussy-clair-de-lune` | Debussy: Clair de lune | coast, night |
-| `chopin-barcarolle` | Chopin: Barcarolle op. 60 | coast |
-| `chopin-nocturne-9-2` | Chopin: Nocturne op. 9 nr. 2 | night |
-| `chopin-nocturne-27-2` | Chopin: Nocturne op. 27 nr. 2 | night |
-| `beethoven-moonlight-1` | Beethoven: Månskinnssonaten, 1. sats | night |
-| `chopin-raindrop` | Chopin: Preludium op. 28 nr. 15 «Regndråpe» | rain |
+Lisensen er sjekket i Commons' metadata (`LicenseShortName`) både ved søk
+(`scripts/find-music.mjs`) og ved nedlasting (`scripts/fetch-music.mjs`, som
+nekter alt som ikke er CC0 eller offentlig eie). Kildene står i
+`scripts/music-sources.json`; kreditt per fil i `CREDITS.md`.
+
+| Id | Utøver | Lisens | Fil på Commons |
+|---|---|---|---|
+| `bach-goldberg-aria` | Kimiko Ishizaka (Open Goldberg Variations) | CC0 | `File:Kimiko Ishizaka - 01 - Aria.ogg` |
+| `bach-air` | Air Force Strings, United States Air Force Band | Public domain (US Government work) | `File:Air - Air Force Strings - United States Air Force Band.mp3` |
+| `satie-gymnopedie-1` | Robin Alciatore (Musopen) | Public domain | `File:Erik Satie - gymnopedies - la 1 ere. lent et douloureux.ogg` |
+| `grieg-morning` | Musopen Symphony | Public domain | `File:Grieg - Peer Gynt Suite No. 1, Op. 46 - I. Morning Mood (Musopen Symphony).flac` |
+| `beethoven-pastoral-2` | Musopen | Public domain | `File:Ludwig van Beethoven - symphony no. 6 in f major 'pastoral', op. 68 - ii. andante molto mosso.ogg` |
+| `vivaldi-winter-largo` | The Modena Chamber Orchestra (Musopen) | Public Domain Mark | `File:The Modena Chamber Orchestra - Vivaldi's Winter, RV 297 - II. Largo.ogg` |
+| `bach-prelude-c` | Kimiko Ishizaka (Open Well-Tempered Clavier) | Public domain (CC0) | `File:Kimiko Ishizaka - Bach- Well-Tempered Clavier, Book 1 - 01 Prelude No. 1 in C major, BWV 846.flac` |
+| `debussy-clair-de-lune` | Laurens Goedhart | Public domain | `File:Clair de lune (Claude Debussy) Suite bergamasque.ogg` |
+| `chopin-berceuse` | Veronica van der Knaap | Public domain | `File:Chopin-Berceuse.ogg` |
+| `chopin-nocturne-9-2` | Frank Lévy (Musopen, Set Chopin Free) | Public domain | `File:Chopin - Nocturne No. 2 in E-flat major, Op. 9 No. 2 (Frank Levy).flac` |
+| `chopin-nocturne-27-2` | Frank Lévy (Musopen, Set Chopin Free) | Public domain | `File:Chopin - Nocturne No. 8 in D-flat major, Op. 27 No. 2 (Frank Levy).flac` |
+| `beethoven-moonlight-1` | Paul Pitman (Musopen) | Public domain | `File:Ludwig van Beethoven - sonata no. 14 in c sharp minor 'moonlight', op. 27 no. 2 - i. adagio sostenuto.ogg` |
+| `chopin-raindrop` | Musopen (Chopin collection) | CC0 | `File:Prelude Op. 28 no. 15.mp3` |
+
+Endringer fra forslaget: Chopins Barcarolle er byttet med **Berceuse op. 57**
+(den eneste frie Barcarolle var et 33 s syntetisk utdrag). Månskinnssonaten
+spiller også i regn, så regnsonen har to stykker.
+
+Slik legger du til et stykke: legg kilden i `scripts/music-sources.json`, kjør
+`node scripts/fetch-music.mjs` og `npm run audio:encode`, og legg sporet i
+`src/audio/playlist.ts` og en linje i `CREDITS.md` (enhetstesten sjekker det).
 
 Senere, til plottlag (intens musikk): Vivaldi: Sommer, Presto · Beethoven:
-Symfoni nr. 5, 1. sats · Grieg: I Dovregubbens hall · Chopin: Etyde op. 10 nr. 12.
-
-Hver sone bør ha minst to stykker, så samme stykke ikke gjentas. Natt og
-startplassen er viktigst først; der er spilleren oftest.
+Symfoni nr. 5, 1. sats (Musopen-innspilling finnes på Commons) · Grieg: I
+Dovregubbens hall (Musopen Symphony) · Chopin: Etyde op. 10 nr. 12.

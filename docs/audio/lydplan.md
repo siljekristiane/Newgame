@@ -64,7 +64,9 @@ Gjort som beskrevet under. Overtoningen er 4 s, et nytt sted må vare 8 s (natt 
   2. Brukeren laster ned fra en lenkeliste til `audio-src/`.
   3. Midlertidig syntetisk spilling av stykkene ut fra fri notetekst.
 
-## Fase D: musikkfilene (du laster ned, jeg ordner resten)
+## Fase D: musikkfilene — ferdig
+Nettet var åpent, så Claude hentet 13 CC0/PD-innspillinger fra Wikimedia Commons selv (se `nedlastingsliste.md` og `CREDITS.md`). De er kodet til Opus i WebM (80 kbit/s, spiller også i Safari), −20 LUFS, til sammen 42 MB. Barcarolle er byttet med Berceuse.
+
 - Jeg lager `docs/audio/nedlastingsliste.md` med nøyaktig stykke, utøver, kilde og lisens for hvert spor. Bare filer som er merket Public Domain eller CC0 på kildesiden tas med.
 - **Aktuelle kilder:**
   - Musopen (Chopin-prosjektet, Musopen Symphony),

@@ -389,7 +389,7 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 
 - **Plan:** `docs/audio/lydplan.md` (fasene A–E). Musikk
   skal være klassiske stykker i **CC0/offentlig eie** (innspillingene, ikke bare
-  verkene), lastet ned av brukeren og ført i `CREDITS.md`. All annen lyd
+  verkene), ført i `CREDITS.md`. All annen lyd
   (vind, regn, skritt, avatarens stemme) lages prosedyralt i Web Audio.
 - **`audio/audioEngine.ts`:** én `AudioContext` med kanaler master → musikk
   (via en «duck»-gain så stemmen kan dempe musikken) / omgivelser / effekter /
@@ -431,6 +431,15 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
     musikkbussen) for overtoning; går på veggklokke-tid, ikke spilltid. Sonen
     regnes to ganger i sekundet. F3 viser «Musikk: sone · stykke».
   - Kandidatstykker og lisenskrav: `docs/audio/nedlastingsliste.md`.
+- **Fase D, musikkfilene:** 13 innspillinger fra Wikimedia Commons (CC0/PD,
+  kilder i `scripts/music-sources.json`). `node scripts/find-music.mjs` søker
+  (sakte: Commons gir 429 ved for mange kall), `node scripts/fetch-music.mjs`
+  laster ned til `audio-src/` (git-ignorert) og nekter ufrie lisenser,
+  `npm run audio:encode` (ffmpeg fra `@ffmpeg-installer/ffmpeg`) koder til
+  `public/audio/music/<id>.webm`: Opus 80 kbit/s i WebM (Safari spiller ikke
+  Ogg Opus pålitelig), stillhet kuttet, 1 s toninger, −20 LUFS. 42 MB totalt.
+  `playlist.test.ts` sjekker fil, kreditt, `CREDITS.md`-linje og minst to
+  stykker per sone. Testkroken `musicSkipGap()` hopper over pausen (e2e).
 - Testkroken `__duskwood.audio()` gir status (lås, mute, volum, vind, regn,
   snø, antall skritt og siste underlag, og musikkens `zoneRaw`, `zone`,
   `target` og `track`); `setMusicLayer(navn | null)` tester plottlag.

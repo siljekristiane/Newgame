@@ -140,6 +140,11 @@ export class MusicScheduler {
     return this.tracks.filter((t) => t.file !== null && t.zones.includes(target));
   }
 
+  /** Ends a pause now (test hook): the next update starts a piece. */
+  skipGap(): void {
+    if (this.stateName === 'gap' || this.stateName === 'idle') this.timer = 0;
+  }
+
   /** The piece has ended (or failed to load): start the pause. */
   trackEnded(id: string): void {
     if (this.current?.id !== id) return;

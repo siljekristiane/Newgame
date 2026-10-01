@@ -45,6 +45,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
         if (name === null) musicScheduler.popLayer();
         else musicScheduler.pushLayer(name);
       },
+      musicSkipGap: () => musicScheduler.skipGap(),
       audio: () => {
         const { audio } = useGameStore.getState();
         return { unlocked: audioEngine.unlocked, state: audioEngine.state, muted: audio.muted, volumes: { ...audio.volumes }, ...soundStatus };
