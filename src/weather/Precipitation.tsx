@@ -5,6 +5,7 @@ import { PRECIPITATION, WORLD_SEED } from '../config/world';
 import { weatherPalette } from '../design/tokens';
 import { origin, player, weather } from '../state/runtime';
 import { climateAt } from '../world/biomes';
+import { snowFraction } from './weather';
 import { mulberry32 } from '../world/noise';
 
 /**
@@ -142,7 +143,7 @@ export function Precipitation() {
   useFrame(({ camera }, dt) => {
     const amount = weather.precipitation;
     const { temperature } = climateAt(player.x, player.z, player.y);
-    const snowy = Math.min(1, Math.max(0, (PRECIPITATION.snowBelow + 1 - temperature) / 2)); // blend over ±1 °C
+    const snowy = snowFraction(temperature);
     const box = PRECIPITATION.box;
     const cam = camera.position;
     const mod = (v: number) => ((v % box) + box) % box;

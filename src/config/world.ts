@@ -152,6 +152,12 @@ export const AUDIO = {
   /** How far music drops while the avatar speaks or hums, and how fast. */
   duckLevel: 0.45,
   duckRamp: 0.25,
+  /** Footsteps (phase B): no steps below minSpeed or above maxSpeed (fast travel), m/s. */
+  steps: { minSpeed: 0.6, maxSpeed: 60, gain: 0.55, landingGain: 0.9, variants: 4 },
+  /** Wind: base level in calm air, how much a storm adds, extra per km of height. */
+  wind: { calm: 0.06, storm: 0.55, perKm: 0.25 },
+  /** Rain and snow loudness at full precipitation; the rain texture loop length, seconds. */
+  rain: { gain: 0.55, snowGain: 0.12, loopSeconds: 6 },
 } as const;
 
 /** Rain and snow particles in a box around the camera (step 8). */

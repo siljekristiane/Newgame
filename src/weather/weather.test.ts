@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { WEATHER } from '../config/world';
-import { weatherAt } from './weather';
+import { snowFraction, weatherAt } from './weather';
 
 describe('weather', () => {
   it('is deterministic and changes smoothly', () => {
@@ -28,5 +28,11 @@ describe('weather', () => {
     const calm = weatherAt(10, 'clear');
     const storm = weatherAt(10, 'rain');
     expect(Math.hypot(storm.windX, storm.windZ)).toBeGreaterThan(Math.hypot(calm.windX, calm.windZ));
+  });
+
+  it('turns rain into snow around freezing', () => {
+    expect(snowFraction(5)).toBe(0);
+    expect(snowFraction(0)).toBeCloseTo(0.5);
+    expect(snowFraction(-5)).toBe(1);
   });
 });

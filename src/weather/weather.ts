@@ -1,4 +1,4 @@
-import { WEATHER, WORLD_SEED } from '../config/world';
+import { PRECIPITATION, WEATHER, WORLD_SEED } from '../config/world';
 import { hash2 } from '../world/noise';
 
 /**
@@ -46,4 +46,9 @@ export function weatherAt(elapsedHours: number, mode: WeatherMode = 'auto'): Wea
   const direction = noise1(elapsedHours / 20, s + 2) * Math.PI * 4;
   const speed = WEATHER.windCalm + (WEATHER.windStorm - WEATHER.windCalm) * cloudCover * (0.6 + 0.4 * noise1(elapsedHours / 2, s + 3));
   return { cloudCover, precipitation, windX: Math.cos(direction) * speed, windZ: Math.sin(direction) * speed };
+}
+
+/** How much of the precipitation falls as snow at this temperature (°C): blends over ±1 °C. */
+export function snowFraction(temperature: number): number {
+  return Math.min(1, Math.max(0, (PRECIPITATION.snowBelow + 1 - temperature) / 2));
 }

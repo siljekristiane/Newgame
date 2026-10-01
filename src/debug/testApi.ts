@@ -38,7 +38,20 @@ export interface DuskwoodTestApi {
    */
   groundCheck: () => { playerY: number; meshY: number; smoothY: number } | null;
   /** Sound: unlocked after the first click/key, context state, mute and volumes; zone and track once music is in. */
-  audio: () => { unlocked: boolean; state: string; muted: boolean; volumes: AudioVolumes; zone: string | null; track: string | null };
+  audio: () => {
+    unlocked: boolean;
+    state: string;
+    muted: boolean;
+    volumes: AudioVolumes;
+    zone: string | null;
+    track: string | null;
+    /** Ambience levels (gain) and footsteps played so far, with the last surface. */
+    wind: number;
+    rain: number;
+    snow: number;
+    steps: number;
+    lastStep: string | null;
+  };
 }
 
 declare global {

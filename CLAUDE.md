@@ -400,7 +400,21 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   master, innstillinger i `localStorage` (try/catch). Volum og mute ligger i
   storen (`audio`, `setVolume`, `toggleMute`); F3 har glidebrytere, **U** slår
   lyd av og på. Konstanter i `AUDIO` (`config/world.ts`).
-- Testkroken `__duskwood.audio()` gir status; `zone`/`track` fylles i fase C.
+- **Fase B, omgivelser og skritt** (ingen lydfiler, alt syntetisert):
+  - `audio/ambience.ts` (ren, testet): vindnivå og -lysstyrke fra vindstyrke og
+    høyde, langsomme kast (`gust`), regn/snøsus fra nedbør og snøandel
+    (`snowFraction` i `weather/weather.ts`, delt med `Precipitation`), og en
+    sømløs regnløkke (sus + tusenvis av små dråpeklikk). `AmbienceSound.tsx`
+    spiller støy gjennom filtre hvis nivå følger været (glatt, `setTargetAtTime`).
+  - `audio/footsteps.ts` (ren, testet): skrittakt fra fart (ingen ved stillstand
+    eller hurtigreise), underlag fra `surfaceAt` (gress, jord, stein, sand, snø),
+    stiene (grus), plassen (brostein) og havet (vann), og syntese per underlag:
+    filtrert støystøt + lav hælklunk + små knaseklikk. `FootstepSound.tsx` spiller
+    fire varianter per underlag med litt ulik tonehøyde og styrke, og en tyngre
+    landing etter hopp.
+  - `audio/dsp.ts`: biquad, normalisering og nullgjennomgangsrate (lysstyrke i testene).
+- Testkroken `__duskwood.audio()` gir status (lås, mute, volum, vind, regn,
+  snø, antall skritt og siste underlag); `zone`/`track` fylles i fase C.
 
 ### Streaming (`ChunkManager`)
 

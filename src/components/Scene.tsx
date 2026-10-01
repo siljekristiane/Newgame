@@ -10,6 +10,8 @@ import { Grass } from './Grass';
 import { Player } from './Player';
 import { QualityInit } from './QualityInit';
 import { AudioSystem } from '../audio/AudioSystem';
+import { AmbienceSound } from '../audio/AmbienceSound';
+import { FootstepSound } from '../audio/FootstepSound';
 import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
@@ -38,6 +40,8 @@ export function Scene() {
     <>
       <QualityInit />
       <AudioSystem />
+      <AmbienceSound />
+      <FootstepSound />
       <Atmosphere />
       <Water pool={pool} />
       <Terrain manager={manager} />

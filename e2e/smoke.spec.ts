@@ -79,7 +79,7 @@ test.describe('Duskwood World', () => {
     await expect(page.getByText('Verdenskart')).toBeVisible();
   });
 
-  test('sound unlocks on the first click, and U mutes it', async ({ page }) => {
+  test('sound unlocks on the first click, U mutes it, and wind, steps and rain play', async ({ page }) => {
     const errors = watchForErrors(page);
     await openGame(page);
     expect((await page.evaluate(() => window.__duskwood!.audio())).unlocked).toBe(false);
@@ -93,6 +93,16 @@ test.describe('Duskwood World', () => {
     expect((await page.evaluate(() => window.__duskwood!.audio())).muted).toBe(true);
     await page.keyboard.press('KeyU');
     expect((await page.evaluate(() => window.__duskwood!.audio())).muted).toBe(false);
+
+    // Wind is always there; walking makes footsteps; rain is heard when it rains.
+    await page.waitForFunction(() => window.__duskwood!.audio().wind > 0);
+    await page.keyboard.down('KeyW');
+    await page.waitForFunction(() => window.__duskwood!.audio().steps > 0, undefined, { timeout: 30_000 });
+    await page.keyboard.up('KeyW');
+    expect(['grass', 'dirt', 'rock', 'sand', 'snow', 'gravel', 'paving', 'water']).toContain((await page.evaluate(() => window.__duskwood!.audio())).lastStep);
+    expect((await page.evaluate(() => window.__duskwood!.audio())).rain).toBe(0);
+    await page.evaluate(() => window.__duskwood!.setWeather('rain'));
+    await page.waitForFunction(() => window.__duskwood!.audio().rain > 0.1, undefined, { timeout: 30_000 });
     expect(errors).toEqual([]);
   });
 

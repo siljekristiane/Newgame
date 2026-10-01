@@ -32,11 +32,11 @@ Web Audio API, uten bibliotek. Samme mønster som resten av koden: rene funksjon
   - Tasten **U** slår all lyd av og på. Valget lagres i nettleseren, som kvalitetsnivået i `src/settings/quality.ts`.
 - **Konstanter** i `config/world.ts` (`AUDIO`: volum, overtoningstider, avstander) og en spilleliste i `src/audio/playlist.ts`.
 
-## Fase A: lydmotor og innstillinger (uten innhold)
+## Fase A: lydmotor og innstillinger (uten innhold) — ferdig
 - `audioEngine.ts`, `AudioSystem.tsx` (monteres i `Scene` og leser tilstand hvert bilde, uten å allokere nytt minne), volumer i storen, lydbrytere i F3 og tasten U.
 - Testkroken `window.__duskwood.audio()` gir status: om lyden er låst opp, hvilken sone vi er i, hvilket spor som spiller og volumene.
 
-## Fase B: prosedyrale omgivelser og skritt (ingen filer)
+## Fase B: prosedyrale omgivelser og skritt (ingen filer) — ferdig
 - **Vind:** filtrert støy med filteret styrt av `runtime.weather` (vindstyrke), med litt mer vind i høyden. Du hører kast når vinden øker.
 - **Regn:** lag av filtrert støy og små «dråpeklikk». Styrken følger `weather.precipitation`. Det blir stille i snø, som bare gir et svakt sus.
 - **Skritt:** ett steg utløses per skrittlengde fra `runtime.motion` (fart og om figuren er i lufta). Hopp gir en landingslyd.
@@ -54,6 +54,13 @@ Web Audio API, uten bibliotek. Samme mønster som resten av koden: rene funksjon
 - **Strømming:** filene spilles med `<audio>` + `MediaElementSource`, så lange stykker ikke må ligge ferdig dekodet i minnet. Neste spor forhåndslastes.
 - **Klar for plottet:** et lagsystem med prioritet (`pushLayer('kamp', prioritet)` / `popLayer`). Et intenst lag legger seg oppå og demper bakgrunnen, og tas bort med overtoning. Nå er det bare testet med et dummy-lag.
 - Til filene er på plass spiller hver sone stille (eller én svak drone), og alt annet virker.
+
+## Hvem skaffer hvilke lyder
+- **Skritt, regn, vind og stemme:** lages i koden (fase B og E), uten lydfiler.
+- **Bare musikken trenger filer**, på én av tre måter:
+  1. Brukeren åpner nettilgang til `musopen.org`, `upload.wikimedia.org`, `commons.wikimedia.org` og `archive.org`, og Claude finner, sjekker, laster ned, koder og krediterer.
+  2. Brukeren laster ned fra en lenkeliste til `audio-src/`.
+  3. Midlertidig syntetisk spilling av stykkene ut fra fri notetekst.
 
 ## Fase D: musikkfilene (du laster ned, jeg ordner resten)
 - Jeg lager `docs/audio/nedlastingsliste.md` med nøyaktig stykke, utøver, kilde og lisens for hvert spor. Bare filer som er merket Public Domain eller CC0 på kildesiden tas med.

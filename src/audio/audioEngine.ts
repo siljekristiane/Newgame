@@ -46,6 +46,15 @@ export class AudioEngine {
     return this.buses.get(channel) ?? null;
   }
 
+  /** A mono AudioBuffer from synthesised samples, or null before unlock. */
+  buffer(samples: Float32Array): AudioBuffer | null {
+    const ctx = this.ctx;
+    if (!ctx || samples.length === 0) return null;
+    const b = ctx.createBuffer(1, samples.length, ctx.sampleRate);
+    b.copyToChannel(samples as Float32Array<ArrayBuffer>, 0);
+    return b;
+  }
+
   apply(settings: AudioSettings): void {
     this.settings = settings;
     const ctx = this.ctx;
