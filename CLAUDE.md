@@ -413,8 +413,27 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
     fire varianter per underlag med litt ulik tonehøyde og styrke, og en tyngre
     landing etter hopp.
   - `audio/dsp.ts`: biquad, normalisering og nullgjennomgangsrate (lysstyrke i testene).
+- **Fase C, musikkdirigent og soner** (logikken, uten lydfiler):
+  - `audio/playlist.ts`: sonene (`MUSIC_ZONES`, norske navn i `ZONE_NAMES`) og
+    stykkene (`TRACKS`: komponist, verk, sats, soner, `file`, kreditt). `file`
+    er `null` til innspillingen ligger i `public/audio/music/` (fase D); slike
+    spor hoppes over, så sonen er stille.
+  - `audio/musicDirector.ts` (ren, testet): `zoneFor` velger etter prioritet
+    regn > natt > startplassen (150 m) > fjell (alpine/snow eller over 350 m) >
+    kyst (under 15 m og hav innen 250 m) > skog > åpent land. `ZoneTracker`
+    følger en ny sone først når den har vart 8 s (natt/regn 10 s).
+    `MusicScheduler` gir ordre (`play`/`fadeOut`): aldri samme stykke to ganger
+    på rad (deterministisk), 20–60 s stillhet mellom stykkene, ved sonebytte
+    spiller stykket videre i maks 30 s og tones så over (4 s); et stykke som også
+    hører til den nye sonen fortsetter. Plottlag (`pushLayer`/`popLayer`) går
+    foran sonene og tones inn med en gang. Konstanter i `AUDIO.music`.
+  - `audio/MusicPlayer.tsx`: to dekk (`<audio>` → `MediaElementSource` → gain →
+    musikkbussen) for overtoning; går på veggklokke-tid, ikke spilltid. Sonen
+    regnes to ganger i sekundet. F3 viser «Musikk: sone · stykke».
+  - Kandidatstykker og lisenskrav: `docs/audio/nedlastingsliste.md`.
 - Testkroken `__duskwood.audio()` gir status (lås, mute, volum, vind, regn,
-  snø, antall skritt og siste underlag); `zone`/`track` fylles i fase C.
+  snø, antall skritt og siste underlag, og musikkens `zoneRaw`, `zone`,
+  `target` og `track`); `setMusicLayer(navn | null)` tester plottlag.
 
 ### Streaming (`ChunkManager`)
 

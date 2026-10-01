@@ -12,6 +12,7 @@ import { QualityInit } from './QualityInit';
 import { AudioSystem } from '../audio/AudioSystem';
 import { AmbienceSound } from '../audio/AmbienceSound';
 import { FootstepSound } from '../audio/FootstepSound';
+import { MusicPlayer } from '../audio/MusicPlayer';
 import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
@@ -42,6 +43,7 @@ export function Scene() {
       <AudioSystem />
       <AmbienceSound />
       <FootstepSound />
+      <MusicPlayer />
       <Atmosphere />
       <Water pool={pool} />
       <Terrain manager={manager} />

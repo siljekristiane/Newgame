@@ -37,13 +37,18 @@ export interface DuskwoodTestApi {
    * terrain is loaded under the player.
    */
   groundCheck: () => { playerY: number; meshY: number; smoothY: number } | null;
+  /** Pushes a music plot layer on top of the zones (null pops it again). */
+  setMusicLayer: (name: string | null) => void;
   /** Sound: unlocked after the first click/key, context state, mute and volumes; zone and track once music is in. */
   audio: () => {
     unlocked: boolean;
     state: string;
     muted: boolean;
     volumes: AudioVolumes;
+    /** Music zone the player is in now, the one the music follows (after the hold), the plot layer or zone it plays for, and the piece id. */
+    zoneRaw: string | null;
     zone: string | null;
+    target: string | null;
     track: string | null;
     /** Ambience levels (gain) and footsteps played so far, with the last surface. */
     wind: number;

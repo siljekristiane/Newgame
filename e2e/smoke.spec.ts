@@ -106,6 +106,34 @@ test.describe('Duskwood World', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the music follows the zone: start, mountain, night, rain and a plot layer', async ({ page }) => {
+    const errors = watchForErrors(page);
+    await openGame(page);
+    const music = () => page.evaluate(() => window.__duskwood!.audio());
+    await page.waitForFunction(() => window.__duskwood!.audio().zone === 'start');
+    expect((await music()).target).toBe('start');
+    // No recordings yet (phase D): the zones work, but nothing plays.
+    expect((await music()).track).toBeNull();
+
+    // The zone right now changes at once; the music follows once it has held (8–10 s).
+    await page.evaluate(() => window.__duskwood!.teleport(34_500, 49_500));
+    await page.waitForFunction(() => window.__duskwood!.audio().zoneRaw === 'mountain');
+    expect((await music()).zone).toBe('start');
+    await page.waitForFunction(() => window.__duskwood!.audio().zone === 'mountain', undefined, { timeout: 30_000 });
+    await page.evaluate(() => window.__duskwood!.setTime(23, true));
+    await page.waitForFunction(() => window.__duskwood!.audio().zoneRaw === 'night');
+    await page.evaluate(() => window.__duskwood!.setWeather('rain'));
+    await page.waitForFunction(() => window.__duskwood!.audio().zoneRaw === 'rain', undefined, { timeout: 30_000 });
+    await page.waitForFunction(() => window.__duskwood!.audio().zone === 'rain', undefined, { timeout: 30_000 });
+
+    // A plot layer wins over every zone until it is popped.
+    await page.evaluate(() => window.__duskwood!.setMusicLayer('battle'));
+    await page.waitForFunction(() => window.__duskwood!.audio().target === 'battle');
+    await page.evaluate(() => window.__duskwood!.setMusicLayer(null));
+    await page.waitForFunction(() => window.__duskwood!.audio().target === 'rain');
+    expect(errors).toEqual([]);
+  });
+
   test('every fixed camera view loads', async ({ page }, testInfo) => {
     const errors = watchForErrors(page);
     await openGame(page);

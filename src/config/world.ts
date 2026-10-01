@@ -158,6 +158,30 @@ export const AUDIO = {
   wind: { calm: 0.06, storm: 0.55, perKm: 0.25 },
   /** Rain and snow loudness at full precipitation; the rain texture loop length, seconds. */
   rain: { gain: 0.55, snowGain: 0.12, loopSeconds: 6 },
+  /** Music director (phase C): zones, hysteresis, pauses and fades, seconds and meters. */
+  music: {
+    /** A new zone must hold this long before the music follows it (night and rain: `holdSlow`). */
+    hold: 8,
+    holdSlow: 10,
+    /** Silence between pieces, and before the first one. */
+    gapMin: 20,
+    gapMax: 60,
+    firstGap: 4,
+    /** On a zone change the piece may finish, but at most this long; then a crossfade. */
+    maxWait: 30,
+    crossfade: 4,
+    /** A zone change during a pause cuts the pause to at most this. */
+    zoneGap: 5,
+    /** How often the zone is worked out (it samples the terrain). */
+    sampleInterval: 0.5,
+    /** Zone thresholds. */
+    startRadius: 150,
+    mountainHeight: 350,
+    coastHeight: 15,
+    coastReach: 250,
+    night: 0.6,
+    rain: 0.5,
+  },
 } as const;
 
 /** Rain and snow particles in a box around the camera (step 8). */

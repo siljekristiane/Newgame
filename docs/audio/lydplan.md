@@ -44,7 +44,9 @@ Web Audio API, uten bibliotek. Samme mønster som resten av koden: rene funksjon
   - Hver lyd syntetiseres: støyimpuls + filter per underlag, med litt tilfeldig variasjon, så to skritt aldri er helt like.
 - De rene delene testes: skrittakt fra fart, valg av underlag og vindstyrke.
 
-## Fase C: musikkdirigent og soner (logikk)
+## Fase C: musikkdirigent og soner (logikk) — ferdig
+Gjort som beskrevet under. Overtoningen er 4 s, et nytt sted må vare 8 s (natt og regn 10 s) før musikken følger, og et spor som også hører til den nye sonen spiller videre. Kandidatstykkene står i `nedlastingsliste.md`.
+
 - **`musicDirector.ts`** (ren og testet) velger sone ut fra
   - posisjon: startplassen via `spawnLayout()`; skog, fjell og kyst via `biomeAt` og havdybde,
   - tid på døgnet: natt via `lightingAt(clock.hours).night`,

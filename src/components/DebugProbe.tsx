@@ -2,6 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { audioEngine } from '../audio/audioEngine';
+import { musicScheduler } from '../audio/MusicPlayer';
 import { soundStatus } from '../audio/status';
 import { PerfMonitor } from '../debug/perfMonitor';
 import '../debug/testApi';
@@ -40,9 +41,13 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       setVegetation: (on) => useGameStore.getState().setVegetation(on),
       setWeather: (mode) => useGameStore.getState().setWeatherMode(mode),
       setQuality: (level) => useGameStore.getState().setQuality(level, false),
+      setMusicLayer: (name) => {
+        if (name === null) musicScheduler.popLayer();
+        else musicScheduler.pushLayer(name);
+      },
       audio: () => {
         const { audio } = useGameStore.getState();
-        return { unlocked: audioEngine.unlocked, state: audioEngine.state, muted: audio.muted, volumes: { ...audio.volumes }, zone: null, track: null, ...soundStatus };
+        return { unlocked: audioEngine.unlocked, state: audioEngine.state, muted: audio.muted, volumes: { ...audio.volumes }, ...soundStatus };
       },
       // A jump this probe has not processed yet (no frame since) is never settled.
       isSettled: () => settleMs.current !== null && jumpSeen.current === useGameStore.getState().lastJumpAt,
