@@ -57,7 +57,7 @@ test.describe('Duskwood World', () => {
     await waitUntilSettled(page);
   });
 
-  test('the big map opens with M and teleports on click; N hides the minimap', async ({ page }) => {
+  test('the big map opens with M and teleports on click; N, P and H hide the panels', async ({ page }) => {
     await openGame(page);
     await page.keyboard.press('KeyM');
     const dialog = page.getByRole('dialog', { name: 'Stort kart' });
@@ -73,13 +73,32 @@ test.describe('Duskwood World', () => {
     expect(hud.z).toBeGreaterThan(24_000);
     expect(hud.z).toBeLessThan(26_000);
 
+    // N hides the minimap completely; the help line offers it back.
+    const minimap = page.getByText('Verdenskart');
+    const position = page.getByText('Posisjon', { exact: true });
     await page.keyboard.press('KeyN');
+    await expect(minimap).toBeHidden();
+    await page.getByRole('button', { name: /Vis kart/ }).click();
+    await expect(minimap).toBeVisible();
+    // P hides the position panel (also its own button); H hides or shows both.
+    await page.keyboard.press('KeyP');
+    await expect(position).toBeHidden();
+    await page.getByRole('button', { name: /Vis posisjon/ }).click();
+    await expect(position).toBeVisible();
+    await page.getByTitle('Skjul posisjonen').click();
+    await expect(position).toBeHidden();
+    await page.keyboard.press('KeyH'); // one hidden: H shows both
+    await expect(position).toBeVisible();
+    await expect(minimap).toBeVisible();
+    await page.keyboard.press('KeyH');
+    await expect(position).toBeHidden();
+    await expect(minimap).toBeHidden();
     await expect(page.getByRole('button', { name: /Vis kart/ })).toBeVisible();
-    await page.keyboard.press('KeyN');
-    await expect(page.getByText('Verdenskart')).toBeVisible();
+    await page.keyboard.press('KeyH');
+    await expect(minimap).toBeVisible();
   });
 
-  test('sound unlocks on the first click, U mutes it, and wind, steps and rain play', async ({ page }) => {
+  test('sound unlocks on the first click, U mutes it, wind, steps and rain play, and T talks', async ({ page }) => {
     const errors = watchForErrors(page);
     await openGame(page);
     expect((await page.evaluate(() => window.__duskwood!.audio())).unlocked).toBe(false);
@@ -103,6 +122,13 @@ test.describe('Duskwood World', () => {
     expect((await page.evaluate(() => window.__duskwood!.audio())).rain).toBe(0);
     await page.evaluate(() => window.__duskwood!.setWeather('rain'));
     await page.waitForFunction(() => window.__duskwood!.audio().rain > 0.1, undefined, { timeout: 30_000 });
+
+    // T: the avatar says something (wordless babble on the voice channel).
+    expect((await page.evaluate(() => window.__duskwood!.audio())).voiceCount).toBe(0);
+    await page.keyboard.press('KeyT');
+    await page.waitForFunction(() => window.__duskwood!.audio().voice === 'talk');
+    expect((await page.evaluate(() => window.__duskwood!.audio())).voiceCount).toBe(1);
+    await page.waitForFunction(() => window.__duskwood!.audio().voice === 'idle', undefined, { timeout: 30_000 });
     expect(errors).toEqual([]);
   });
 
@@ -122,7 +148,6 @@ test.describe('Duskwood World', () => {
     await page.waitForFunction(() => window.__duskwood!.audio().track !== null);
     expect(['bach-goldberg-aria', 'bach-air', 'satie-gymnopedie-1', 'bach-prelude-c']).toContain((await music()).track);
     await page.waitForFunction(() => window.__duskwood!.audio().musicTime > 1, undefined, { timeout: 30_000 });
-
 
     // The zone right now changes at once; the music follows once it has held (8–10 s).
     await page.evaluate(() => window.__duskwood!.teleport(34_500, 49_500));

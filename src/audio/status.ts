@@ -15,4 +15,7 @@ export const soundStatus = {
   track: null as string | null,
   /** Seconds into the piece playing (0 when silent). */
   musicTime: 0,
+  /** The avatar's voice: what it is doing, and how many times it has hummed or talked. */
+  voice: 'idle' as 'idle' | 'hum' | 'talk',
+  voiceCount: 0,
 };

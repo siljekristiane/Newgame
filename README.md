@@ -40,8 +40,11 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 | Q / E, eller dra med musa | Snu kameraet |
 | Scroll | Zoom |
 | U | Lyd av/på (volum per kanal i F3) |
+| T | Figuren sier noe (babling); den nynner av seg selv når den står stille |
 | M | Stort kart (klikk for å teleportere, Esc lukker) |
 | N | Skjul/vis minikartet |
+| P | Skjul/vis posisjonspanelet |
+| H | Skjul/vis begge panelene |
 | Klikk på minikartet | Teleporter dit |
 | F3 | Ytelsespanel av/på (også kvalitet, klokke, vær, skygger, teksturer, vegetasjon og gress) |
 
@@ -62,7 +65,7 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 - HUD med posisjon i km, høyde, retning, fart og ytelsestall
 - Kvalitetsnivåer (Lav/Middels/Høy) valgt automatisk etter skjermkortet, kan endres i F3
 - Kompass, minikart som kan skjules og stort kart med rutenett, alle med klikk-for-å-teleportere
-- Lyd: syntetisert vind, regn, snøsus og skritt etter underlaget
+- Lyd: syntetisert vind, regn, snøsus og skritt etter underlaget, og en figur som nynner og babler
 - Rolig klassisk musikk (Bach, Satie, Grieg, Beethoven, Vivaldi, Debussy, Chopin) som følger stedet, natt og regn, med innspillinger i offentlig eie/CC0 (se [CREDITS.md](./CREDITS.md))
 
 Arkitektur og kodestandard står i [CLAUDE.md](./CLAUDE.md).

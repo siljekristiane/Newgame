@@ -182,6 +182,18 @@ export const AUDIO = {
     night: 0.6,
     rain: 0.5,
   },
+  /** The avatar's voice (phase E): hums after standing still a while, talks on T. */
+  voice: {
+    /** Seconds standing still before humming, and the least time between two hums. */
+    idleDelay: 20,
+    minInterval: 120,
+    /** Below this speed (m/s) the avatar counts as standing still. */
+    stillSpeed: 0.2,
+    humGain: 0.5,
+    talkGain: 0.8,
+    /** Fade when a hum is cut short by walking, seconds. */
+    fadeOut: 0.3,
+  },
 } as const;
 
 /** Rain and snow particles in a box around the camera (step 8). */

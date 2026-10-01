@@ -53,6 +53,9 @@ export interface DuskwoodTestApi {
     target: string | null;
     track: string | null;
     musicTime: number;
+    /** The avatar's voice: idle, humming or talking, and how many times it has sounded. */
+    voice: string;
+    voiceCount: number;
     /** Ambience levels (gain) and footsteps played so far, with the last surface. */
     wind: number;
     rain: number;

@@ -91,7 +91,9 @@ Nettet var åpent, så Claude hentet 13 CC0/PD-innspillinger fra Wikimedia Commo
 - 10–15 stykker blir ca. 30–50 MB i repoet.
 - Hver fil føres i `CREDITS.md` med stykke, utøver, kilde-URL og lisens. En enhetstest sjekker at hvert spor i spillelista har en CREDITS-linje og en fil.
 
-## Fase E: avatarens stemme (prosedyral)
+## Fase E: avatarens stemme (prosedyral) — ferdig
+Gjort som beskrevet, med fire melodier (Morgenstemning, Für Elise, Ode til gleden og Brahms' vuggevise; Air var for lang og jevn til å nynne). Figuren nynner etter 20 s stillstand, høyst hvert 2. minutt og bare når det ikke spiller musikk.
+
 - **Nynning** (`voice.ts`): en formant-synth (grunntone + to–tre båndpassfiltre på vokalene «m/u/a»). Avataren nynner korte fraser av melodiene fra stykkene (f.eks. starten av Morgenstemning, Für Elise og Air). Melodiene legges inn som notelister, siden komposisjonene er fri.
   - Nynningen starter av seg selv når avataren har stått stille en stund, men ikke oftere enn hvert par minutter. Den stopper når du går, og er dempet mens det spilles musikk.
 - **Snakking:** babling (stavelser uten ord med variert tonehøyde og rytme, som i mange spill) gjennom samme synth.

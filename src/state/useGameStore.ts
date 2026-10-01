@@ -73,6 +73,8 @@ interface GameState {
   /** Sharper world map for the big map (M), made after the minimap. */
   bigMap: ImageData | null;
   minimapOpen: boolean;
+  /** The position panel (top left); P toggles it, H both panels. Not remembered between visits. */
+  positionOpen: boolean;
   bigMapOpen: boolean;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
   lastJumpAt: number;
@@ -98,6 +100,9 @@ interface GameState {
   setMinimap: (image: ImageData) => void;
   setBigMap: (image: ImageData) => void;
   toggleMinimap: () => void;
+  togglePosition: () => void;
+  /** Hides both the minimap and the position panel, or shows both if either is hidden. */
+  toggleHudPanels: () => void;
   setBigMapOpen: (open: boolean) => void;
   teleport: (x: number, z: number) => void;
 }
@@ -138,6 +143,7 @@ export const useGameStore = create<GameState>((set) => ({
   minimap: null,
   bigMap: null,
   minimapOpen: true,
+  positionOpen: true,
   bigMapOpen: false,
   lastJumpAt: 0,
   setHud: (hud) => set({ hud }),
@@ -178,6 +184,12 @@ export const useGameStore = create<GameState>((set) => ({
   setMinimap: (minimap) => set({ minimap }),
   setBigMap: (bigMap) => set({ bigMap }),
   toggleMinimap: () => set((s) => ({ minimapOpen: !s.minimapOpen })),
+  togglePosition: () => set((s) => ({ positionOpen: !s.positionOpen })),
+  toggleHudPanels: () =>
+    set((s) => {
+      const show = !(s.minimapOpen && s.positionOpen);
+      return { minimapOpen: show, positionOpen: show };
+    }),
   setBigMapOpen: (bigMapOpen) => set({ bigMapOpen }),
   teleport: (x, z) => {
     // The game loop notices the jump and rebases the origin on its next frame.

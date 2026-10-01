@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { PLAYER } from '../config/world';
 import { cameraRig, input } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
+import { voiceInput } from '../audio/voiceInput';
 
 const GAME_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space']);
 
@@ -20,7 +21,10 @@ export function useControls(target: HTMLElement | null): void {
       const store = useGameStore.getState();
       if (e.code === 'KeyF' && !e.repeat) store.toggleTravelMode();
       if (e.code === 'KeyN' && !e.repeat) store.toggleMinimap();
+      if (e.code === 'KeyP' && !e.repeat) store.togglePosition();
+      if (e.code === 'KeyH' && !e.repeat) store.toggleHudPanels();
       if (e.code === 'KeyU' && !e.repeat) store.toggleMute();
+      if (e.code === 'KeyT' && !e.repeat) voiceInput.talk++;
       if (e.code === 'KeyM' && !e.repeat) {
         const open = !store.bigMapOpen;
         store.setBigMapOpen(open);

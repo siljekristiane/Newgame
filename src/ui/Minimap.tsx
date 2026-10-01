@@ -73,15 +73,8 @@ export function Minimap() {
     teleport(((e.clientX - rect.left) / rect.width) * WORLD_SIZE, ((e.clientY - rect.top) / rect.height) * WORLD_SIZE);
   };
 
-  if (!open) {
-    return (
-      <div className="dw-panel dw-minimap dw-minimap-closed">
-        <button type="button" className="dw-btn dw-btn-sm" onClick={toggle}>
-          <kbd>N</kbd> Vis kart
-        </button>
-      </div>
-    );
-  }
+  // Hidden: gone completely; the help line offers to bring it back.
+  if (!open) return null;
 
   return (
     <div className="dw-panel dw-minimap">

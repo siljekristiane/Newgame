@@ -352,6 +352,11 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - **Kompass** (`ui/Compass.tsx`) øverst i midten: retningen kameraet ser, med
   en lilla markør mot startplassen. Oppdateres hvert bilde med
   `requestAnimationFrame` direkte fra `runtime` (CSS-transform), uten React.
+- **Paneler:** **N** skjuler minikartet, **P** posisjonspanelet (eller knappen
+  «P Skjul»), **H** begge (viser begge hvis ett er skjult). Skjulte paneler
+  forsvinner helt; hjelpelinja nederst får da knappene «Vis kart»/«Vis
+  posisjon». Valget huskes ikke (`minimapOpen`, `positionOpen`,
+  `toggleHudPanels` i storen).
 - **Minikart** kan skjules med **N** (eller knappen), og **M** åpner det store
   kartet (`ui/BigMap.tsx`): hele verden med 10 km-rutenett, spilleren,
   innlastet område og startplassen; koordinater ved hover, klikk teleporterer.
@@ -440,6 +445,17 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   Ogg Opus pålitelig), stillhet kuttet, 1 s toninger, −20 LUFS. 42 MB totalt.
   `playlist.test.ts` sjekker fil, kreditt, `CREDITS.md`-linje og minst to
   stykker per sone. Testkroken `musicSkipGap()` hopper over pausen (e2e).
+- **Fase E, stemmen** (prosedyral, ingen filer):
+  - `audio/voice.ts` (ren, testet): formant-synth (sagtann med vibrato og
+    pust gjennom tre båndpass per vokal m/u/o/a/e/i, hver tone rendres for seg
+    og legges sammen), `HUM_MELODIES` (Morgenstemning, Für Elise, Ode til
+    gleden, Brahms' vuggevise som notelister), `melodyNotes` og `babble(seed,
+    mood)` (ordløse stavelser; ivrig = raskere, lysere, stiger på slutten).
+  - `audio/VoiceSound.tsx`: nynner etter `AUDIO.voice.idleDelay` (20 s)
+    stillstand, høyst hver `minInterval` (120 s), aldri mens musikk spiller, og
+    toner ut når figuren går. **T** (`audio/voiceInput.ts`) gir babling. Lyden
+    rendres første gang den trengs (nynning bufres), spilles på stemmekanalen og
+    demper musikken (`setDucked`). `soundStatus.voice`/`voiceCount` i testkroken.
 - Testkroken `__duskwood.audio()` gir status (lås, mute, volum, vind, regn,
   snø, antall skritt og siste underlag, og musikkens `zoneRaw`, `zone`,
   `target` og `track`); `setMusicLayer(navn | null)` tester plottlag.
@@ -607,5 +623,5 @@ vurderes senere).
 ## Kontroller
 
 W A S D gå · Shift løp · Mellomrom hopp · klikk: styr kamera med musa (Esc slipper) · Q/E eller dra: snu kamera · scroll: zoom ·
-F: hurtigreise (500 m/s) · U: lyd av/på · M: stort kart · N: skjul/vis minikart · klikk på kartet: teleporter · F3: ytelsespanel
+F: hurtigreise (500 m/s) · U: lyd av/på · T: si noe · M: stort kart · N: skjul/vis minikart · P: skjul/vis posisjon · H: skjul/vis begge · klikk på kartet: teleporter · F3: ytelsespanel
 (også tid på døgnet, skygger, teksturer, myke LOD-overganger).
