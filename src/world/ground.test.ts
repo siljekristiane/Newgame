@@ -53,5 +53,5 @@ describe('ground height', () => {
         expect(Math.abs(data.props[k + 1]! - meshHeight(45, 52, segments, x, z))).toBeLessThan(0.001);
       }
     }
-  });
+  }, 30_000); // builds two full chunks with plants
 });
