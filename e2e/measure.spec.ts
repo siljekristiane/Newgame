@@ -33,8 +33,10 @@ test('measure all fixed views @measure', async ({ page }) => {
 
   const rows: Array<{ view: string } & DebugSnapshot> = [];
   const views = await page.evaluate(() => window.__duskwood!.views);
+  // Each view streams a whole world in at full quality: budget per view (dense forest is slowest).
+  test.setTimeout(10 * 60_000 + views.length * 5 * 60_000);
   for (const id of views) {
-    await goToView(page, id);
+    await goToView(page, id, 5 * 60_000);
     await page.waitForTimeout(3000); // fill the frame-time window
     rows.push({ view: id, ...(await page.evaluate(() => window.__duskwood!.debug())) });
     await page.screenshot({ path: join(dir, `${id}.jpg`), type: 'jpeg', quality: 80 });

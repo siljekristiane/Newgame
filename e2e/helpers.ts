@@ -22,12 +22,12 @@ export async function waitUntilSettled(page: Page, timeout = 180_000): Promise<v
   await page.waitForFunction(() => window.__duskwood!.isSettled(), undefined, { timeout, polling: 250 });
 }
 
-export async function goToView(page: Page, id: string): Promise<void> {
+export async function goToView(page: Page, id: string, timeout?: number): Promise<void> {
   const ok = await page.evaluate((v) => window.__duskwood!.setView(v), id);
   expect(ok, `unknown view ${id}`).toBe(true);
   // The settle flag resets on the next frame; give it a moment before waiting.
   await page.waitForTimeout(300);
-  await waitUntilSettled(page);
+  await waitUntilSettled(page, timeout);
 }
 
 /**
