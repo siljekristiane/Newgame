@@ -21,6 +21,8 @@ export function DebugPanel() {
   const setDetailOn = useGameStore((s) => s.setDetailOn);
   const shadows = useGameStore((s) => s.shadows);
   const setShadows = useGameStore((s) => s.setShadows);
+  const terrainShadows = useGameStore((s) => s.terrainShadows);
+  const setTerrainShadows = useGameStore((s) => s.setTerrainShadows);
   const vegetation = useGameStore((s) => s.vegetation);
   const setVegetation = useGameStore((s) => s.setVegetation);
   const weatherMode = useGameStore((s) => s.weatherMode);
@@ -86,6 +88,9 @@ export function DebugPanel() {
       </label>
       <label className="dw-toggle">
         <input type="checkbox" checked={shadows} onChange={(e) => setShadows(e.target.checked)} /> Skygger
+      </label>
+      <label className="dw-toggle">
+        <input type="checkbox" checked={terrainShadows} onChange={(e) => setTerrainShadows(e.target.checked)} /> Fjellskygger
       </label>
       <label className="dw-toggle">
         <input type="checkbox" checked={vegetation} onChange={(e) => setVegetation(e.target.checked)} /> Vegetasjon

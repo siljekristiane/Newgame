@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, LOD_LEVELS, MORPH_RANGE, TERRAIN_TEXTURE } from '../config/world';
 import type { TerrainTextureSet } from '../world/terrainTextures';
+import { addTerrainShadow } from './terrainShadow';
 
 /**
  * Terrain and prop materials, with geomorphing added to three.js' own shaders.
@@ -232,6 +233,7 @@ export function createTerrainMaterial(lod: number, withDetail = true): THREE.Mes
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\nnormal = normalize((viewMatrix * vec4(dwNormalWorld, 0.0)).xyz);');
     }
     shader.vertexShader = vertex;
+    addTerrainShadow(shader);
   };
   material.customProgramCacheKey = () => (detail ? 'dw-terrain-detail' : 'dw-terrain-plain');
   return material;

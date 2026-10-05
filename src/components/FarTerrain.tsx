@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { FAR_TERRAIN, WORLD_SIZE } from '../config/world';
 import { origin, player } from '../state/runtime';
 import { wantedFarTiles } from '../world/farTerrain';
+import { addTerrainShadow } from '../materials/terrainShadow';
 import type { ChunkManager } from '../world/ChunkManager';
 import type { WorkerPool } from '../world/workerPool';
 
@@ -33,6 +34,7 @@ export function FarTerrain({ pool, manager }: { pool: WorkerPool; manager: Chunk
       shader.fragmentShader = shader.fragmentShader
         .replace('void main() {', 'uniform vec2 uPlayerR;\nvarying vec2 vDwXZ;\nvoid main() {')
         .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\nif (distance(vDwXZ, uPlayerR) < ${FAR_TERRAIN.innerRadius.toFixed(1)}) discard;`);
+      addTerrainShadow(shader);
     };
     material.customProgramCacheKey = () => 'dw-far-terrain';
     const state = { tiles: new Map<string, THREE.Mesh>(), pending: new Set<string>(), centre: '', disposed: false };
@@ -81,6 +83,8 @@ export function FarTerrain({ pool, manager }: { pool: WorkerPool; manager: Chunk
           geometry.setAttribute('position', new THREE.BufferAttribute(tile.positions, 3));
           geometry.setAttribute('normal', new THREE.BufferAttribute(tile.normals, 3));
           geometry.setAttribute('color', new THREE.BufferAttribute(tile.colors, 3));
+          geometry.setAttribute('horizonA', new THREE.BufferAttribute(tile.horizonA, 4, true));
+          geometry.setAttribute('horizonB', new THREE.BufferAttribute(tile.horizonB, 4, true));
           geometry.setIndex(new THREE.BufferAttribute(tile.indices, 1));
           geometry.computeBoundingSphere();
           const mesh = new THREE.Mesh(geometry, material);

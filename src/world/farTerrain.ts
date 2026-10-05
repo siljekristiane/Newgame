@@ -1,6 +1,7 @@
 import { CANOPY, FAR_TERRAIN } from '../config/world';
 import { surfaceAt, surfaceColor } from './biomes';
 import { applyCanopy, canopyAt, type Canopy } from './canopy';
+import { horizonGrid, horizonGridSize, sampleHorizon } from './horizon';
 import { toLinear } from './buildChunk';
 import { heightAt } from './terrain';
 
@@ -13,6 +14,9 @@ export interface FarTile {
   positions: Float32Array;
   normals: Float32Array;
   colors: Float32Array;
+  /** Terrain-shadow horizons, as on the chunks (world/horizon.ts), from a coarser lattice. */
+  horizonA: Uint8Array;
+  horizonB: Uint8Array;
   indices: Uint16Array;
   minHeight: number;
   maxHeight: number;
@@ -28,6 +32,10 @@ export function buildFarTile(tx: number, tz: number): FarTile {
   const normals = new Float32Array(side * side * 3);
   const colors = new Float32Array(side * side * 3);
   const canopy: Canopy = { cover: 0, conifer: 0 };
+  const horizonA = new Uint8Array(side * side * 4);
+  const horizonB = new Uint8Array(side * side * 4);
+  const hg = horizonGridSize(segments);
+  const horizon = horizonGrid(x0, z0, tileSize, hg);
   let minHeight = Infinity;
   let maxHeight = -Infinity;
   for (let j = 0; j < side; j++) {
@@ -45,6 +53,7 @@ export function buildFarTile(tx: number, tz: number): FarTile {
       surfaceColor(surfaceAt(x, z, h, 1 - (2 * step) / len), x, z, h, colors, v * 3);
       applyCanopy(colors, v * 3, canopyAt(x, z, h, 1 - (2 * step) / len, canopy), CANOPY.strength[CANOPY.strength.length - 1]!, x, z);
       toLinear(colors, v * 3);
+      sampleHorizon(horizon, tileSize, hg, i * step, j * step, horizonA, horizonB, v);
       minHeight = Math.min(minHeight, h);
       maxHeight = Math.max(maxHeight, h);
     }
@@ -61,7 +70,7 @@ export function buildFarTile(tx: number, tz: number): FarTile {
       k += 6;
     }
   }
-  return { positions, normals, colors, indices, minHeight, maxHeight };
+  return { positions, normals, colors, horizonA, horizonB, indices, minHeight, maxHeight };
 }
 
 /** Far tiles wanted around a player tile: the square ring between innerRings and rings. */

@@ -16,6 +16,8 @@ export interface DuskwoodTestApi {
   setTime: (hours: number, paused?: boolean) => void;
   /** Sun shadows on/off. */
   setShadows: (on: boolean) => void;
+  /** Terrain shadows (mountains shading valleys) on/off. */
+  setTerrainShadows: (on: boolean) => void;
   /** Trees, bushes and boulders on/off. */
   setVegetation: (on: boolean) => void;
   /** Pins the weather ('auto' = follow the weather model). */

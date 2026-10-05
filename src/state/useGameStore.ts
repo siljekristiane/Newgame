@@ -6,6 +6,7 @@ import type { WeatherMode } from '../weather/weather';
 import { QUALITY, type QualityLevel } from '../config/world';
 import { saveQuality } from '../settings/quality';
 import { loadAudioSettings, saveAudioSettings, type AudioChannel, type AudioSettings } from '../audio/mixer';
+import { terrainShadow } from '../materials/terrainShadow';
 
 export interface HudSnapshot {
   x: number;
@@ -54,6 +55,8 @@ interface GameState {
   detailOn: boolean;
   /** Sun shadows near the player (F3 switch). */
   shadows: boolean;
+  /** Mountains shade the valleys (step 13, F3 switch). */
+  terrainShadows: boolean;
   /** Trees, bushes and boulders (F3 switch). */
   vegetation: boolean;
   /** The mouse is captured (pointer lock): it turns the camera until Esc. */
@@ -86,6 +89,7 @@ interface GameState {
   setDetailReady: (ready: boolean) => void;
   setDetailOn: (on: boolean) => void;
   setShadows: (on: boolean) => void;
+  setTerrainShadows: (on: boolean) => void;
   setVegetation: (on: boolean) => void;
   setPointerLocked: (locked: boolean) => void;
   setWeatherMode: (mode: WeatherMode) => void;
@@ -132,6 +136,7 @@ export const useGameStore = create<GameState>((set) => ({
   detailReady: false,
   detailOn: true,
   shadows: true,
+  terrainShadows: true,
   vegetation: true,
   pointerLocked: false,
   weatherMode: 'auto',
@@ -154,6 +159,10 @@ export const useGameStore = create<GameState>((set) => ({
   setDetailReady: (detailReady) => set({ detailReady }),
   setDetailOn: (detailOn) => set({ detailOn }),
   setShadows: (shadows) => set({ shadows }),
+  setTerrainShadows: (terrainShadows) => {
+    terrainShadow.on.value = terrainShadows ? 1 : 0;
+    set({ terrainShadows });
+  },
   setVegetation: (vegetation) => set({ vegetation }),
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),
   setWeatherMode: (weatherMode) => set({ weatherMode }),

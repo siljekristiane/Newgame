@@ -35,7 +35,7 @@ describe('ground height', () => {
         expect(Math.abs(gridHeightAt(x, z, segments) - meshHeight(cx, cz, segments, x, z))).toBeLessThan(0.001);
       }
     }
-  });
+  }, 60_000); // 160 chunk builds, horizons included
 
   it('equals heightAt exactly on grid points, and is what the player uses', () => {
     const step = CHUNK_SIZE / LOD_LEVELS[0].segments;

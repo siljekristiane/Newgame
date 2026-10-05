@@ -2,6 +2,7 @@ import { CANOPY, CHUNK_SIZE, LOD_LEVELS, MINIMAP_RESOLUTION, NORMAL_SAMPLE_STEP,
 import { hexToRgb, world } from '../design/tokens';
 import { surfaceAt, surfaceColor } from './biomes';
 import { applyCanopy, canopyAt, canopyStrength, type Canopy } from './canopy';
+import { horizonGrid, horizonGridSize, sampleHorizon } from './horizon';
 import { heightAt } from './terrain';
 import { buildVegetation, PLANT_STRIDE } from './vegetation';
 
@@ -40,6 +41,9 @@ export interface ChunkData {
   weights: Float32Array;
   morphWeights: Float32Array;
   colors: Float32Array;
+  /** Terrain-shadow horizon angles (bytes, 0 = flat … 255 = 90°): directions 0–3 and 4–7 (world/horizon.ts). */
+  horizonA: Uint8Array;
+  horizonB: Uint8Array;
   indices: Uint16Array | Uint32Array;
   /** Trees, bushes and boulders, PROP_STRIDE floats each (see PLANT_STRIDE in world/vegetation.ts). */
   props: Float32Array;
@@ -70,6 +74,10 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
   const canopy: Canopy = { cover: 0, conifer: 0 };
   const originX = cx * CHUNK_SIZE;
   const originZ = cz * CHUNK_SIZE;
+  const horizonA = new Uint8Array(vertexCount * 4);
+  const horizonB = new Uint8Array(vertexCount * 4);
+  const hg = horizonGridSize(segments);
+  const horizon = horizonGrid(originX, originZ, CHUNK_SIZE, hg);
   const step = CHUNK_SIZE / segments;
   let minHeight = Infinity;
   let maxHeight = -Infinity;
@@ -94,6 +102,7 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
         applyCanopy(coarseColors, v * 3, canopy, coarseCanopy, originX + lx, originZ + lz);
         applyCanopy(colors, v * 3, canopy, fineCanopy, originX + lx, originZ + lz);
       }
+      sampleHorizon(horizon, CHUNK_SIZE, hg, lx, lz, horizonA, horizonB, v);
       weights[v * 4] = surface.grass;
       weights[v * 4 + 1] = surface.dirt;
       weights[v * 4 + 2] = surface.rock;
@@ -152,6 +161,8 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
     morphNormals.set(morphNormals.subarray(src * 3, src * 3 + 3), dst * 3);
     morphColors.set(morphColors.subarray(src * 3, src * 3 + 3), dst * 3);
     weights.set(weights.subarray(src * 4, src * 4 + 4), dst * 4);
+    horizonA.set(horizonA.subarray(src * 4, src * 4 + 4), dst * 4);
+    horizonB.set(horizonB.subarray(src * 4, src * 4 + 4), dst * 4);
     morphWeights.set(morphWeights.subarray(src * 4, src * 4 + 4), dst * 4);
     // Same normal and colour as the edge above: a skirt that peeks through a
     // crack then looks like ground, not a dark line.
@@ -197,6 +208,8 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
     morphHeights,
     morphNormals,
     morphColors,
+    horizonA,
+    horizonB,
     weights,
     morphWeights,
     colors,

@@ -128,6 +128,22 @@ export const CANOPY = {
 } as const;
 
 /**
+ * Terrain shadows (step 13): mountains shade the valleys. A horizon angle in
+ * `directions` compass directions is traced on a coarse grid (`grid`² cells per
+ * chunk) out to `maxDistance`, with steps growing from `firstStep` by `growth`;
+ * vertices interpolate it, and the shader dims sun and moon light where they
+ * are below the horizon (soft over `softness` radians).
+ */
+export const TERRAIN_SHADOW = {
+  grid: 16,
+  directions: 8,
+  maxDistance: 6_000,
+  firstStep: 25,
+  growth: 1.4,
+  softness: 0.035,
+} as const;
+
+/**
  * Grass tufts around the player (step 5b), placed on the GPU on a world grid of
  * `cell` meters out to `radius`, thinning out over the last 45 %.
  */

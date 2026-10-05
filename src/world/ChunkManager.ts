@@ -171,6 +171,8 @@ export class ChunkManager {
       geometry.setAttribute('surfaceWeights', new THREE.BufferAttribute(data.weights, 4));
       geometry.setAttribute('morphWeights', new THREE.BufferAttribute(data.morphWeights, 4));
       geometry.setAttribute('color', new THREE.BufferAttribute(data.colors, 3));
+      geometry.setAttribute('horizonA', new THREE.BufferAttribute(data.horizonA, 4, true));
+      geometry.setAttribute('horizonB', new THREE.BufferAttribute(data.horizonB, 4, true));
       geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
       geometry.boundingBox = new THREE.Box3(
         new THREE.Vector3(0, data.minHeight - CHUNK_SIZE, 0),

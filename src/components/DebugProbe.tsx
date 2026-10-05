@@ -38,6 +38,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       setTerrainTextures: (on) => useGameStore.getState().setDetailOn(on),
       setTime: (hours, paused) => useGameStore.getState().setTime(hours, paused),
       setShadows: (on) => useGameStore.getState().setShadows(on),
+      setTerrainShadows: (on) => useGameStore.getState().setTerrainShadows(on),
       setVegetation: (on) => useGameStore.getState().setVegetation(on),
       setWeather: (mode) => useGameStore.getState().setWeatherMode(mode),
       setQuality: (level) => useGameStore.getState().setQuality(level, false),
