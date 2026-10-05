@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { VEGETATION } from '../config/world';
 import { MORPH_HEAD, morphEnabled, morphPlayer, morphRange } from './terrainMaterials';
+import { addTerrainShadow } from './terrainShadow';
 
 /** Seconds of wind animation, advanced by the terrain component each frame. */
 export const plantWind = {
@@ -53,6 +54,7 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
           transformed.xz += dwSway * sway * uWindScale * ${VEGETATION.windStrength.toFixed(2)};
         #endif`,
       );
+    addTerrainShadow(shader, 'instance');
     // Leaves let light through: some sky light on every side, and the sun
     // shining through from behind, so backlit trees are not black cut-outs.
     shader.fragmentShader = shader.fragmentShader
@@ -65,7 +67,8 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
         #endif
         #if NUM_DIR_LIGHTS > 0
           for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
-            irradiance += directionalLights[i].color * max(dot(-normal, directionalLights[i].direction), 0.0) * ${VEGETATION.foliageTransmission.toFixed(2)} * vFoliage;
+            irradiance += directionalLights[i].color * max(dot(-normal, directionalLights[i].direction), 0.0) * ${VEGETATION.foliageTransmission.toFixed(2)} * vFoliage
+              * dwHorizonLight(normalize((vec4(directionalLights[i].direction, 0.0) * viewMatrix).xyz));
           }
         #endif`,
       );

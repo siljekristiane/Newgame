@@ -66,6 +66,9 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   grantrær med seks stjerneformede, hengende greinlag og lysere skudd, løvtrær
   med flere klaser i ulike grønntoner. Gran 44 → 84 og løvtre 152 → 192
   trekanter på LOD 0 (LOD 1 omtrent uendret).
+- `step-13/`: fjellskygger. Samme vinkler kl. 17:30–17:36 med og uten
+  (`*-shadows.jpg` / `*-no-shadows.jpg`). Ingen ekstra draw calls; to
+  vertex-attributter (8 byte) per terrengvertex og 8 tall per plante.
 
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og

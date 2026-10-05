@@ -154,6 +154,8 @@ export const GRASS = {
   height: 0.55,
   /** Sway at the blade tips, meters. */
   windStrength: 0.12,
+  /** Meters walked before the grass's terrain-shadow horizon is traced again. */
+  horizonRefresh: 10,
 } as const;
 
 /**

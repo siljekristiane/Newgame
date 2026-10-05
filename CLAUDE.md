@@ -224,9 +224,17 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   eksponering etter tid på døgnet.
 - **Skygger:** solen kaster skygge i en boks på ±`SHADOWS.radius` (150 m) rundt
   spilleren, festet til teksel-rutenettet i verdensrom så de ikke flimrer. Bare
-  objekter og spilleren kaster skygge; terrenget mottar. Terreng som skygger for
-  terreng over kilometer krever en annen teknikk (f.eks. horisont-kart) og er ikke
-  gjort. Kan slås av i F3.
+  objekter og spilleren kaster skygge; terrenget mottar. Kan slås av i F3.
+- **Fjellskygger (steg 13, `world/horizon.ts`, `materials/terrainShadow.ts`,
+  `TERRAIN_SHADOW`):** workerne finner horisontvinkelen i 8 retninger (ut til
+  6 km, voksende steg) på et grovt gitter per chunk: 16² ruter i LOD 0–1, 8² i
+  LOD 2, 4² i LOD 3 og fjernringen (delmengder av samme punkter, bufret per
+  tråd). Verteksene får den som to byte-vec4 (`horizonA/B`); planter får den der
+  de står (8 tall i `PLANT_STRIDE`), gresset bruker horisonten der spilleren
+  står (`localHorizon`, ny hver 10. meter). Shaderen demper sol- og månelys
+  (også lys gjennom løvet) under horisonten i lysets retning, mykt; himmellyset
+  blir, så skyggene er dempet, ikke svarte. F3: «Fjellskygger»; testkrok
+  `setTerrainShadows`. Avataren og møblene på startplassen har det ikke ennå.
 
 ### Vann (steg 4)
 

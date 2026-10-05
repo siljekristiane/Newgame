@@ -56,6 +56,8 @@ export function ChunkPlants({
       const colors = new Float32Array(n * 3);
       const delta = new Float32Array(n);
       const fade = new Float32Array(n);
+      const horA = new Float32Array(n * 4);
+      const horB = new Float32Array(n * 4);
       let keep = 0;
       indices.forEach((i, slot) => {
         const o = i * PLANT_STRIDE;
@@ -69,6 +71,8 @@ export function ChunkPlants({
         colors.set([0.82 + tint * 0.32, 0.86 + tint * 0.24, 0.9 + (1 - tint) * 0.16], slot * 3);
         delta[slot] = plants[o + 5]! - y;
         fade[slot] = plants[o + 7]!;
+        horA.set(plants.subarray(o + 9, o + 13), slot * 4);
+        horB.set(plants.subarray(o + 13, o + 17), slot * 4);
         if (fade[slot] === 0) keep++;
       });
       const geometry = new THREE.BufferGeometry();
@@ -77,6 +81,8 @@ export function ChunkPlants({
       geometry.boundingSphere = base.boundingSphere;
       geometry.setAttribute('aMorphDelta', new THREE.InstancedBufferAttribute(delta, 1));
       geometry.setAttribute('aFade', new THREE.InstancedBufferAttribute(fade, 1));
+      geometry.setAttribute('aHorA', new THREE.InstancedBufferAttribute(horA, 4));
+      geometry.setAttribute('aHorB', new THREE.InstancedBufferAttribute(horB, 4));
       return { geometry, matrices, colors, n, keep };
     });
   }, [plants, bases]);

@@ -6,12 +6,25 @@ export const terrainShadow = { on: { value: 1 } };
 
 const D = TERRAIN_SHADOW.directions;
 
-const VERTEX_HEAD = /* glsl */ `
-attribute vec4 horizonA;
-attribute vec4 horizonB;
-varying vec4 vDwHorA;
-varying vec4 vDwHorB;
-`;
+/** Horizon at the player, for things near it that carry no horizon of their own (grass). */
+export const localHorizon = { a: { value: new THREE.Vector4() }, b: { value: new THREE.Vector4() } };
+
+/**
+ * Where the horizon comes from: 'vertex' attributes (terrain), 'instance'
+ * attributes (plants, one horizon per plant) or the 'local' uniforms.
+ */
+export type HorizonSource = 'vertex' | 'instance' | 'local';
+
+const VERTEX_HEADS: Record<HorizonSource, string> = {
+  vertex: 'attribute vec4 horizonA;\nattribute vec4 horizonB;\n',
+  instance: 'attribute vec4 aHorA;\nattribute vec4 aHorB;\n',
+  local: 'uniform vec4 uLocalHorA;\nuniform vec4 uLocalHorB;\n',
+};
+const VERTEX_SET: Record<HorizonSource, string> = {
+  vertex: 'vDwHorA = horizonA;\nvDwHorB = horizonB;',
+  instance: 'vDwHorA = aHorA;\nvDwHorB = aHorB;',
+  local: 'vDwHorA = uLocalHorA;\nvDwHorB = uLocalHorB;',
+};
 
 const FRAGMENT_HEAD = /* glsl */ `
 varying vec4 vDwHorA;
@@ -41,16 +54,20 @@ float dwHorizonLight(vec3 dir) {
 `;
 
 /**
- * Adds terrain shadows to a terrain material's shader (chunks and the far
- * ring): the horizon attributes pass to the fragment shader, and every
+ * Adds terrain shadows to a material's shader (chunks, far ring, plants,
+ * grass): the horizon passes to the fragment shader, and every
  * directional light (sun, moon) is dimmed where the terrain hides it. Sky
  * light is untouched, so shaded valleys are dim, not black.
  */
-export function addTerrainShadow(shader: THREE.WebGLProgramParametersWithUniforms): void {
+export function addTerrainShadow(shader: THREE.WebGLProgramParametersWithUniforms, source: HorizonSource = 'vertex'): void {
   shader.uniforms.uTerrainShadowOn = terrainShadow.on;
-  shader.vertexShader = (VERTEX_HEAD + shader.vertexShader).replace(
+  if (source === 'local') {
+    shader.uniforms.uLocalHorA = localHorizon.a;
+    shader.uniforms.uLocalHorB = localHorizon.b;
+  }
+  shader.vertexShader = (VERTEX_HEADS[source] + 'varying vec4 vDwHorA;\nvarying vec4 vDwHorB;\n' + shader.vertexShader).replace(
     '#include <begin_vertex>',
-    '#include <begin_vertex>\nvDwHorA = horizonA;\nvDwHorB = horizonB;',
+    '#include <begin_vertex>\n' + VERTEX_SET[source],
   );
   const lights = THREE.ShaderChunk.lights_fragment_begin.replace(
     'getDirectionalLightInfo( directionalLight, directLight );',

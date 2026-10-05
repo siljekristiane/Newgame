@@ -1,6 +1,7 @@
 import { CHUNK_SIZE, NORMAL_SAMPLE_STEP, SEA_LEVEL, SPAWN, VEGETATION, WORLD_SEED } from '../config/world';
 import { climateAt, surfaceAt } from './biomes';
 import { gridHeightAt } from './ground';
+import { horizonGrid, horizonGridSize, sampleHorizon } from './horizon';
 import { hash2 } from './noise';
 import { heightAt } from './terrain';
 import { clearing } from '../regions/stamps';
@@ -24,9 +25,10 @@ export type PlantKind = (typeof PLANT_KINDS)[number];
 /**
  * Floats per plant: localX, y, localZ, scale, kind (index in PLANT_KINDS),
  * morphY (height on the coarser mesh), rotation (radians), fade (1 = shrinks
- * to nothing as the chunk morphs toward the next LOD), tint (0..1).
+ * to nothing as the chunk morphs toward the next LOD), tint (0..1), then the
+ * terrain-shadow horizon where it stands (8 values 0..1, world/horizon.ts).
  */
-export const PLANT_STRIDE = 9;
+export const PLANT_STRIDE = 17;
 
 const DENSITY_GRID = 16;
 const KINDS = PLANT_KINDS.length;
@@ -93,6 +95,10 @@ export function buildVegetation(cx: number, cz: number, segments: number, morphS
   const cells = Math.round(CHUNK_SIZE / VEGETATION.cell);
   const out: number[] = [];
   const d = [0, 0, 0, 0];
+  const hg = horizonGridSize(segments);
+  const horizon = horizonGrid(cx * CHUNK_SIZE, cz * CHUNK_SIZE, CHUNK_SIZE, hg);
+  const horA = new Uint8Array(4);
+  const horB = new Uint8Array(4);
   const seed = WORLD_SEED + 1_000;
 
   for (let j = 0; j < cells; j++) {
@@ -139,7 +145,10 @@ export function buildVegetation(cx: number, cz: number, segments: number, morphS
       const rotation = hash2(gi, gj, seed + 5) * Math.PI * 2;
       // LOD 1 drops everything before LOD 2 (no plants there); LOD 0 only what LOD 1 leaves out.
       const fade = coarse || !keep ? 1 : 0;
+      sampleHorizon(horizon, CHUNK_SIZE, hg, lx, lz, horA, horB, 0);
       out.push(lx, y, lz, scale, kind, morphY, rotation, fade, hash2(gi, gj, seed + 6));
+      for (let k = 0; k < 4; k++) out.push(horA[k]! / 255);
+      for (let k = 0; k < 4; k++) out.push(horB[k]! / 255);
     }
   }
   return new Float32Array(out);

@@ -1,11 +1,13 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { CHUNK_SIZE, GRASS, LOD_LEVELS } from '../config/world';
+import { CHUNK_SIZE, GRASS, LOD_LEVELS, TERRAIN_SHADOW } from '../config/world';
 import { createGrassMaterial, createTuftGeometry, grassUniforms } from '../materials/grassMaterial';
 import { origin, player } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 import { GRASS_PATCH_CHUNKS, type GrassPatch } from '../world/grass';
+import { horizonAt } from '../world/horizon';
+import { localHorizon } from '../materials/terrainShadow';
 import { worldToChunk } from '../world/chunkMath';
 import type { WorkerPool } from '../world/workerPool';
 
@@ -39,6 +41,9 @@ export function Grass({ pool }: { pool: WorkerPool }) {
       wantKey: '',
       pending: false,
       disposed: false,
+      horizon: new Uint8Array(TERRAIN_SHADOW.directions),
+      horizonX: -Infinity,
+      horizonZ: -Infinity,
     };
     return { mesh, state };
   }, []);
@@ -56,6 +61,15 @@ export function Grass({ pool }: { pool: WorkerPool }) {
   );
 
   useFrame(() => {
+    // Terrain shadow for the grass: the horizon where the player stands (it changes little over 45 m).
+    if (Math.hypot(player.x - state.horizonX, player.z - state.horizonZ) > GRASS.horizonRefresh) {
+      state.horizonX = player.x;
+      state.horizonZ = player.z;
+      horizonAt(player.x, player.z, state.horizon);
+      const h = state.horizon;
+      localHorizon.a.value.set(h[0]! / 255, h[1]! / 255, h[2]! / 255, h[3]! / 255);
+      localHorizon.b.value.set(h[4]! / 255, h[5]! / 255, h[6]! / 255, h[7]! / 255);
+    }
     const { cx, cz } = worldToChunk(player.x, player.z);
     const key = `${cx},${cz}`;
     if (vegetation && !state.pending && state.wantKey !== key) {

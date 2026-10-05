@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GRASS } from '../config/world';
 import { plantWind } from './plantMaterial';
+import { addTerrainShadow } from './terrainShadow';
 
 /** Uniforms the Grass component updates each frame (render-space values only). */
 export const grassUniforms = {
@@ -32,6 +33,8 @@ export function createGrassMaterial(): THREE.MeshLambertMaterial {
   // Lambert: thin blades seen edge-on should not pick up a grazing specular sheen.
   const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
   material.onBeforeCompile = (shader) => {
+    // Before the grass's own vertex code, which replaces begin_vertex entirely.
+    addTerrainShadow(shader, 'local');
     Object.assign(shader.uniforms, grassUniforms, { uWindTime: plantWind.time, uOriginMod: plantWind.originMod, uWindScale: plantWind.strength });
     shader.vertexShader = shader.vertexShader
       .replace(
