@@ -1,4 +1,5 @@
 import { sanitizeOutfit, type Outfit } from '../wardrobe/unlocks';
+import { isBodyId, type BodyId } from './models';
 
 /**
  * How the avatar looks: body colours, hair and what it wears. Pure data, so
@@ -7,6 +8,8 @@ import { sanitizeOutfit, type Outfit } from '../wardrobe/unlocks';
 export type HairStyleId = 'long' | 'bob' | 'ponytail' | 'crown' | 'curly';
 
 export interface Appearance {
+  /** Which body (models.ts): the procedural figure, or a rigged .glb model with its own clothes. */
+  body: BodyId;
   skin: string;
   eyes: string;
   hairStyle: HairStyleId;
@@ -26,6 +29,7 @@ export const HAIR_STYLES: ReadonlyArray<{ id: HairStyleId; name: string }> = [
 ];
 
 export const DEFAULT_APPEARANCE: Appearance = {
+  body: 'elf',
   skin: '#f3c99e',
   eyes: '#4a7fae',
   hairStyle: 'long',
@@ -42,6 +46,8 @@ export function sanitizeAppearance(value: unknown): Appearance {
   const style = HAIR_STYLES.some((h) => h.id === v.hairStyle) ? (v.hairStyle as HairStyleId) : DEFAULT_APPEARANCE.hairStyle;
   const outfit = v.outfit && typeof v.outfit === 'object' ? (v.outfit as Outfit) : DEFAULT_APPEARANCE.outfit;
   return {
+    // Saves from before bodies existed get the default body.
+    body: isBodyId(v.body) ? v.body : DEFAULT_APPEARANCE.body,
     skin: hex(v.skin, DEFAULT_APPEARANCE.skin),
     eyes: hex(v.eyes, DEFAULT_APPEARANCE.eyes),
     hairStyle: style,

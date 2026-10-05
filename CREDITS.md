@@ -24,3 +24,9 @@ eie; komponistene døde for over 70 år siden.
 | `chopin-nocturne-27-2.webm` | Frédéric Chopin: Nocturne op. 27 nr. 2 | Frank Lévy (Musopen, Set Chopin Free) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Chopin_-_Nocturne_No._8_in_D-flat_major,_Op._27_No._2_%28Frank_Levy%29.flac) | Public domain |
 | `beethoven-moonlight-1.webm` | L. van Beethoven: Månskinnssonaten, 1. sats | Paul Pitman (Musopen) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Ludwig_van_Beethoven_-_sonata_no._14_in_c_sharp_minor_%27moonlight%27,_op._27_no._2_-_i._adagio_sostenuto.ogg) | Public domain |
 | `chopin-raindrop.webm` | Frédéric Chopin: Preludium op. 28 nr. 15 «Regndråpe» | Musopen (Chopin collection) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Prelude_Op._28_no._15.mp3) | CC0 |
+
+## Figurer (`public/avatars/`)
+
+| Fil | Hva | Kilde | Lisens |
+|---|---|---|---|
+| `alv.glb` | Alven: form, farger og skjelett | Formen er laget av prosjekteieren med [TRELLIS.2](https://github.com/microsoft/TRELLIS.2) (Microsoft, MIT) fra egne referansebilder (`tools/avatar/alv/`). Farger, tekstur og skjelett er laget med `tools/avatar/` i dette prosjektet. | Prosjekteierens eget verk |

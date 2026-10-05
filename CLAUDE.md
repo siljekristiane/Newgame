@@ -81,7 +81,7 @@ src/
   vegetation/             Prosedyrale plante- og steinmesher (three.js)
   regions/                Håndlagde områder: stempling i terrenget + spawn/ (plass, stier)
   player/                 Bevegelsesmodell (ren, testet)
-  avatar/                 Avataren: kropp, ansikt, frisyrer, klesmønstre, animasjon (three.js, prosedyralt)
+  avatar/                 Avataren: figurer (models.ts), felles AvatarInstance, prosedyral kropp/klær/hår, .glb-figurer og animasjon
   wardrobe/               Klesskapet: katalog (data), låser (quests/mynter), lagring, store og UI (K)
   weather/                Værmodell, skystøy, regn og snø
   settings/               Kvalitetsnivåer: valg fra GPU-navn, lagring i nettleseren
@@ -469,8 +469,25 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - Tester: `wardrobe/unlocks.test.ts`, `wardrobe/storage.test.ts` og
   `avatar/buildAvatar.test.ts` (hver startfigur, frisyre og plagg bygges; føtter
   på bakken, høyde, trekantbudsjett, animasjon). e2e: klesskapet i `smoke.spec.ts`.
-- Ikke gjort ennå: vinger (bare data-ideen), ekte skjelett/GLTF, kollisjon
-  mellom klær og lemmer i ekstreme positurer.
+- **Figurer (steg 15, `avatar/models.ts`):** `Appearance.body` velger kropp:
+  `procedural` (den tegnede figuren over) eller en rigget `.glb` i
+  `public/avatars/` med egne klær og hår. Alven (`elf`, `alv.glb`) er standard
+  for nye spillere og en startfigur; lagringer uten `body` får standarden.
+  - `avatarInstance.ts`: `AvatarInstance` (`group`, `update`, `dispose`) er det
+    eneste spilleren (`Player.tsx`) og klesskapet (`AvatarPreview.tsx`) ser,
+    via `useAvatar` (gammel figur vises til ny er lastet). `.glb` lastes én gang
+    (GLTFLoader) og klones med `SkeletonUtils`; skaleres til `AVATAR.height`.
+    Feiler lastingen, brukes den tegnede figuren.
+  - `humanoid.ts`: beinrollene animasjonen bruker, og kart for egne filer og
+    Mixamo. `skinnedAnimator.ts`: samme tomgang/gange/løp/glid/hopp som
+    `animate.ts`, skrevet som rotasjoner i figurens rom og regnet om til hvert
+    beins hvilestilling, så det virker uansett beinakser.
+  - Klesskapet har «Figur»-valg under Utseende; for `.glb`-figurer sier det at
+    klærne er faste.
+  - `tools/avatar/` (Python) bygger `alv.glb` på nytt fra formen og bildene i
+    `tools/avatar/alv/`. Testet i `avatar/models.test.ts`.
+- Ikke gjort ennå: vinger (bare data-ideen), klær fra klesskapet på
+  `.glb`-figurer, kollisjon mellom klær og lemmer i ekstreme positurer.
 
 ### Lyd (fase A av lydplanen)
 
