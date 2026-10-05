@@ -9,6 +9,7 @@ import { useGameStore } from '../state/useGameStore';
 import { atmosphere } from '../design/tokens';
 import { mulberry32 } from '../world/noise';
 import { lightingAt, type Rgb } from '../world/timeOfDay';
+import { cloudShadow } from '../materials/terrainShadow';
 
 const SKY_SCALE = CAMERA.far * 0.8;
 const STAR_COUNT = 2500;
@@ -194,6 +195,10 @@ export function Atmosphere() {
 
     // Cloud layer: lit by the sun and sky, darker the more overcast it is.
     clouds.uCloudCover.value = cover;
+    // The same clouds shade the ground (step 14).
+    cloudShadow.noise.value = clouds.uCloudNoise.value;
+    cloudShadow.cover.value = cover;
+    cloudShadow.offset.value.set(mod(origin.x + cloudDrift.x, WEATHER.cloudTile), mod(origin.z + cloudDrift.z, WEATHER.cloudTile));
     const cam = camera.position;
     clouds.uCloudOffset.value.set(mod(origin.x + cam.x + cloudDrift.x, WEATHER.cloudTile), mod(origin.z + cam.z + cloudDrift.z, WEATHER.cloudTile));
     const lightK = (0.35 + 0.65 * (1 - l.night)) * (1 - 0.45 * cover);

@@ -141,6 +141,8 @@ export const TERRAIN_SHADOW = {
   firstStep: 25,
   growth: 1.4,
   softness: 0.035,
+  /** Cloud shadows (step 14): how much sunlight a thick cloud takes away. */
+  cloudStrength: 0.75,
 } as const;
 
 /**

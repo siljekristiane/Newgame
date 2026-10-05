@@ -68,7 +68,8 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
         #if NUM_DIR_LIGHTS > 0
           for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
             irradiance += directionalLights[i].color * max(dot(-normal, directionalLights[i].direction), 0.0) * ${VEGETATION.foliageTransmission.toFixed(2)} * vFoliage
-              * dwHorizonLight(normalize((vec4(directionalLights[i].direction, 0.0) * viewMatrix).xyz));
+              * dwHorizonLight(normalize((vec4(directionalLights[i].direction, 0.0) * viewMatrix).xyz))
+              * dwCloudLight(normalize((vec4(directionalLights[i].direction, 0.0) * viewMatrix).xyz));
           }
         #endif`,
       );
