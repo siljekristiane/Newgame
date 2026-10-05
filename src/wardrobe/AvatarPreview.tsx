@@ -1,9 +1,8 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { AVATAR } from '../config/world';
-import { animateAvatar, createAnimState } from '../avatar/animate';
 import type { Appearance } from '../avatar/appearance';
-import { buildAvatar } from '../avatar/buildAvatar';
+import { useAvatar } from '../avatar/useAvatar';
 
 /** Zoom range in the preview, meters from the avatar. */
 const ZOOM = { near: 0.55, far: 4.4, start: 3.4 };
@@ -23,9 +22,7 @@ export function AvatarPreview({ appearance }: { appearance: Appearance }) {
 }
 
 function PreviewScene({ appearance }: { appearance: Appearance }) {
-  const avatar = useMemo(() => buildAvatar(appearance, 'high'), [appearance]);
-  useEffect(() => () => avatar.dispose(), [avatar]);
-  const anim = useRef(createAnimState(2));
+  const avatar = useAvatar(appearance, 'high', 2);
   const view = useRef({ yaw: 0.35, dist: ZOOM.start, pinch: 0 });
   const gl = useThree((s) => s.gl);
   const camera = useThree((s) => s.camera);
@@ -75,7 +72,7 @@ function PreviewScene({ appearance }: { appearance: Appearance }) {
   }, [gl]);
 
   useFrame((_, dt) => {
-    animateAvatar(avatar.rig, anim.current, Math.min(dt, 0.1), { speed: 0, air: 0 });
+    avatar?.update(Math.min(dt, 0.1), { speed: 0, air: 0 });
     const { yaw, dist } = view.current;
     // Whole figure when far, the face when close.
     const t = Math.min(1, Math.max(0, (ZOOM.far - dist) / (ZOOM.far - ZOOM.near)));
@@ -89,7 +86,7 @@ function PreviewScene({ appearance }: { appearance: Appearance }) {
       <hemisphereLight args={['#cfe0ff', '#5b5a45', 1.2]} />
       <directionalLight position={[2.5, 5, 4]} intensity={3} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
       <directionalLight position={[-3, 2, -3]} intensity={1.1} color="#b8c8ff" />
-      <primitive object={avatar.group} />
+      {avatar && <primitive object={avatar.group} />}
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
         <circleGeometry args={[0.55, 64]} />
         <meshStandardMaterial color="#857d72" roughness={0.95} />

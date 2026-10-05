@@ -8,6 +8,9 @@ inn en av oppskriftene under som prompt.
 
 | Del | Fil | Hva den gjør |
 |---|---|---|
+| Figurer (kropper) | `src/avatar/models.ts` | Den tegnede figuren og ferdige `.glb`-figurer (Alven) |
+| Felles avatar | `src/avatar/avatarInstance.ts`, `useAvatar.ts` | Ett grensesnitt for alle figurer: bygg, animer, rydd opp |
+| Skjelett og animasjon for `.glb` | `src/avatar/humanoid.ts`, `skinnedAnimator.ts` | Beinroller og gange/løp/hopp for alle riggede figurer |
 | Størrelse og kamera | `src/config/world.ts` → `AVATAR` | Høyde (1,6 m), kamerafokus, zoomområde, klaring |
 | Utseende | `src/avatar/appearance.ts` | Hudtoner, hårfarger, øyefarger, frisyrer, standardutseende |
 | Startfigurer | `src/avatar/presets.ts` | De fire figurene man kan velge én gang |
@@ -77,6 +80,29 @@ For å teste alle plagg uten å spille: åpne spillet med `?unlockAll` i adresse
 1. Skriv en funksjon i `STYLES` i `src/avatar/hair.ts` (se `bob` for et enkelt eksempel).
 2. Legg den til i `HAIR_STYLES` i `src/avatar/appearance.ts`.
 
+### Ny ferdig figur (.glb)
+
+Figurer med egne klær og hår (som Alven) er riggede `.glb`-filer:
+
+1. Legg fila i `public/avatars/`.
+2. Legg til en oppføring i `BODY_MODELS` i `src/avatar/models.ts` (navn, fil,
+   beinkart). Bruker fila beinnavnene i `humanoid.ts`, holder
+   `IDENTITY_BONE_MAP`; er den rigget i Mixamo, bruk `MIXAMO_BONE_MAP`.
+3. Legg navnet til i `BodyId` i samme fil, og eventuelt en startfigur i `presets.ts`.
+4. Før fila opp i `CREDITS.md`.
+
+`models.test.ts` sjekker at fila finnes, er kreditert og har beina kartet
+nevner. Figuren skaleres automatisk til `AVATAR.height` med føttene på bakken,
+og animeres av `skinnedAnimator.ts` (armene senkes fra hvilestillingen i fila).
+Alven kan bygges på nytt fra kildene med `tools/avatar/` (se README der).
+
+### Bytte hele avatarsystemet
+
+Spilleren og klesskapet bruker bare `useAvatar(appearance, detail)`, som gir et
+`AvatarInstance` (`group`, `update(dt, bevegelse)`, `dispose`). En ny type figur
+(f.eks. klær på `.glb`-figurer, NPC-er) er en ny fabrikk i
+`avatarInstance.ts`; resten av spillet trenger ikke endres.
+
 ### Endre størrelsen på avataren
 
 Endre `AVATAR.height` i `src/config/world.ts`. Modellen, skyggen og
@@ -89,12 +115,15 @@ zoom, når fokus glir fra brystet til ansiktet, og hvor høyt sikten må gå ove
 
 ## Ytelse
 
-Spilleren i verden er ca. 70–90 000 trekanter (`'medium'`), forhåndsvisningen i
+Alven er 80 000 trekanter og én tekstur (4,6 MB fil, lastes én gang og deles).
+Den tegnede figuren i verden er ca. 70–90 000 trekanter (`'medium'`), forhåndsvisningen i
 klesskapet ca. 140–170 000 (`'high'`). Håret slås sammen til én mesh per
 farge. Avataren bygges på nytt bare når utseendet lagres.
 
 ## Ikke gjort ennå
 
 - Vinger (spillet har ingen vingespor ennå).
-- Ekte skjelett/GLTF-animasjon; avataren animeres ved å dreie leddgrupper.
+- Klær fra klesskapet på `.glb`-figurer (Alven har faste klær og hår).
+- Fingre og simulert skjørt/hår på Alven.
+- Den tegnede figuren animeres fortsatt ved å dreie leddgrupper.
 - Klær og lemmer kan overlappe litt i ekstreme positurer.

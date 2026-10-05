@@ -2,7 +2,7 @@ import { sanitizeOutfit } from '../wardrobe/unlocks';
 import type { Appearance } from './appearance';
 
 /**
- * The four starter looks. A new player picks one once in the wardrobe
+ * The starter looks. A new player picks one once in the wardrobe
  * ("Startfigur") and is given its clothes; after that the look is theirs to change.
  */
 export interface Preset {
@@ -18,6 +18,7 @@ export const PRESETS: readonly Preset[] = [
     name: 'Stjernekartisten',
     mood: 'Drømmende og klok',
     appearance: {
+      body: 'procedural',
       skin: '#ffe0c2',
       eyes: '#7a5ea8',
       hairStyle: 'long',
@@ -36,6 +37,7 @@ export const PRESETS: readonly Preset[] = [
     name: 'Skogvokteren',
     mood: 'Modig og rolig',
     appearance: {
+      body: 'procedural',
       skin: '#b0743f',
       eyes: '#5ea87d',
       hairStyle: 'crown',
@@ -54,6 +56,7 @@ export const PRESETS: readonly Preset[] = [
     name: 'Måneskinnsdrømmeren',
     mood: 'Leken og nysgjerrig',
     appearance: {
+      body: 'procedural',
       skin: '#f3c99e',
       eyes: '#4a7fae',
       hairStyle: 'ponytail',
@@ -71,6 +74,7 @@ export const PRESETS: readonly Preset[] = [
     name: 'Skumringseventyreren',
     mood: 'Sprudlende og tøff',
     appearance: {
+      body: 'procedural',
       skin: '#7a4a2b',
       eyes: '#c9a13b',
       hairStyle: 'bob',
@@ -81,6 +85,19 @@ export const PRESETS: readonly Preset[] = [
         shoes: { id: 'shoes_hiking_boots' },
         neck: { id: 'neck_mist_scarf' },
       }),
+    },
+  },
+  {
+    id: 'elf',
+    name: 'Alven',
+    mood: 'Varm og nysgjerrig',
+    appearance: {
+      body: 'elf',
+      skin: '#e2b08c',
+      eyes: '#5a3a24',
+      hairStyle: 'long',
+      hairColor: '#24170f',
+      outfit: sanitizeOutfit({}),
     },
   },
 ];

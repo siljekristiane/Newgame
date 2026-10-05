@@ -7,3 +7,4 @@ dist-single
 /playwright-report
 /measurements
 audio-src/
+tools/avatar/*/build/
