@@ -71,7 +71,7 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
   const coarseColors = new Float32Array(gridCount * 3);
   const fineCanopy = canopyStrength(segments);
   const coarseCanopy = canopyStrength(morphSegments || segments);
-  const canopy: Canopy = { cover: 0, conifer: 0, snow: 0 };
+  const canopy: Canopy = { cover: 0, conifer: 0, snow: 0, old: 0 };
   const originX = cx * CHUNK_SIZE;
   const originZ = cz * CHUNK_SIZE;
   const horizonA = new Uint8Array(vertexCount * 4);
@@ -257,7 +257,7 @@ export function buildMinimap(resolution = MINIMAP_RESOLUTION): Uint8ClampedArray
   const img = new Uint8ClampedArray(resolution * resolution * 4);
   const rgb = new Float32Array(3);
   const n = new Float32Array(3);
-  const canopy: Canopy = { cover: 0, conifer: 0, snow: 0 };
+  const canopy: Canopy = { cover: 0, conifer: 0, snow: 0, old: 0 };
   const water = hexToRgb(world.water);
   const cell = WORLD_SIZE / resolution;
   for (let j = 0; j < resolution; j++) {

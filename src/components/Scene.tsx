@@ -18,6 +18,7 @@ import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
 import { SpawnArea } from '../regions/spawn/SpawnArea';
+import { GiantTrees } from '../regions/giants/GiantTrees';
 import { Precipitation } from '../weather/Precipitation';
 
 export function Scene() {
@@ -52,6 +53,7 @@ export function Scene() {
       <FarTerrain pool={pool} manager={manager} />
       <Grass pool={pool} />
       <SpawnArea />
+      <GiantTrees />
       <Precipitation />
       <TerrainTextures pool={pool} />
       <Player />

@@ -11,6 +11,7 @@ import { origin, player } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 import { heightAt } from '../world/terrain';
 import type { ChunkManager } from '../world/ChunkManager';
+import { GIANT_TREES } from '../regions/giants/layout';
 
 const INTERVAL = 0.2; // seconds between snapshots
 
@@ -34,6 +35,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       views: VIEWS.map((v) => v.id),
       setView: applyView,
       teleport: (x, z) => useGameStore.getState().teleport(x, z),
+      giants: () => GIANT_TREES.map(({ id, name, kind, x, z }) => ({ id, name, kind, x, z })),
       setGeomorph: (on) => useGameStore.getState().setGeomorph(on),
       setTerrainTextures: (on) => useGameStore.getState().setDetailOn(on),
       setTime: (hours, paused) => useGameStore.getState().setTime(hours, paused),

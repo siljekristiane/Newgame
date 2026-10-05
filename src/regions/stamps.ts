@@ -1,5 +1,6 @@
-import { SPAWN_AREA } from '../config/world';
+import { GIANTS, SPAWN_AREA } from '../config/world';
 import { spawnLayout, type PathPoint } from './spawn/layout';
+import { nearestGiantDistance } from './giants/layout';
 
 /**
  * Hand-made regions pressed into the natural terrain: flat plazas and paths
@@ -174,11 +175,13 @@ export function rasterizeClearing(mask: Uint8Array, size: number, x0: number, z0
 
 /**
  * How much a point is kept clear of plants: 1 on a path or the plaza (plus
- * SPAWN_AREA.plantClearance), easing to 0 a few meters further out.
+ * SPAWN_AREA.plantClearance), easing to 0 a few meters further out, and around
+ * the five giant trees, so each stands free.
  */
 export function clearing(x: number, z: number): number {
   const edge = SPAWN_AREA.pathWidth / 2 + SPAWN_AREA.plantClearance;
   const onPath = 1 - smooth(edge, edge + 2, nearestPath(x, z).distance);
   const onPlaza = 1 - smooth(SPAWN_AREA.plantClearance, SPAWN_AREA.plantClearance + 4, plazaDistance(x, z));
-  return Math.max(onPath, onPlaza);
+  const byGiant = 1 - smooth(GIANTS.clearInner, GIANTS.clearOuter, nearestGiantDistance(x, z));
+  return Math.max(onPath, onPlaza, byGiant);
 }

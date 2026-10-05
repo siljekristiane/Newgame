@@ -26,6 +26,8 @@ export interface DuskwoodTestApi {
   setQuality: (level: QualityLevel) => void;
   /** Terrain detail textures on/off. */
   setTerrainTextures: (on: boolean) => void;
+  /** The five giant trees: id, name, kind and world position. */
+  giants: () => Array<{ id: string; name: string; kind: string; x: number; z: number }>;
   /** Moves the player to world meters (x, z), like a minimap click. */
   teleport: (x: number, z: number) => void;
   /** True once every chunk wanted around the player is loaded. */

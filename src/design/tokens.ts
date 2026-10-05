@@ -68,6 +68,20 @@ export const vegetationPalette = {
   canopySnow: '#c9d3da',
 } as const;
 
+/** The five giant trees (step 17). */
+export const giantPalette = {
+  bark: '#76604b',
+  barkOld: '#6a5a4a',
+  deadwood: '#bdb19f',
+  oakLeaf: '#4f6e2f',
+  oakLeafLight: '#7d9a45',
+  lindenLeaf: '#6a8f3a',
+  lindenLeafLight: '#9bb556',
+  pineNeedle: '#33502d',
+  firNeedle: '#2d4628',
+  snow: '#eef3f7',
+} as const;
+
 /** Map and compass drawing (canvas), matching the HUD's Dusk theme. */
 export const mapPalette = {
   ink: '#1f1a2a',

@@ -125,6 +125,41 @@ export const VEGETATION = {
 } as const;
 
 /**
+ * The five giant trees (step 17), for a later quest: on one circle on the map,
+ * 60 km across, 72° apart. Centre, radius and start angle were picked by a scan
+ * so all five stand on land (80 m+ above the sea, not on a cliff) in five
+ * different biomes: forest, grassland, dryland, alpine and snow.
+ * `height` is ten lamp posts (a post with its cap is ~3.7 m).
+ */
+export const GIANTS = {
+  center: { x: 32_000, z: 52_000 },
+  radius: 30_000,
+  startAngle: 27, // degrees, measured from +X (east) toward +Z (south)
+  height: 37,
+  /** Normal trees keep this far from a giant (fully clear inside, thinning out to `clearOuter`). */
+  clearInner: 28,
+  clearOuter: 40,
+} as const;
+
+/**
+ * Old-growth forest (step 16): patches inside the forests, picked by a slow
+ * noise, where trees stand denser and a share of them are giants (giantConifer,
+ * giantBroadleaf) `giantScale` times a normal tree, kept at LOD 1 so a patch
+ * shows from afar. `threshold` sets how much of the forest is old growth.
+ */
+export const OLD_GROWTH = {
+  noiseScale: 1_600,
+  threshold: 0.46,
+  edge: 0.12,
+  /** Extra trees in a patch (× forestTrees) and the share of them that are giants. */
+  denser: 0.7,
+  giantShare: 0.18,
+  giantScale: [1.7, 2.3] as const,
+  /** Darker canopy over old growth, seen from afar. */
+  canopyShade: 0.25,
+} as const;
+
+/**
  * Forest canopy at a distance (step 11): where trees grow, the terrain colour
  * turns toward the canopy colour on the coarser LODs, where real trees thin out
  * (LOD 1 keeps 20 %, LOD 2–3 and the far ring have none). `strength` per LOD

@@ -25,7 +25,7 @@ export const localHorizon = { a: { value: new THREE.Vector4() }, b: { value: new
  * Where the horizon comes from: 'vertex' attributes (terrain), 'instance'
  * attributes (plants, one horizon per plant) or the 'local' uniforms.
  */
-export type HorizonSource = 'vertex' | 'instance' | 'local';
+export type HorizonSource = 'vertex' | 'instance' | 'local' | 'fixed';
 
 const D = TERRAIN_SHADOW.directions;
 
@@ -33,7 +33,14 @@ const HORIZON_INPUT: Record<HorizonSource, { head: string; a: string; b: string 
   vertex: { head: 'attribute vec4 horizonA;\nattribute vec4 horizonB;\n', a: 'horizonA', b: 'horizonB' },
   instance: { head: 'attribute vec4 aHorA;\nattribute vec4 aHorB;\n', a: 'aHorA', b: 'aHorB' },
   local: { head: 'uniform vec4 uLocalHorA;\nuniform vec4 uLocalHorB;\n', a: 'uLocalHorA', b: 'uLocalHorB' },
+  fixed: { head: 'uniform vec4 uFixedHorA;\nuniform vec4 uFixedHorB;\n', a: 'uFixedHorA', b: 'uFixedHorB' },
 };
+
+/** A horizon of its own for one object (the giant trees): traced once at its foot. */
+export interface FixedHorizon {
+  a: { value: THREE.Vector4 };
+  b: { value: THREE.Vector4 };
+}
 
 /**
  * Light visibility is worked out per vertex (the shadows are soft and the
@@ -102,7 +109,7 @@ export const worldLightDir = (viewDir: string) => `normalize((vec4(${viewDir}, 0
  * ground is dim, not black. `dwLightVisibility(worldDir)` is available to the
  * fragment shader for extra light terms (light through leaves).
  */
-export function addTerrainShadow(shader: THREE.WebGLProgramParametersWithUniforms, source: HorizonSource = 'vertex'): void {
+export function addTerrainShadow(shader: THREE.WebGLProgramParametersWithUniforms, source: HorizonSource = 'vertex', fixed?: FixedHorizon): void {
   Object.assign(shader.uniforms, {
     uTerrainShadowOn: terrainShadow.on,
     uDwSunDir: lightDirections.sun,
@@ -112,6 +119,10 @@ export function addTerrainShadow(shader: THREE.WebGLProgramParametersWithUniform
     uCloudShadowOffset: cloudShadow.offset,
   });
   if (source === 'local') Object.assign(shader.uniforms, { uLocalHorA: localHorizon.a, uLocalHorB: localHorizon.b });
+  if (source === 'fixed') {
+    if (!fixed) throw new Error("terrain shadow: 'fixed' needs its horizon");
+    Object.assign(shader.uniforms, { uFixedHorA: fixed.a, uFixedHorB: fixed.b });
+  }
   const input = HORIZON_INPUT[source];
   shader.vertexShader = (input.head + VERTEX_HEAD + shader.vertexShader).replace(
     '#include <project_vertex>',

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CHUNK_SIZE, SEA_LEVEL, VEGETATION } from '../config/world';
 import { gridHeightAt } from './ground';
 import { heightAt } from './terrain';
-import { buildVegetation, isTree, PLANT_FIELDS, PLANT_STRIDE, plantDensity, snowOnPlants } from './vegetation';
+import { buildVegetation, isGiant, isTree, oldGrowthAt, PLANT_FIELDS, PLANT_STRIDE, plantDensity, snowOnPlants } from './vegetation';
 
 const plantsOf = (data: Float32Array) => {
   const out: Array<{ x: number; z: number; y: number; kind: number; fade: number; morphY: number }> = [];
@@ -74,5 +74,27 @@ describe('vegetation', () => {
     expect(snowOnPlants(10)).toBe(0);
     expect(snowOnPlants(-5)).toBe(1);
     expect(snowOnPlants(0)).toBeGreaterThan(0);
+  });
+
+  it('grows old growth in patches: giants only there, and they stay at LOD 1', () => {
+    const F = PLANT_FIELDS;
+    expect(oldGrowthAt(55_500, 52_500)).toBe(oldGrowthAt(55_500, 52_500));
+    const fine = buildVegetation(55, 52, 64, 32, false);
+    const coarse = buildVegetation(55, 52, 32, 16, true);
+    const giants = (data: Float32Array) => {
+      const out: string[] = [];
+      for (let o = 0; o < data.length; o += PLANT_STRIDE) {
+        if (!isGiant(data[o + F.kind]!)) continue;
+        const x = 55_000 + data[o + F.x]!;
+        const z = 52_000 + data[o + F.z]!;
+        expect(oldGrowthAt(x, z)).toBeGreaterThan(0);
+        expect(data[o + F.scale]!).toBeGreaterThanOrEqual(1.7);
+        out.push(`${data[o + F.x]!.toFixed(2)},${data[o + F.z]!.toFixed(2)}`);
+      }
+      return out;
+    };
+    const g0 = giants(fine);
+    expect(g0.length).toBeGreaterThan(50);
+    expect(giants(coarse).sort()).toEqual(g0.sort()); // every giant is kept at LOD 1
   });
 });

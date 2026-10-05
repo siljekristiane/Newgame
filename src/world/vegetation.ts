@@ -1,8 +1,9 @@
-import { CHUNK_SIZE, NORMAL_SAMPLE_STEP, SEA_LEVEL, SPAWN, VEGETATION, WORLD_SEED } from '../config/world';
+import { CHUNK_SIZE, NORMAL_SAMPLE_STEP, OLD_GROWTH, SEA_LEVEL, SPAWN, VEGETATION, WORLD_SEED } from '../config/world';
 import { climateAt, surfaceAt } from './biomes';
 import { gridHeightAt } from './ground';
 import { horizonGrid, horizonGridSize, sampleHorizon } from './horizon';
-import { hash2 } from './noise';
+import { createNoise2D, hash2 } from './noise';
+import { fbm } from './terrain';
 import { heightAt } from './terrain';
 import { clearing } from '../regions/stamps';
 
@@ -24,13 +25,24 @@ import { clearing } from '../regions/stamps';
  * works in; the variants after them take a share of their class's candidates,
  * so a forest is a mix of shapes rather than one tree repeated.
  */
-export const PLANT_KINDS = ['conifer', 'broadleaf', 'bush', 'rock', 'conifer2', 'broadleaf2'] as const;
+export const PLANT_KINDS = ['conifer', 'broadleaf', 'bush', 'rock', 'conifer2', 'broadleaf2', 'giantConifer', 'giantBroadleaf'] as const;
 export type PlantKind = (typeof PLANT_KINDS)[number];
 /** Density classes (conifer, broadleaf, bush, rock), the first entries of PLANT_KINDS. */
 const DENSITY_KINDS = 4;
 /** Variant mesh kind for each density class (or -1). */
 const VARIANT_OF = [4, 5, -1, -1] as const;
-const TREE_KINDS: ReadonlySet<number> = new Set([0, 1, 4, 5]);
+/** Old-growth giant kind for each density class (or -1). */
+const GIANT_OF = [6, 7, -1, -1] as const;
+const TREE_KINDS: ReadonlySet<number> = new Set([0, 1, 4, 5, 6, 7]);
+export const isGiant = (kind: number) => kind === 6 || kind === 7;
+
+const oldGrowthNoise = createNoise2D(WORLD_SEED + 14);
+
+/** How much a point is old-growth forest (0..1), before asking whether trees grow there at all. */
+export function oldGrowthAt(x: number, z: number): number {
+  const n = fbm(oldGrowthNoise, x / OLD_GROWTH.noiseScale, z / OLD_GROWTH.noiseScale, 2);
+  return smooth(OLD_GROWTH.threshold, OLD_GROWTH.threshold + OLD_GROWTH.edge, n);
+}
 export const isTree = (kind: number) => TREE_KINDS.has(kind);
 
 /**
@@ -81,7 +93,8 @@ export function plantDensity(x: number, z: number, height: number, slope: number
   const treeLine = smooth(VEGETATION.treeLineTemperature - 1.5, VEGETATION.treeLineTemperature + 1.5, temperature);
   const flatEnough = 1 - smooth(0.22, 0.34, slope);
   const forest = smooth(0.5, 0.72, s.lush);
-  const stand = flatEnough * (VEGETATION.openTrees + VEGETATION.forestTrees * forest);
+  // Old growth: denser stands inside the forests.
+  const stand = flatEnough * (VEGETATION.openTrees + VEGETATION.forestTrees * forest * (1 + OLD_GROWTH.denser * oldGrowthAt(x, z) * forest));
   // Spruce and pine in the cool north and up the slopes, leafy trees where it is warm.
   // Spruce also goes on into the snow (taiga): a colder tree line, and snowy ground counts as soil.
   const conifer = Math.min(1, 0.2 + smooth(7.5, 3.5, temperature) * 0.8);
@@ -168,20 +181,24 @@ export function buildVegetation(cx: number, cz: number, segments: number, morphS
       for (let acc = d[0]!; r >= acc && kind < KINDS - 1; ) acc += d[++kind]!;
 
       const klass = kind;
-      const keep = hash2(gi, gj, seed + 3) < VEGETATION.coarseKeep[klass]!;
-      if (coarse && !keep) continue;
-      const variant = VARIANT_OF[klass]!;
-      if (variant >= 0 && hash2(gi, gj, seed + 7) < VEGETATION.variantShare) kind = variant;
-
       const x = cx * CHUNK_SIZE + lx;
       const z = cz * CHUNK_SIZE + lz;
+      // In old growth a share of the trees are giants; they stay at LOD 1 so the patch shows from afar.
+      const giant = GIANT_OF[klass]! >= 0 && hash2(gi, gj, seed + 12) < OLD_GROWTH.giantShare * oldGrowthAt(x, z);
+      const keep = giant || hash2(gi, gj, seed + 3) < VEGETATION.coarseKeep[klass]!;
+      if (coarse && !keep) continue;
+      const variant = VARIANT_OF[klass]!;
+      if (giant) kind = GIANT_OF[klass]!;
+      else if (variant >= 0 && hash2(gi, gj, seed + 7) < VEGETATION.variantShare) kind = variant;
+
       // Not on the beach or in the water (checked on the true surface, so every LOD agrees).
       if (heightAt(x, z) < SEA_LEVEL + VEGETATION.minHeight) continue;
       if (Math.hypot(x - SPAWN.x, z - SPAWN.z) < VEGETATION.spawnClearing) continue;
       if (clearing(x, z) > 0.5) continue; // paths and plazas
       const y = gridHeightAt(x, z, segments);
       const morphY = morphSegments ? gridHeightAt(x, z, morphSegments) : y;
-      const scale = VEGETATION.scale[klass]! * (0.7 + hash2(gi, gj, seed + 4) * 0.6);
+      const [g0, g1] = OLD_GROWTH.giantScale;
+      const scale = giant ? g0 + hash2(gi, gj, seed + 4) * (g1 - g0) : VEGETATION.scale[klass]! * (0.7 + hash2(gi, gj, seed + 4) * 0.6);
       // Each tree its own build: taller and slimmer or shorter and wider, leaning a little.
       const tree = isTree(kind);
       const heightK = tree ? 0.85 + hash2(gi, gj, seed + 8) * 0.35 : 1;
