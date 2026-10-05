@@ -240,7 +240,9 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   (`WEATHER.cloudHeight`) og leser samme støy, dekke og drift som skyene på
   himmelen (`cloudShadow`, satt av `Atmosphere`), så skyene over deg skygger
   bakken under dem (inntil `TERRAIN_SHADOW.cloudStrength` = 75 % av sola).
-  Lyskoden ligger i egen blokk fordi three ruller ut lysløkka uten klammer.
+  Sol- og månesynlighet (horisont × skyer) regnes per vertex (`vDwSunLight`,
+  `vDwMoonLight`); fragmentet velger bare sol eller måne (`dwLightVisibility`).
+  Ingen lokale variabler i lysløkka: three ruller den ut uten klammer.
 
 ### Vann (steg 4)
 
@@ -272,7 +274,7 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   LOD 1 et utvalg (`coarseKeep`) med grovere mesher. Planter som neste LOD ikke
   har, krymper bort mens chunken morpher (`fade`), så ingenting popper; LOD 2–3
   har ingen planter. Testet i `vegetation.test.ts`.
-- **Mesher** (`vegetation/plantGeometry.ts`): bartre med seks stjerneformede
+- **Mesher** (`vegetation/plantGeometry.ts`): bartre med fem stjerneformede
   greinlag der greinspissene stikker ut og henger (steg 12), lysere skudd ytterst
   (`coniferTip`); løvtre av seks klumpete klaser i hver sin grønntone
   (`broadleafLight`), mørkere under og innerst; busk; fasettert stein. Fargestøy

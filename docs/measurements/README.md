@@ -74,6 +74,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
 - `step-14/`: skyskygger. `forest-cloudy.jpg` / `forest-clear.jpg` kl. 13 med
   låst vær (skyet / klart). Ett teksturoppslag ×3 per piksel i terreng, planter
   og gress når det er skyer; ingen ekstra draw calls.
+  `report.md` er målt etter at sol- og skysynlighet ble flyttet til
+  vertex-shaderen og grana fikk fem greinlag (62 trekanter): 267–306 draw calls,
+  0,57–1,36 M trekanter, 124 s første innlasting (steg 11: 104 s; før
+  optimaliseringen 173 s og 1,49 M trekanter ved stranda).
 
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
