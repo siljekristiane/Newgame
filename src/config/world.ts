@@ -139,7 +139,7 @@ export const TERRAIN_SHADOW = {
   directions: 8,
   maxDistance: 6_000,
   firstStep: 25,
-  growth: 1.4,
+  growth: 1.6,
   softness: 0.035,
   /** Cloud shadows (step 14): how much sunlight a thick cloud takes away. */
   cloudStrength: 0.75,

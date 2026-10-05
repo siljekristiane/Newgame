@@ -49,9 +49,9 @@ describe('horizon', () => {
   });
 
   it('neighbouring chunks agree along their shared edge', () => {
-    const segments = 32;
-    const west = buildChunk({ cx: 40, cz: 50, segments, morphSegments: 16, withProps: false });
-    const east = buildChunk({ cx: 41, cz: 50, segments, morphSegments: 16, withProps: false });
+    const segments = 64;
+    const west = buildChunk({ cx: 40, cz: 50, segments, morphSegments: 32, withProps: false });
+    const east = buildChunk({ cx: 41, cz: 50, segments, morphSegments: 32, withProps: false });
     const side = segments + 1;
     for (let j = 0; j < side; j++) {
       const w = j * side + segments;
@@ -63,8 +63,8 @@ describe('horizon', () => {
 
   it('uses the full lattice near the player and coarser ones further out', () => {
     expect(horizonGridSize(64)).toBe(16);
-    expect(horizonGridSize(32)).toBe(16);
-    expect(horizonGridSize(16)).toBe(8);
-    expect(horizonGridSize(8)).toBe(4);
+    expect(horizonGridSize(32)).toBe(8);
+    expect(horizonGridSize(16)).toBe(4);
+    expect(horizonGridSize(8)).toBe(2);
   });
 });

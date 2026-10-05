@@ -215,6 +215,8 @@ test.describe('Duskwood World', () => {
     const errors = watchForErrors(page);
     await openGame(page);
     const views = await page.evaluate(() => window.__duskwood!.views);
+    // Each view streams a whole new world in (slow in software rendering): budget per view.
+    test.setTimeout(90_000 * (views.length + 1));
     for (const id of views) {
       await goToView(page, id);
       await testInfo.attach(`view-${id}`, { body: await page.screenshot(), contentType: 'image/png' });

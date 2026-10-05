@@ -69,6 +69,11 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
 - `step-13/`: fjellskygger. Samme vinkler kl. 17:30–17:36 med og uten
   (`*-shadows.jpg` / `*-no-shadows.jpg`). Ingen ekstra draw calls; to
   vertex-attributter (8 byte) per terrengvertex og 8 tall per plante.
+  Horisontgitteret er 16² bare på LOD 0 (8², 4², 2² videre ut): LOD 1 bygges på
+  ~29 ms mot ~15 ms uten fjellskygger.
+- `step-14/`: skyskygger. `forest-cloudy.jpg` / `forest-clear.jpg` kl. 13 med
+  låst vær (skyet / klart). Ett teksturoppslag ×3 per piksel i terreng, planter
+  og gress når det er skyer; ingen ekstra draw calls.
 
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og

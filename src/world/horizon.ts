@@ -29,9 +29,9 @@ export function horizonAt(x: number, z: number, out: Uint8Array, o = 0, h0 = hei
   }
 }
 
-/** Lattice size for a chunk of this many segments: full on LOD 0–1, coarser further out (cheaper; a subset of the same points). */
+/** Lattice size for a chunk of this many segments: full on LOD 0, coarser further out (cheaper; a subset of the same points). */
 export function horizonGridSize(segments: number): number {
-  return Math.max(2, Math.min(TERRAIN_SHADOW.grid, segments / 2));
+  return Math.max(2, Math.min(TERRAIN_SHADOW.grid, segments / 4));
 }
 
 // Grids recently traced in this thread, so a chunk changing LOD does not trace again.

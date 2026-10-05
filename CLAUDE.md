@@ -235,6 +235,12 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   (også lys gjennom løvet) under horisonten i lysets retning, mykt; himmellyset
   blir, så skyggene er dempet, ikke svarte. F3: «Fjellskygger»; testkrok
   `setTerrainShadows`. Avataren og møblene på startplassen har det ikke ennå.
+  Gitteret er 16² bare på LOD 0, så 8², 4², 2² utover (`horizonGridSize`).
+- **Skyskygger (steg 14):** samme lysfunksjon følger sollyset opp til skyplanet
+  (`WEATHER.cloudHeight`) og leser samme støy, dekke og drift som skyene på
+  himmelen (`cloudShadow`, satt av `Atmosphere`), så skyene over deg skygger
+  bakken under dem (inntil `TERRAIN_SHADOW.cloudStrength` = 75 % av sola).
+  Lyskoden ligger i egen blokk fordi three ruller ut lysløkka uten klammer.
 
 ### Vann (steg 4)
 
