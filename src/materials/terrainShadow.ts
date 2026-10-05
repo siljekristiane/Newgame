@@ -4,7 +4,8 @@ import { TERRAIN_SHADOW, WEATHER } from '../config/world';
 /** Terrain shadows on/off (F3 and the test hook). */
 export const terrainShadow = { on: { value: 1 } };
 
-const D = TERRAIN_SHADOW.directions;
+/** World directions toward the sun and the moon, set by Atmosphere each frame. */
+export const lightDirections = { sun: { value: new THREE.Vector3(0, 1, 0) }, moon: { value: new THREE.Vector3(0, -1, 0) } };
 
 /**
  * Cloud shadows (step 14): the sky's cloud noise, cover and drift, set by
@@ -26,42 +27,35 @@ export const localHorizon = { a: { value: new THREE.Vector4() }, b: { value: new
  */
 export type HorizonSource = 'vertex' | 'instance' | 'local';
 
-const VERTEX_HEADS: Record<HorizonSource, string> = {
-  vertex: 'attribute vec4 horizonA;\nattribute vec4 horizonB;\n',
-  instance: 'attribute vec4 aHorA;\nattribute vec4 aHorB;\n',
-  local: 'uniform vec4 uLocalHorA;\nuniform vec4 uLocalHorB;\n',
-};
-const VERTEX_SET: Record<HorizonSource, string> = {
-  vertex: 'vDwHorA = horizonA;\nvDwHorB = horizonB;',
-  instance: 'vDwHorA = aHorA;\nvDwHorB = aHorB;',
-  local: 'vDwHorA = uLocalHorA;\nvDwHorB = uLocalHorB;',
+const D = TERRAIN_SHADOW.directions;
+
+const HORIZON_INPUT: Record<HorizonSource, { head: string; a: string; b: string }> = {
+  vertex: { head: 'attribute vec4 horizonA;\nattribute vec4 horizonB;\n', a: 'horizonA', b: 'horizonB' },
+  instance: { head: 'attribute vec4 aHorA;\nattribute vec4 aHorB;\n', a: 'aHorA', b: 'aHorB' },
+  local: { head: 'uniform vec4 uLocalHorA;\nuniform vec4 uLocalHorB;\n', a: 'uLocalHorA', b: 'uLocalHorB' },
 };
 
-const FRAGMENT_HEAD = /* glsl */ `
-varying vec4 vDwHorA;
-varying vec4 vDwHorB;
-varying vec3 vDwShadowPos;
+/**
+ * Light visibility is worked out per vertex (the shadows are soft and the
+ * clouds kilometres wide, so per pixel would only cost more): one value for
+ * the sun and one for the moon, passed to the fragment shader.
+ */
+const VERTEX_HEAD = /* glsl */ `
 uniform float uTerrainShadowOn;
+uniform vec3 uDwSunDir;
+uniform vec3 uDwMoonDir;
 uniform sampler2D uCloudShadowNoise;
 uniform float uCloudShadowCover;
 uniform vec2 uCloudShadowOffset;
-// Sunlight left after the clouds: follow the light up to the cloud plane and
-// read the same noise and threshold as the sky's cloud layer.
-float dwCloudLight(vec3 dir) {
-  if (uCloudShadowCover < 0.01 || dir.y < 0.03) return 1.0;
-  vec2 p = (vDwShadowPos.xz + dir.xz / dir.y * (${WEATHER.cloudHeight.toFixed(1)} - vDwShadowPos.y) + uCloudShadowOffset) / ${WEATHER.cloudTile.toFixed(1)};
-  float n = texture2D(uCloudShadowNoise, p).r * 0.55 + texture2D(uCloudShadowNoise, p * 2.7 + 0.37).r * 0.3 + texture2D(uCloudShadowNoise, p * 7.1 + 0.71).r * 0.15;
-  float edge = 1.0 - uCloudShadowCover;
-  float density = smoothstep(edge * 0.9, edge * 0.9 + 0.22, n);
-  return 1.0 - density * ${TERRAIN_SHADOW.cloudStrength.toFixed(2)};
-}
-// 1 where a light from world direction dir (towards the light) clears the
+varying float vDwSunLight;
+varying float vDwMoonLight;
+// 1 where light from world direction dir (towards the light) clears the
 // terrain horizon, 0 where hills hide it; soft at the edge.
-float dwHorizonLight(vec3 dir) {
+float dwHorizonLight(vec4 ha, vec4 hb, vec3 dir) {
   float h[${D + 1}];
-  h[0] = vDwHorA.x; h[1] = vDwHorA.y; h[2] = vDwHorA.z; h[3] = vDwHorA.w;
-  h[4] = vDwHorB.x; h[5] = vDwHorB.y; h[6] = vDwHorB.z; h[7] = vDwHorB.w;
-  h[8] = vDwHorA.x;
+  h[0] = ha.x; h[1] = ha.y; h[2] = ha.z; h[3] = ha.w;
+  h[4] = hb.x; h[5] = hb.y; h[6] = hb.z; h[7] = hb.w;
+  h[8] = ha.x;
   // Direction k points along (cos θ, sin θ) in (x, z), θ = 2πk / ${D} (world/horizon.ts).
   float az = atan(dir.z, dir.x);
   if (az < 0.0) az += 6.28318530718;
@@ -76,40 +70,67 @@ float dwHorizonLight(vec3 dir) {
   float lit = smoothstep(horizon * 1.5707963 - ${TERRAIN_SHADOW.softness.toFixed(3)}, horizon * 1.5707963 + ${TERRAIN_SHADOW.softness.toFixed(3)}, elevation);
   return mix(1.0, lit, uTerrainShadowOn);
 }
+// Sunlight left after the clouds: follow the light up to the cloud plane and
+// read the same noise and threshold as the sky's cloud layer.
+float dwCloudLight(vec3 pos, vec3 dir) {
+  if (uCloudShadowCover < 0.01 || dir.y < 0.03) return 1.0;
+  vec2 p = (pos.xz + dir.xz / dir.y * (${WEATHER.cloudHeight.toFixed(1)} - pos.y) + uCloudShadowOffset) / ${WEATHER.cloudTile.toFixed(1)};
+  float n = textureLod(uCloudShadowNoise, p, 0.0).r * 0.55 + textureLod(uCloudShadowNoise, p * 2.7 + 0.37, 0.0).r * 0.3 + textureLod(uCloudShadowNoise, p * 7.1 + 0.71, 0.0).r * 0.15;
+  float edge = 1.0 - uCloudShadowCover;
+  float density = smoothstep(edge * 0.9, edge * 0.9 + 0.22, n);
+  return 1.0 - density * ${TERRAIN_SHADOW.cloudStrength.toFixed(2)};
+}
 `;
 
+const FRAGMENT_HEAD = /* glsl */ `
+uniform vec3 uDwSunDir;
+varying float vDwSunLight;
+varying float vDwMoonLight;
+// Visibility of a directional light (world direction towards it): sun or moon.
+float dwLightVisibility(vec3 dir) {
+  return dot(dir, uDwSunDir) > 0.999 ? vDwSunLight : vDwMoonLight;
+}
+`;
+
+/** GLSL for a view-space light direction rotated back to world space (v * viewMatrix). */
+export const worldLightDir = (viewDir: string) => `normalize((vec4(${viewDir}, 0.0) * viewMatrix).xyz)`;
+
 /**
- * Adds terrain shadows to a material's shader (chunks, far ring, plants,
- * grass): the horizon passes to the fragment shader, and every
- * directional light (sun, moon) is dimmed where the terrain hides it. Sky
- * light is untouched, so shaded valleys are dim, not black.
+ * Adds terrain and cloud shadows to a material's shader (chunks, far ring,
+ * plants, grass): every directional light (sun, moon) is dimmed where the
+ * terrain hides it or clouds cover it. Sky light is untouched, so shaded
+ * ground is dim, not black. `dwLightVisibility(worldDir)` is available to the
+ * fragment shader for extra light terms (light through leaves).
  */
 export function addTerrainShadow(shader: THREE.WebGLProgramParametersWithUniforms, source: HorizonSource = 'vertex'): void {
-  shader.uniforms.uTerrainShadowOn = terrainShadow.on;
-  shader.uniforms.uCloudShadowNoise = cloudShadow.noise;
-  shader.uniforms.uCloudShadowCover = cloudShadow.cover;
-  shader.uniforms.uCloudShadowOffset = cloudShadow.offset;
-  if (source === 'local') {
-    shader.uniforms.uLocalHorA = localHorizon.a;
-    shader.uniforms.uLocalHorB = localHorizon.b;
-  }
-  shader.vertexShader = (VERTEX_HEADS[source] + 'varying vec4 vDwHorA;\nvarying vec4 vDwHorB;\nvarying vec3 vDwShadowPos;\n' + shader.vertexShader)
-    .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERTEX_SET[source])
-    // Render-space position after every displacement (morph, wind, instancing), for the cloud lookup.
-    .replace(
-      '#include <project_vertex>',
-      `#include <project_vertex>
-      vec4 dwShadowPos = vec4(transformed, 1.0);
+  Object.assign(shader.uniforms, {
+    uTerrainShadowOn: terrainShadow.on,
+    uDwSunDir: lightDirections.sun,
+    uDwMoonDir: lightDirections.moon,
+    uCloudShadowNoise: cloudShadow.noise,
+    uCloudShadowCover: cloudShadow.cover,
+    uCloudShadowOffset: cloudShadow.offset,
+  });
+  if (source === 'local') Object.assign(shader.uniforms, { uLocalHorA: localHorizon.a, uLocalHorB: localHorizon.b });
+  const input = HORIZON_INPUT[source];
+  shader.vertexShader = (input.head + VERTEX_HEAD + shader.vertexShader).replace(
+    '#include <project_vertex>',
+    // After every displacement (morph, wind, instancing): the render-space position for the cloud lookup.
+    `#include <project_vertex>
+    {
+      vec4 dwPos = vec4(transformed, 1.0);
       #ifdef USE_INSTANCING
-        dwShadowPos = instanceMatrix * dwShadowPos;
+        dwPos = instanceMatrix * dwPos;
       #endif
-      vDwShadowPos = (modelMatrix * dwShadowPos).xyz;`,
-    );
+      dwPos = modelMatrix * dwPos;
+      vDwSunLight = dwHorizonLight(${input.a}, ${input.b}, uDwSunDir) * dwCloudLight(dwPos.xyz, uDwSunDir);
+      vDwMoonLight = dwHorizonLight(${input.a}, ${input.b}, uDwMoonDir);
+    }`,
+  );
   const lights = THREE.ShaderChunk.lights_fragment_begin.replace(
     'getDirectionalLightInfo( directionalLight, directLight );',
-    // directLight.direction is in view space; v * viewMatrix rotates it back to world space.
-    // three unrolls this loop without braces: keep the local variable in its own block.
-    'getDirectionalLightInfo( directionalLight, directLight );\n\t\t{ vec3 dwLightDir = normalize( ( vec4( directLight.direction, 0.0 ) * viewMatrix ).xyz );\n\t\tdirectLight.color *= dwHorizonLight( dwLightDir ) * dwCloudLight( dwLightDir ); }',
+    // three unrolls this loop without braces: no local variables here.
+    `getDirectionalLightInfo( directionalLight, directLight );\n\t\tdirectLight.color *= dwLightVisibility( ${worldLightDir('directLight.direction')} );`,
   );
   if (lights === THREE.ShaderChunk.lights_fragment_begin) throw new Error('terrain shadow: light loop not found');
   shader.fragmentShader = (FRAGMENT_HEAD + shader.fragmentShader).replace('#include <lights_fragment_begin>', lights);

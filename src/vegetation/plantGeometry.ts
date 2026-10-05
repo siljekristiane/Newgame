@@ -97,9 +97,9 @@ function trunk(radius: number, height: number, detail: number): Part {
 function conifer(detail: number): Part {
   const random = mulberry32(WORLD_SEED + 71);
   const parts: Part[] = [trunk(0.3, 4, detail)];
-  const tiers = detail ? 6 : 3;
+  const tiers = detail ? 5 : 3;
   // An even number of rim points: every other one is a branch tip, the rest the gaps between.
-  const segments = detail ? 12 : 6;
+  const segments = detail ? 10 : 6;
   const top = 13;
   const base = color(vegetationPalette.conifer);
   const tip = color(vegetationPalette.coniferTip);
@@ -107,7 +107,7 @@ function conifer(detail: number): Part {
     const f = t / tiers;
     const radius = 3 * (1 - f) ** 1.15 + 0.55;
     const y0 = 2 + f * (top - 3.6);
-    const h = (top - y0) * (detail ? 0.42 : 0.7);
+    const h = (top - y0) * (detail ? 0.48 : 0.7);
     // Open underneath: the camera is never below a branch tier, and it saves a third of the triangles.
     const g = new THREE.ConeGeometry(radius, h, segments, 1, true);
     g.rotateY(random() * Math.PI);

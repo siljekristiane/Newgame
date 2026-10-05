@@ -9,7 +9,7 @@ import { useGameStore } from '../state/useGameStore';
 import { atmosphere } from '../design/tokens';
 import { mulberry32 } from '../world/noise';
 import { lightingAt, type Rgb } from '../world/timeOfDay';
-import { cloudShadow } from '../materials/terrainShadow';
+import { cloudShadow, lightDirections } from '../materials/terrainShadow';
 
 const SKY_SCALE = CAMERA.far * 0.8;
 const STAR_COUNT = 2500;
@@ -197,6 +197,8 @@ export function Atmosphere() {
     clouds.uCloudCover.value = cover;
     // The same clouds shade the ground (step 14).
     cloudShadow.noise.value = clouds.uCloudNoise.value;
+    lightDirections.sun.value.set(dx, dy, dz);
+    lightDirections.moon.value.set(mx, my, mz);
     cloudShadow.cover.value = cover;
     cloudShadow.offset.value.set(mod(origin.x + cloudDrift.x, WEATHER.cloudTile), mod(origin.z + cloudDrift.z, WEATHER.cloudTile));
     const cam = camera.position;
