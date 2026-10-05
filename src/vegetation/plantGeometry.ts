@@ -160,9 +160,9 @@ function broadleaf(detail: number): Part {
         [1.2, 6, 0.4, 2.6],
       ];
   blobs.forEach(([x, y, z, r], i) => {
-    // Only the main crown gets the finer sphere; it carries the silhouette.
-    const g = new THREE.IcosahedronGeometry(r, i === 0 ? detail : 0);
-    lumpy(g, 0.16, i * 1.7 + 1);
+    // Low-poly clusters; the lumps and the cluster layout carry the silhouette.
+    const g = new THREE.IcosahedronGeometry(r, 0);
+    lumpy(g, i === 0 ? 0.2 : 0.16, i * 1.7 + 1);
     g.scale(1, 0.85, 1);
     g.translate(x, y, z);
     sphericalNormals(g, center);
@@ -247,7 +247,8 @@ function broadleaf2(detail: number): Part {
   const base = color(vegetationPalette.broadleaf).multiplyScalar(0.9);
   const light = color(vegetationPalette.broadleafLight);
   const center = new THREE.Vector3(0, 6.5, 0);
-  const limbs = detail ? 4 : 3;
+  // Seen from afar (detail 0) the limbs vanish under the crown: two wide clusters are enough.
+  const limbs = detail ? 4 : 0;
   const ends: THREE.Vector3[] = [];
   for (let l = 0; l < limbs; l++) {
     const a = (l / limbs) * Math.PI * 2 + random() * 0.6;
@@ -256,9 +257,10 @@ function broadleaf2(detail: number): Part {
     parts.push(limb(from, to, 0.35, 0.18, detail));
     ends.push(to);
   }
+  if (!detail) ends.push(new THREE.Vector3(1.6, 6.6, 0.8));
   ends.push(new THREE.Vector3(0, 8, 0));
   ends.forEach((e, i) => {
-    const r = i === ends.length - 1 ? 3 : 2.3 + random() * 0.6;
+    const r = i === ends.length - 1 ? (detail ? 3 : 3.8) : 2.3 + random() * 0.6;
     const g = new THREE.IcosahedronGeometry(r, 0);
     lumpy(g, 0.2, i * 2.1 + 3);
     g.scale(1.15, 0.7, 1.15);
@@ -350,7 +352,7 @@ function giantBroadleaf(detail: number): Part {
   flare.translate(0, 0.4, 0);
   parts.push(finish(flare, color(vegetationPalette.bark).multiplyScalar(0.75), () => 0.75, () => 0));
   const center = new THREE.Vector3(0.3, 9.5, 0);
-  const limbs = detail ? 5 : 3;
+  const limbs = detail ? 5 : 2;
   const ends: THREE.Vector3[] = [];
   for (let l = 0; l < limbs; l++) {
     const a = (l / limbs) * Math.PI * 2 + random() * 0.8;
@@ -386,8 +388,9 @@ function giantBroadleaf(detail: number): Part {
 function bush(detail: number): Part {
   const base = color(vegetationPalette.bush);
   const parts = (detail ? [[0, 0.7, 0, 1.1], [0.7, 0.55, 0.3, 0.8]] : [[0, 0.7, 0, 1.2]]).map(([x, y, z, r], i) => {
-    const g = new THREE.IcosahedronGeometry(r!, detail);
-    lumpy(g, 0.2, i + 4);
+    // Low-poly is enough for a shrub; the lumps keep it from reading as a ball.
+    const g = new THREE.IcosahedronGeometry(r!, 0);
+    lumpy(g, 0.24, i + 4);
     g.scale(1, 0.75, 1);
     g.translate(x!, y!, z!);
     sphericalNormals(g, new THREE.Vector3(0, 0.3, 0));

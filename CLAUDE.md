@@ -271,6 +271,11 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   tørrere, åpent land; steiner der det er stein, ikke i stup. Kandidater på et
   rutenett med tilfeldig forskyvning (`cell` = 10 m), én hash per rute velger art.
   Ingenting under 2,5 m over havet, og en lysning rundt spawn.
+- **Nær og fjern i LOD 0 (steg 17):** en LOD 0-chunk tegner plantene med LOD
+  1-meshene mens hele chunken er over `VEGETATION.detailDistance` (200 m) unna
+  (samme instansdata, litt hysterese). Løvtre/eik/busk har lave klaser (20
+  trekanter hver); grove varianter ~48. Verste vinkel (`giant-1`, lavt over tett
+  løvskog) gikk fra 4,1 M til ~1,5 M trekanter.
 - **LOD:** hvilke planter som finnes avhenger bare av chunken. LOD 0 viser alle,
   LOD 1 et utvalg (`coarseKeep`) med grovere mesher. Planter som neste LOD ikke
   har, krymper bort mens chunken morpher (`fade`), så ingenting popper; LOD 2–3

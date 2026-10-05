@@ -109,7 +109,7 @@ export const VEGETATION = {
    * LOD 0 chunks draw their plants with LOD 1's coarser meshes while the whole
    * chunk is further than this from the player (meters, Chebyshev).
    */
-  detailDistance: 350,
+  detailDistance: 200,
   /** Share of conifers and leafy trees drawn as their second shape (conifer2, broadleaf2). */
   variantShare: 0.45,
   /** Largest lean of a tree, radians. */
