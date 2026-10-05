@@ -21,7 +21,8 @@ export interface MotionInput {
 }
 
 export function createAnimState(seed = 0): AnimState {
-  return { phase: 0, time: seed * 1.7, nextBlink: 1.5 + seed, blinkT: -1, seed };
+  const time = seed * 1.7;
+  return { phase: 0, time, nextBlink: time + 1.5 + seed * 0.4, blinkT: -1, seed };
 }
 
 const smooth = (a: number, b: number, x: number) => {
