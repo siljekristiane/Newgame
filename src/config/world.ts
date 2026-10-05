@@ -141,6 +141,9 @@ export const TERRAIN_SHADOW = {
   firstStep: 25,
   growth: 1.6,
   softness: 0.035,
+  /** Steps closer than this read the exact height; further ones a cached `coarseCell` m lattice. */
+  exactWithin: 400,
+  coarseCell: 100,
   /** Cloud shadows (step 14): how much sunlight a thick cloud takes away. */
   cloudStrength: 0.75,
 } as const;

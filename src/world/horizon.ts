@@ -16,13 +16,44 @@ const DIRS = Array.from({ length: D }, (_, k) => [Math.cos((2 * Math.PI * k) / D
 const STEPS: number[] = [];
 for (let d = TERRAIN_SHADOW.firstStep; d <= TERRAIN_SHADOW.maxDistance; d *= TERRAIN_SHADOW.growth) STEPS.push(d);
 
+// Far steps read a cached coarse height lattice: rays from nearby points cross
+// the same distant ground, so most lookups are cache hits, and at that range a
+// bilinear 100 m lattice changes the angle by far less than the shadow's softness.
+const COARSE = TERRAIN_SHADOW.coarseCell;
+const coarse = new Map<number, number>();
+const coarseAt = (i: number, j: number): number => {
+  const key = i * 131_072 + j;
+  let h = coarse.get(key);
+  if (h === undefined) {
+    if (coarse.size > 400_000) coarse.clear();
+    h = heightAt(i * COARSE, j * COARSE);
+    coarse.set(key, h);
+  }
+  return h;
+};
+function coarseHeight(x: number, z: number): number {
+  const fx = x / COARSE;
+  const fz = z / COARSE;
+  const i = Math.floor(fx);
+  const j = Math.floor(fz);
+  const tx = fx - i;
+  const tz = fz - j;
+  const a = coarseAt(i, j);
+  const b = coarseAt(i + 1, j);
+  const c = coarseAt(i, j + 1);
+  const d = coarseAt(i + 1, j + 1);
+  return a + (b - a) * tx + (c - a + (a - b - c + d) * tx) * tz;
+}
+
 /** Horizon bytes for one point, written to out[o .. o + directions). */
 export function horizonAt(x: number, z: number, out: Uint8Array, o = 0, h0 = heightAt(x, z)): void {
   for (let k = 0; k < D; k++) {
     const [dx, dz] = DIRS[k]!;
     let best = 0;
     for (const d of STEPS) {
-      const slope = (heightAt(x + dx * d, z + dz * d) - h0) / d;
+      const px = x + dx * d;
+      const pz = z + dz * d;
+      const slope = ((d < TERRAIN_SHADOW.exactWithin ? heightAt(px, pz) : coarseHeight(px, pz)) - h0) / d;
       if (slope > best) best = slope;
     }
     out[o + k] = Math.round((Math.atan(best) / (Math.PI / 2)) * 255);
