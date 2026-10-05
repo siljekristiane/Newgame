@@ -19,19 +19,49 @@ import { clearing } from '../regions/stamps';
  *   to shrink away while LOD 0 morphs toward LOD 1, so nothing pops.
  */
 
-export const PLANT_KINDS = ['conifer', 'broadleaf', 'bush', 'rock'] as const;
+/**
+ * Mesh kinds. The first four are also the density classes plantDensity()
+ * works in; the variants after them take a share of their class's candidates,
+ * so a forest is a mix of shapes rather than one tree repeated.
+ */
+export const PLANT_KINDS = ['conifer', 'broadleaf', 'bush', 'rock', 'conifer2', 'broadleaf2'] as const;
 export type PlantKind = (typeof PLANT_KINDS)[number];
+/** Density classes (conifer, broadleaf, bush, rock), the first entries of PLANT_KINDS. */
+const DENSITY_KINDS = 4;
+/** Variant mesh kind for each density class (or -1). */
+const VARIANT_OF = [4, 5, -1, -1] as const;
+const TREE_KINDS: ReadonlySet<number> = new Set([0, 1, 4, 5]);
+export const isTree = (kind: number) => TREE_KINDS.has(kind);
 
 /**
- * Floats per plant: localX, y, localZ, scale, kind (index in PLANT_KINDS),
- * morphY (height on the coarser mesh), rotation (radians), fade (1 = shrinks
- * to nothing as the chunk morphs toward the next LOD), tint (0..1), then the
- * terrain-shadow horizon where it stands (8 values 0..1, world/horizon.ts).
+ * Where each value sits in a plant's floats: chunk-local position, scale,
+ * kind (index in PLANT_KINDS), morphY (height on the coarser mesh), rotation
+ * (radians), fade (1 = shrinks to nothing as the chunk morphs toward the next
+ * LOD), tint (0..1), height and width factors and a lean (radians, toward
+ * leanDir) so no two trees match, snow cover (0..1, from the temperature),
+ * then the terrain-shadow horizon where it stands (8 values 0..1, world/horizon.ts).
  */
-export const PLANT_STRIDE = 17;
+export const PLANT_FIELDS = {
+  x: 0,
+  y: 1,
+  z: 2,
+  scale: 3,
+  kind: 4,
+  morphY: 5,
+  rotation: 6,
+  fade: 7,
+  tint: 8,
+  height: 9,
+  width: 10,
+  lean: 11,
+  leanDir: 12,
+  snow: 13,
+  horizon: 14,
+} as const;
+export const PLANT_STRIDE = PLANT_FIELDS.horizon + 8;
 
 const DENSITY_GRID = 16;
-const KINDS = PLANT_KINDS.length;
+const KINDS = DENSITY_KINDS;
 
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -51,16 +81,23 @@ export function plantDensity(x: number, z: number, height: number, slope: number
   const treeLine = smooth(VEGETATION.treeLineTemperature - 1.5, VEGETATION.treeLineTemperature + 1.5, temperature);
   const flatEnough = 1 - smooth(0.22, 0.34, slope);
   const forest = smooth(0.5, 0.72, s.lush);
-  const trees = treeLine * soil * flatEnough * (VEGETATION.openTrees + VEGETATION.forestTrees * forest);
+  const stand = flatEnough * (VEGETATION.openTrees + VEGETATION.forestTrees * forest);
   // Spruce and pine in the cool north and up the slopes, leafy trees where it is warm.
+  // Spruce also goes on into the snow (taiga): a colder tree line, and snowy ground counts as soil.
   const conifer = Math.min(1, 0.2 + smooth(7.5, 3.5, temperature) * 0.8);
-  out[o] = trees * conifer;
-  out[o + 1] = trees * (1 - conifer);
+  const coniferLine = smooth(VEGETATION.coniferLineTemperature - 1, VEGETATION.coniferLineTemperature + 1, temperature);
+  out[o] = coniferLine * (soil + s.snow * VEGETATION.snowSoil) * stand * conifer;
+  out[o + 1] = treeLine * soil * stand * (1 - conifer);
   // Shrubs like the open, drier ground between the forests, and go higher than trees.
   const shrubLine = smooth(0, 2.5, temperature);
   out[o + 2] = shrubLine * soil * flatEnough * VEGETATION.bushes * (0.3 + 0.7 * (1 - forest)) * smooth(0.15, 0.4, s.lush);
   // Boulders where stone shows, but not on cliffs (they would hang in the air).
   out[o + 3] = VEGETATION.rocks * (s.rock + s.dirt * 0.15) * (1 - smooth(0.4, 0.6, slope)) * (1 - s.snow * 0.7);
+}
+
+/** Snow lying on branches and boulders (0..1) at a temperature, °C. */
+export function snowOnPlants(temperature: number): number {
+  return smooth(VEGETATION.snowFrom, VEGETATION.snowFull, temperature);
 }
 
 /** Density samples on a (DENSITY_GRID + 1)² grid over the chunk, KINDS floats each. */
@@ -130,8 +167,11 @@ export function buildVegetation(cx: number, cz: number, segments: number, morphS
       let kind = 0;
       for (let acc = d[0]!; r >= acc && kind < KINDS - 1; ) acc += d[++kind]!;
 
-      const keep = hash2(gi, gj, seed + 3) < VEGETATION.coarseKeep[kind]!;
+      const klass = kind;
+      const keep = hash2(gi, gj, seed + 3) < VEGETATION.coarseKeep[klass]!;
       if (coarse && !keep) continue;
+      const variant = VARIANT_OF[klass]!;
+      if (variant >= 0 && hash2(gi, gj, seed + 7) < VEGETATION.variantShare) kind = variant;
 
       const x = cx * CHUNK_SIZE + lx;
       const z = cz * CHUNK_SIZE + lz;
@@ -141,12 +181,19 @@ export function buildVegetation(cx: number, cz: number, segments: number, morphS
       if (clearing(x, z) > 0.5) continue; // paths and plazas
       const y = gridHeightAt(x, z, segments);
       const morphY = morphSegments ? gridHeightAt(x, z, morphSegments) : y;
-      const scale = VEGETATION.scale[kind]! * (0.7 + hash2(gi, gj, seed + 4) * 0.6);
+      const scale = VEGETATION.scale[klass]! * (0.7 + hash2(gi, gj, seed + 4) * 0.6);
+      // Each tree its own build: taller and slimmer or shorter and wider, leaning a little.
+      const tree = isTree(kind);
+      const heightK = tree ? 0.85 + hash2(gi, gj, seed + 8) * 0.35 : 1;
+      const widthK = tree ? (0.9 + hash2(gi, gj, seed + 9) * 0.2) / Math.sqrt(heightK) : 1;
+      const lean = tree ? hash2(gi, gj, seed + 10) ** 2 * VEGETATION.maxLean : 0;
+      const leanDir = hash2(gi, gj, seed + 11) * Math.PI * 2;
+      const snow = snowOnPlants(climateAt(x, z, y).temperature);
       const rotation = hash2(gi, gj, seed + 5) * Math.PI * 2;
       // LOD 1 drops everything before LOD 2 (no plants there); LOD 0 only what LOD 1 leaves out.
       const fade = coarse || !keep ? 1 : 0;
       sampleHorizon(horizon, CHUNK_SIZE, hg, lx, lz, horA, horB, 0);
-      out.push(lx, y, lz, scale, kind, morphY, rotation, fade, hash2(gi, gj, seed + 6));
+      out.push(lx, y, lz, scale, kind, morphY, rotation, fade, hash2(gi, gj, seed + 6), heightK, widthK, lean, leanDir, snow);
       for (let k = 0; k < 4; k++) out.push(horA[k]! / 255);
       for (let k = 0; k < 4; k++) out.push(horB[k]! / 255);
     }

@@ -1,7 +1,8 @@
 import { CANOPY, LOD_LEVELS, VEGETATION, WORLD_SEED } from '../config/world';
 import { hexToRgb, vegetationPalette } from '../design/tokens';
 import { createNoise2D } from './noise';
-import { plantDensity } from './vegetation';
+import { climateAt } from './biomes';
+import { plantDensity, snowOnPlants } from './vegetation';
 
 /**
  * Forest seen from afar (pure, tested). Real trees are only drawn near the
@@ -13,6 +14,7 @@ import { plantDensity } from './vegetation';
 const clumpNoise = createNoise2D(WORLD_SEED + 13);
 const CONIFER = hexToRgb(vegetationPalette.canopyConifer);
 const BROADLEAF = hexToRgb(vegetationPalette.canopyBroadleaf);
+const SNOW = hexToRgb(vegetationPalette.canopySnow);
 const MAX_TREES = VEGETATION.openTrees + VEGETATION.forestTrees;
 const density = [0, 0, 0, 0];
 
@@ -21,16 +23,19 @@ export interface Canopy {
   cover: number;
   /** Share of conifers among the trees (0..1). */
   conifer: number;
+  /** Snow on the canopy (0..1): white forests in the cold. */
+  snow: number;
 }
 
 /** Canopy cover at a point, from the same plant densities that place the real trees. */
-export function canopyAt(x: number, z: number, height: number, slope: number, out: Canopy = { cover: 0, conifer: 0 }): Canopy {
+export function canopyAt(x: number, z: number, height: number, slope: number, out: Canopy = { cover: 0, conifer: 0, snow: 0 }): Canopy {
   plantDensity(x, z, height, slope, density);
   const trees = density[0]! + density[1]!;
   const t = Math.min(1, Math.max(0, (trees / MAX_TREES - CANOPY.coverStart) / (CANOPY.coverFull - CANOPY.coverStart)));
   const clump = clumpNoise(x / CANOPY.clumpScale, z / CANOPY.clumpScale);
   out.cover = Math.min(1, Math.max(0, t * t * (3 - 2 * t) * (1 + clump * CANOPY.clumpCover)));
   out.conifer = trees > 0 ? density[0]! / trees : 0;
+  out.snow = out.cover > 0 ? snowOnPlants(climateAt(x, z, height).temperature) : 0;
   return out;
 }
 
@@ -46,7 +51,9 @@ export function applyCanopy(rgb: Float32Array, o: number, c: Canopy, strength: n
   if (k <= 0) return;
   const shade = 1 + clumpNoise(x / (CANOPY.clumpScale * 0.37), z / (CANOPY.clumpScale * 0.37)) * CANOPY.clumpShade;
   for (let i = 0; i < 3; i++) {
-    const canopy = (CONIFER[i]! * c.conifer + BROADLEAF[i]! * (1 - c.conifer)) * shade;
+    const green = CONIFER[i]! * c.conifer + BROADLEAF[i]! * (1 - c.conifer);
+    // Snowy canopy: white on top, the dark trees still showing through.
+    const canopy = (green + (SNOW[i]! - green) * c.snow * 0.75) * shade;
     rgb[o + i] = rgb[o + i]! + (canopy - rgb[o + i]!) * k;
   }
 }

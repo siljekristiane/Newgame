@@ -184,6 +184,102 @@ function broadleaf(detail: number): Part {
   return merge(parts);
 }
 
+/** A limb from a to b: a tapered cylinder (bark), for the spreading oak. */
+function limb(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, detail: number): Part {
+  const dir = b.clone().sub(a);
+  const g = new THREE.CylinderGeometry(r1, r0, dir.length(), detail ? 6 : 4, 1, true);
+  g.translate(0, dir.length() / 2, 0);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize()));
+  g.translate(a.x, a.y, a.z);
+  return finish(g, color(vegetationPalette.bark), (p) => 0.75 + Math.min(0.3, p.y / 30), () => 0);
+}
+
+/** A tall, slim pine: bare lower trunk, a compact crown of short drooping tiers up top. */
+function conifer2(detail: number): Part {
+  const random = mulberry32(WORLD_SEED + 75);
+  const top = 15;
+  const parts: Part[] = [];
+  const trunkG = new THREE.CylinderGeometry(0.18, 0.4, top - 2, detail ? 6 : 4, 1, true);
+  trunkG.translate(0, (top - 2) / 2, 0);
+  parts.push(finish(trunkG, color(vegetationPalette.bark), (p) => 0.7 + (p.y / top) * 0.4, (p) => (p.y / top) ** 2 * 0.5));
+  const tiers = detail ? 4 : 2;
+  const segments = detail ? 8 : 5;
+  const base = color(vegetationPalette.conifer).multiplyScalar(0.92);
+  const tip = color(vegetationPalette.coniferTip);
+  for (let t = 0; t < tiers; t++) {
+    const f = t / tiers;
+    const radius = 1.9 * (1 - f) + 0.5;
+    const y0 = 7.5 + f * (top - 8.5);
+    const h = (top - y0) * (detail ? 0.5 : 0.75);
+    const g = new THREE.ConeGeometry(radius, h, segments, 1, true);
+    g.rotateY(random() * Math.PI);
+    g.translate((random() - 0.5) * 0.4, y0 + h / 2, (random() - 0.5) * 0.4);
+    const pos = g.getAttribute('position');
+    for (let v = 0; v < pos.count; v++) {
+      if (pos.getY(v) > y0 + 0.01) continue;
+      const isTip = (v % (segments + 1)) % 2 === 0;
+      const k = isTip ? 1.1 + random() * 0.25 : 0.6;
+      pos.setX(v, pos.getX(v) * k);
+      pos.setZ(v, pos.getZ(v) * k);
+      pos.setY(v, pos.getY(v) - (isTip ? 0.4 + random() * 0.4 : 0.1));
+    }
+    g.computeVertexNormals();
+    tiltNormals(g, 0.8);
+    parts.push(
+      finishColor(
+        g,
+        (p, out) => {
+          const out01 = Math.min(1, Math.hypot(p.x, p.z) / radius);
+          out.copy(base).lerp(tip, Math.max(0, out01 - 0.5) * 1.4);
+          out.multiplyScalar((0.55 + (p.y / top) * 0.4 + out01 * 0.15) * (0.9 + jitter(p) * 0.2));
+        },
+        (p) => (p.y / top) ** 2,
+      ),
+    );
+  }
+  return merge(parts);
+}
+
+/** A broad oak: short thick trunk, limbs spreading out, a clustered crown wider than it is tall. */
+function broadleaf2(detail: number): Part {
+  const random = mulberry32(WORLD_SEED + 77);
+  const parts: Part[] = [trunk(0.6, 4, detail)];
+  const base = color(vegetationPalette.broadleaf).multiplyScalar(0.9);
+  const light = color(vegetationPalette.broadleafLight);
+  const center = new THREE.Vector3(0, 6.5, 0);
+  const limbs = detail ? 4 : 3;
+  const ends: THREE.Vector3[] = [];
+  for (let l = 0; l < limbs; l++) {
+    const a = (l / limbs) * Math.PI * 2 + random() * 0.6;
+    const from = new THREE.Vector3(0, 3.4 + random() * 0.6, 0);
+    const to = new THREE.Vector3(Math.cos(a) * (3 + random()), 6 + random() * 1.5, Math.sin(a) * (3 + random()));
+    parts.push(limb(from, to, 0.35, 0.18, detail));
+    ends.push(to);
+  }
+  ends.push(new THREE.Vector3(0, 8, 0));
+  ends.forEach((e, i) => {
+    const r = i === ends.length - 1 ? 3 : 2.3 + random() * 0.6;
+    const g = new THREE.IcosahedronGeometry(r, detail && i === ends.length - 1 ? 1 : 0);
+    lumpy(g, 0.2, i * 2.1 + 3);
+    g.scale(1.15, 0.7, 1.15);
+    g.translate(e.x, e.y + 0.6, e.z);
+    sphericalNormals(g, center);
+    const sun = random() * 0.5 + (e.y - 6) * 0.15;
+    parts.push(
+      finishColor(
+        g,
+        (p, out) => {
+          const under = Math.min(1, Math.max(0, (center.y + 0.5 - p.y) / 3));
+          out.copy(base).lerp(light, Math.min(1, Math.max(0, sun)) * (1 - under));
+          out.multiplyScalar((0.95 - under * 0.45) * (0.92 + jitter(p) * 0.16));
+        },
+        (p) => Math.min(1, (p.y / 10) ** 2),
+      ),
+    );
+  });
+  return merge(parts);
+}
+
 function bush(detail: number): Part {
   const base = color(vegetationPalette.bush);
   const parts = (detail ? [[0, 0.7, 0, 1.1], [0.7, 0.55, 0.3, 0.8]] : [[0, 0.7, 0, 1.2]]).map(([x, y, z, r], i) => {
@@ -212,7 +308,7 @@ function merge(parts: Part[]): Part {
   return merged;
 }
 
-const BUILDERS: Record<PlantKind, (detail: number) => Part> = { conifer, broadleaf, bush, rock };
+const BUILDERS: Record<PlantKind, (detail: number) => Part> = { conifer, broadleaf, bush, rock, conifer2, broadleaf2 };
 
 export function createPlantGeometry(kind: PlantKind, detail: number): THREE.BufferGeometry {
   const g = BUILDERS[kind](detail);

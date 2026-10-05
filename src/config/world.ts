@@ -91,6 +91,9 @@ export const VEGETATION = {
   minHeight: 2.5,
   /** °C where trees stop (≈ 400 m up at the latitude of the spawn). */
   treeLineTemperature: 3.5,
+  /** Spruce goes on into the cold (snow forests): its own tree line, °C, and how much snowy ground counts as soil. */
+  coniferLineTemperature: -0.6,
+  snowSoil: 0.8,
   /** Tree probability per cell in open land and extra in forest. */
   openTrees: 0.012,
   forestTrees: 0.25,
@@ -102,6 +105,17 @@ export const VEGETATION = {
   spawnClearing: 30,
   /** Size multiplier per kind (the meshes are ~13 m, ~11 m, ~1.5 m and ~2 m). */
   scale: [1, 1, 1, 1.3] as const,
+  /** Share of conifers and leafy trees drawn as their second shape (conifer2, broadleaf2). */
+  variantShare: 0.45,
+  /** Largest lean of a tree, radians. */
+  maxLean: 0.07,
+  /**
+   * Snow on branches and boulders: none above `snowFrom` °C, full below
+   * `snowFull`, following the snow on the ground (it starts below 0 °C), so
+   * the spruce forests in the snow are white and the green ones stay green.
+   */
+  snowFrom: 2,
+  snowFull: -0.5,
   /** Light through leaves: extra sky light on all sides, and sun from behind. */
   foliageSkyLight: 0.6,
   foliageTransmission: 0.5,

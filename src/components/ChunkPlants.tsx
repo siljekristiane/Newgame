@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { CHUNK_SIZE } from '../config/world';
 import { morphEnabled } from '../materials/terrainMaterials';
 import { player } from '../state/runtime';
-import { PLANT_KINDS, PLANT_STRIDE } from '../world/vegetation';
+import { PLANT_FIELDS as F, PLANT_KINDS, PLANT_STRIDE } from '../world/vegetation';
 
 interface KindInstances {
   geometry: THREE.BufferGeometry;
@@ -43,36 +43,44 @@ export function ChunkPlants({
     const count = plants.length / PLANT_STRIDE;
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
+    const tilt = new THREE.Quaternion();
     const up = new THREE.Vector3(0, 1, 0);
+    const axis = new THREE.Vector3();
     const pos = new THREE.Vector3();
     const scale = new THREE.Vector3();
     const byKind = PLANT_KINDS.map(() => [] as number[]);
-    for (let i = 0; i < count; i++) byKind[plants[i * PLANT_STRIDE + 4]!]!.push(i);
+    for (let i = 0; i < count; i++) byKind[plants[i * PLANT_STRIDE + F.kind]!]!.push(i);
     return byKind.map((indices, k) => {
       // Stable order: plants that stay first, plants that fade after.
-      indices.sort((a, b) => plants[a * PLANT_STRIDE + 7]! - plants[b * PLANT_STRIDE + 7]! || a - b);
+      indices.sort((a, b) => plants[a * PLANT_STRIDE + F.fade]! - plants[b * PLANT_STRIDE + F.fade]! || a - b);
       const n = indices.length;
       const matrices = new Float32Array(n * 16);
       const colors = new Float32Array(n * 3);
       const delta = new Float32Array(n);
       const fade = new Float32Array(n);
+      const snow = new Float32Array(n);
       const horA = new Float32Array(n * 4);
       const horB = new Float32Array(n * 4);
       let keep = 0;
       indices.forEach((i, slot) => {
         const o = i * PLANT_STRIDE;
-        const s = plants[o + 3]!;
-        const y = plants[o + 1]!;
-        const tint = plants[o + 8]!;
-        q.setFromAxisAngle(up, plants[o + 6]!);
-        m.compose(pos.set(plants[o]!, y, plants[o + 2]!), q, scale.set(s, s, s));
+        const s = plants[o + F.scale]!;
+        const y = plants[o + F.y]!;
+        const tint = plants[o + F.tint]!;
+        const w = s * plants[o + F.width]!;
+        // Turned, then leaned a little toward leanDir, then its own height and width.
+        const dir = plants[o + F.leanDir]!;
+        tilt.setFromAxisAngle(axis.set(Math.cos(dir), 0, Math.sin(dir)), plants[o + F.lean]!);
+        q.setFromAxisAngle(up, plants[o + F.rotation]!).premultiply(tilt);
+        m.compose(pos.set(plants[o + F.x]!, y, plants[o + F.z]!), q, scale.set(w, s * plants[o + F.height]!, w));
         matrices.set(m.elements, slot * 16);
         // Natural variation: a little lighter/darker, a little more yellow or blue-green.
         colors.set([0.82 + tint * 0.32, 0.86 + tint * 0.24, 0.9 + (1 - tint) * 0.16], slot * 3);
-        delta[slot] = plants[o + 5]! - y;
-        fade[slot] = plants[o + 7]!;
-        horA.set(plants.subarray(o + 9, o + 13), slot * 4);
-        horB.set(plants.subarray(o + 13, o + 17), slot * 4);
+        delta[slot] = plants[o + F.morphY]! - y;
+        fade[slot] = plants[o + F.fade]!;
+        snow[slot] = plants[o + F.snow]!;
+        horA.set(plants.subarray(o + F.horizon, o + F.horizon + 4), slot * 4);
+        horB.set(plants.subarray(o + F.horizon + 4, o + F.horizon + 8), slot * 4);
         if (fade[slot] === 0) keep++;
       });
       const geometry = new THREE.BufferGeometry();
@@ -81,6 +89,7 @@ export function ChunkPlants({
       geometry.boundingSphere = base.boundingSphere;
       geometry.setAttribute('aMorphDelta', new THREE.InstancedBufferAttribute(delta, 1));
       geometry.setAttribute('aFade', new THREE.InstancedBufferAttribute(fade, 1));
+      geometry.setAttribute('aSnow', new THREE.InstancedBufferAttribute(snow, 1));
       geometry.setAttribute('aHorA', new THREE.InstancedBufferAttribute(horA, 4));
       geometry.setAttribute('aHorB', new THREE.InstancedBufferAttribute(horB, 4));
       return { geometry, matrices, colors, n, keep };

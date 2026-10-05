@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CHUNK_SIZE, LOD_LEVELS } from '../config/world';
-import { buildGrassPatch } from './grass';
+import { buildGrassPatch, grassDensity } from './grass';
 import { gridHeightAt } from './ground';
 import { heightAt } from './terrain';
 
@@ -58,5 +58,9 @@ describe('grass mask', () => {
     expect(texel(p.x, p.z)).toBeGreaterThan(200);
     expect(texel(plaza.x + 60, plaza.z + 60)).toBe(0);
     expect(buildGrassPatch(30, 30).maskSize).toBe(1);
+  });
+  it('grows no grass under snow', () => {
+    expect(grassDensity(100, 0.05, 0.5, 0.5, 0)).toBeGreaterThan(0);
+    expect(grassDensity(100, 0.05, 0.5, 0.5, 0.5)).toBe(0);
   });
 });

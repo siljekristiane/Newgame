@@ -292,6 +292,14 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   naboene, pluss gressfarge i sRGB og tetthet), nøyaktig som `gridHeightAt`
   (testet). Bygges i en worker når spilleren bytter chunk. Normalen peker opp, så
   gresset lyses som bakken; Lambert (ingen spekulær glans på tynne strå).
+- **Variasjon og snø (steg 15):** to former per treslag (`conifer2`: høy, smal
+  furu med bar stamme; `broadleaf2`: bred eik med greiner), `variantShare` 45 %.
+  Hver plante har egne høyde-, bredde- og hellingstall (`PLANT_FIELDS`, i
+  instansmatrisen), så ingen trær er like. Granskog går inn i snøen (egen
+  tregrense `coniferLineTemperature`, snødekt bakke teller som jord), og
+  planter får snø (`snowOnPlants`, 2 → −0,5 °C, som bakkesnøen) som legges på
+  flater som vender opp i shaderen; skogtaket blir hvitt på avstand
+  (`canopySnow`). Ikke gress under snø. Vinkel `snowforest`.
 - **Skog på avstand (steg 11, `world/canopy.ts`, `CANOPY`):** ekte trær finnes
   bare i LOD 0–1, så lenger ute tar terrengfargen skogtakets farge der trær
   vokser (`canopyAt` bruker samme `plantDensity` som plasserer trærne),

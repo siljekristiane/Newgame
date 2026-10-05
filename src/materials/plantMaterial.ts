@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { VEGETATION } from '../config/world';
+import { vegetationPalette } from '../design/tokens';
 import { MORPH_HEAD, morphEnabled, morphPlayer, morphRange } from './terrainMaterials';
 import { addTerrainShadow, worldLightDir } from './terrainShadow';
 
@@ -27,9 +28,12 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
     shader.uniforms.uWindTime = plantWind.time;
     shader.uniforms.uOriginMod = plantWind.originMod;
     shader.uniforms.uWindScale = plantWind.strength;
+    shader.uniforms.uSnowColor = { value: new THREE.Color(vegetationPalette.snow) };
     shader.vertexShader =
       /* glsl */ `attribute float aMorphDelta;
       attribute float aFade;
+      attribute float aSnow;
+      varying float vDwSnow;
       attribute float sway;
       varying float vFoliage;
       uniform float uWindTime;
@@ -41,6 +45,12 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
         '#include <begin_vertex>',
         /* glsl */ `#include <begin_vertex>
         vFoliage = sway > 0.0 ? 1.0 : 0.0;
+        // Snow settles on what faces up (foliage normals are tilted up, trunks stay bare), in patches.
+        #ifdef USE_INSTANCING
+          vDwSnow = aSnow * smoothstep(0.3, 0.75, objectNormal.y + 0.18 * sin(position.x * 2.3 + position.z * 1.9 + position.y * 1.3));
+        #else
+          vDwSnow = 0.0;
+        #endif
         #ifdef USE_INSTANCING
           vec3 dwBase = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
           float dwMorph = dwMorphFactor(dwBase);
@@ -58,7 +68,8 @@ export function createPlantMaterial(lod: number): THREE.MeshStandardMaterial {
     // Leaves let light through: some sky light on every side, and the sun
     // shining through from behind, so backlit trees are not black cut-outs.
     shader.fragmentShader = shader.fragmentShader
-      .replace('void main() {', 'varying float vFoliage;\nvoid main() {')
+      .replace('void main() {', 'varying float vFoliage;\nvarying float vDwSnow;\nuniform vec3 uSnowColor;\nvoid main() {')
+      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, uSnowColor, vDwSnow);')
       .replace(
         '#include <lights_fragment_maps>',
         /* glsl */ `#include <lights_fragment_maps>

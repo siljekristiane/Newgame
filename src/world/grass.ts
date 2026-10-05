@@ -35,11 +35,12 @@ export interface GrassPatch {
   hasGrass: boolean;
 }
 
-/** How much grass grows at a point: grass-covered, not steep, thinner on the forest floor. */
-export function grassDensity(height: number, slope: number, grassWeight: number, lush: number): number {
+/** How much grass grows at a point: grass-covered, not steep, thinner on the forest floor, none under snow. */
+export function grassDensity(height: number, slope: number, grassWeight: number, lush: number, snow = 0): number {
   if (height < SEA_LEVEL + VEGETATION.minHeight) return 0;
   const forestFloor = Math.min(1, Math.max(0, (lush - 0.6) / 0.15));
-  return Math.max(0, Math.min(1, grassWeight * 1.3 - 0.15)) * (1 - forestFloor * 0.5) * (slope < 0.45 ? 1 : 0);
+  const underSnow = Math.max(0, 1 - snow * 2.5);
+  return Math.max(0, Math.min(1, grassWeight * 1.3 - 0.15)) * (1 - forestFloor * 0.5) * underSnow * (slope < 0.45 ? 1 : 0);
 }
 
 export function buildGrassPatch(cx: number, cz: number): GrassPatch {
@@ -66,7 +67,7 @@ export function buildGrassPatch(cx: number, cz: number): GrassPatch {
       const s = surfaceAt(x, z, h, slope);
       const o = (j * side + i) * 4;
       grassColor(s.lush, ground, o, 255);
-      ground[o + 3] = Math.round(grassDensity(h, slope, s.grass, s.lush) * 255);
+      ground[o + 3] = Math.round(grassDensity(h, slope, s.grass, s.lush, s.snow) * 255);
     }
   }
   const size = GRASS_PATCH_CHUNKS * CHUNK_SIZE;

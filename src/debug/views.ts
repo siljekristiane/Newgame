@@ -27,6 +27,7 @@ export const VIEWS: readonly CameraView[] = [
   { id: 'valley', label: 'Dal', x: 47_000, z: 47_000, target: PEAK, pitch: 0.25, distance: 22 },
   { id: 'mountain', label: 'Fjell', x: 37_500, z: 49_800, target: PEAK, pitch: 0.2, distance: 30 },
   { id: 'forest', label: 'Skogutsikt', x: 52_000, z: 38_000, target: { x: 47_000, z: 43_000 }, pitch: 0.45, distance: 60 },
+  { id: 'snowforest', label: 'Snøskog', x: 59_500, z: 33_500, target: { x: 61_500, z: 34_500 }, pitch: 0.3, distance: 30 },
   { id: 'edge', label: 'Verdenskanten', x: 3_500, z: WORLD_SIZE / 2, target: { x: 0, z: WORLD_SIZE / 2 }, pitch: 0.3, distance: 60 },
 ];
 

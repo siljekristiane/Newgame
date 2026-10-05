@@ -65,8 +65,8 @@ describe('canopy', () => {
 
   it('leaves the colour alone without cover or strength', () => {
     const rgb = new Float32Array([0.5, 0.4, 0.3]);
-    applyCanopy(rgb, 0, { cover: 0, conifer: 1 }, 1, 0, 0);
-    applyCanopy(rgb, 0, { cover: 1, conifer: 1 }, 0, 0, 0);
+    applyCanopy(rgb, 0, { cover: 0, conifer: 1, snow: 0 }, 1, 0, 0);
+    applyCanopy(rgb, 0, { cover: 1, conifer: 1, snow: 0 }, 0, 0, 0);
     expect([...rgb]).toEqual([0.5, 0.4, 0.3].map((v) => Math.fround(v)));
   });
 });

@@ -59,9 +59,13 @@ export const vegetationPalette = {
   broadleafLight: '#7f9446',
   bush: '#66783f',
   rock: '#7f7b73',
+  /** Snow lying on branches and boulders (step 15). */
+  snow: '#e6ecf1',
   /** Forest seen from afar (step 11): the canopy with its own shade, darker than one tree. */
   canopyConifer: '#1d2e1a',
   canopyBroadleaf: '#2c4320',
+  /** Snow-laden forest seen from afar. */
+  canopySnow: '#c9d3da',
 } as const;
 
 /** Map and compass drawing (canvas), matching the HUD's Dusk theme. */

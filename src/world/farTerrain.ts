@@ -31,7 +31,7 @@ export function buildFarTile(tx: number, tz: number): FarTile {
   const positions = new Float32Array(side * side * 3);
   const normals = new Float32Array(side * side * 3);
   const colors = new Float32Array(side * side * 3);
-  const canopy: Canopy = { cover: 0, conifer: 0 };
+  const canopy: Canopy = { cover: 0, conifer: 0, snow: 0 };
   const horizonA = new Uint8Array(side * side * 4);
   const horizonB = new Uint8Array(side * side * 4);
   const hg = horizonGridSize(segments);
