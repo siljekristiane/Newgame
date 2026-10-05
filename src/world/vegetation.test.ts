@@ -88,7 +88,7 @@ describe('vegetation', () => {
         const x = 55_000 + data[o + F.x]!;
         const z = 52_000 + data[o + F.z]!;
         expect(oldGrowthAt(x, z)).toBeGreaterThan(0);
-        expect(data[o + F.scale]!).toBeGreaterThanOrEqual(1.7);
+        expect(data[o + F.scale]!).toBeGreaterThanOrEqual(1.5);
         out.push(`${data[o + F.x]!.toFixed(2)},${data[o + F.z]!.toFixed(2)}`);
       }
       return out;

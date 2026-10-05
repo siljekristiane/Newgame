@@ -42,7 +42,8 @@ kjører det samme ved hver push.
   trekanter, geometrier, teksturer, shadere, JS-minne, chunks per LOD og hvor
   lenge strømmingen brukte. Rødt = over budsjett (se «Ytelse»).
 - **Faste kameravinkler** (`src/debug/views.ts`): spawn, coast, shore (strand,
-  fra steg 4), valley, mountain, forest (skogutsikt, fra steg 11), edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
+  fra steg 4), valley, mountain, forest (skogutsikt, fra steg 11), snowforest,
+  oldgrowth, giant-1 … giant-5 (steg 15–17), edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
   knappene i F3-panelet. Samme vinkel før og etter = sammenlignbare bilder.
 - `npm run measure` skriver tall og skjermbilder til `measurements/<tid>/`.
   Referansen før fase 2 ligger i `docs/measurements/baseline/`. En større visuell
@@ -300,6 +301,11 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   planter får snø (`snowOnPlants`, 2 → −0,5 °C, som bakkesnøen) som legges på
   flater som vender opp i shaderen; skogtaket blir hvitt på avstand
   (`canopySnow`). Ikke gress under snø. Vinkel `snowforest`.
+- **Urskog (steg 16, `OLD_GROWTH`):** `oldGrowthAt` (seedet, lavfrekvent støy)
+  velger ~7,5 % av skogen. Der står trærne tettere, og 18 % blir kjempearter
+  (`giantConifer`, `giantBroadleaf`, 1,5–1,9 × vanlig = 20–25 m, tykk stamme med
+  rotflak). Kjempene beholdes i LOD 1, så partiene synes fra 2–3 km; lenger ut
+  er skogtaket mørkere der (`canopyShade`). Vinkel `oldgrowth`.
 - **Skog på avstand (steg 11, `world/canopy.ts`, `CANOPY`):** ekte trær finnes
   bare i LOD 0–1, så lenger ute tar terrengfargen skogtakets farge der trær
   vokser (`canopyAt` bruker samme `plantDensity` som plasserer trærne),
@@ -342,6 +348,20 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   (`sunElevation`), og har glød (additive punkter) og lyskjegler på bakken
   (additive rutenett som følger bakken). Ingen ekte lys per lampe: det ville
   kostet i hver shader. Lamper krymper bort 630–900 m unna (bakken morpher der).
+- **De fem kjempetrærne (steg 17, `src/regions/giants/`, `GIANTS`):** til et
+  senere plot. De står på én sirkel på kartet, 60 km i diameter (senter 32/52 km,
+  72° mellom dem), valgt med en skanning så alle står på land i hvert sitt biom:
+  «Den eldste eika» (skog), «Englinda» (gressland), «Tørrtreet» (tørt land,
+  bare nakne greiner), «Vindfurua» (fjell, vindbøyd skjermfuru) og
+  «Frostvokteren» (snø, snødekt kjempegran). 37 m høye = 10 lyktestolper
+  (`GIANTS.height`; endre der for større). `layout.ts` (ren, testet: sirkel,
+  land, biom, ulike typer) eksporterer `GIANT_TREES` (id, navn, type, posisjon)
+  for quest-systemet. `giantGeometry.ts`: rekursive, prosedyrale greiner med
+  rotflak og løvklaser/nåler/snø, 2–14 k trekanter. `GiantTrees.tsx` tegner dem
+  helt ut til tåka med egen fast horisont (`HorizonSource` `'fixed'`) for fjell-
+  og skyskygge. Vanlige trær holder seg unna (lysning 55–75 m, `clearing()`).
+  Vinkler `giant-1` … `giant-5` velger selv retning og avstand med fri sikt der
+  hele treet får plass i bildet. Testkrok `giants()`.
 - Akademibygningen fra planen venter på brukerens beskjed (bygninger skal være
   CC0 etter ordre).
 

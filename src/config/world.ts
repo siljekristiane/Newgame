@@ -137,8 +137,8 @@ export const GIANTS = {
   startAngle: 27, // degrees, measured from +X (east) toward +Z (south)
   height: 37,
   /** Normal trees keep this far from a giant (fully clear inside, thinning out to `clearOuter`). */
-  clearInner: 28,
-  clearOuter: 40,
+  clearInner: 55,
+  clearOuter: 75,
 } as const;
 
 /**
@@ -154,7 +154,7 @@ export const OLD_GROWTH = {
   /** Extra trees in a patch (× forestTrees) and the share of them that are giants. */
   denser: 0.7,
   giantShare: 0.18,
-  giantScale: [1.7, 2.3] as const,
+  giantScale: [1.5, 1.9] as const,
   /** Darker canopy over old growth, seen from afar. */
   canopyShade: 0.25,
 } as const;

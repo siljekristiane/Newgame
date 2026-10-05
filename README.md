@@ -57,7 +57,10 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 - Prosedyrale detaljteksturer med relieff for gress, jord, stein, sand og snø
 - Fysisk basert himmel med døgnsyklus, sol- og måneskygger, stjerner om natten
 - Vann med havbunnsdybde, bølger, himmelrefleks, solglitter og skum mot land
-- Trær, busker og steiner etter biom, og gress rundt spilleren, som svaier i vinden
+- Trær, busker og steiner etter biom, i ulike former og størrelser, og gress rundt spilleren, som svaier i vinden
+- Snødekt granskog i kalde strøk, og urskogspartier med kjempetrær
+- Fem enorme trær i en stor sirkel på kartet (skog, eng, ørken, fjell og snø), klare for et senere plot
+- Fjellskygger og skyskygger som driver over landskapet
 - Startområde med brosteinsplass, fontene med krystall, grusstier og lamper som tennes om kvelden
 - Vær: skyer som driver, overskyet, regn og snø, tåke som tetner i regnvær
 - Chunk-streaming med Web Workers, 4 LOD-nivåer og skjørt mot sprekker

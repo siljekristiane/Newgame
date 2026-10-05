@@ -1,6 +1,6 @@
 import { GIANTS, SPAWN, WORLD_SIZE } from '../config/world';
 import { GIANT_TREES } from '../regions/giants/layout';
-import { heightAt } from '../world/terrain';
+import { groundHeightAt } from '../world/ground';
 import { cameraRig, player } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 
@@ -23,25 +23,44 @@ export interface CameraView {
 const PEAK = { x: 34_500, z: 49_500 }; // highest snowy peak, ~1 070 m
 
 /**
- * A view of each giant tree: from whichever of eight directions sees it best
- * (the sight line from the camera to the crown stays clear of the ground),
- * close enough that it towers.
+ * A view of each giant tree: from whichever direction and distance sees it
+ * best. The sight line from the camera to the foot of the tree must clear the
+ * rendered ground, and the whole tree must fit in the frame (the camera looks
+ * down at the player by `pitch`, so a tree uphill needs the camera further back).
  */
 function giantView(g: (typeof GIANT_TREES)[number], i: number): CameraView {
-  const range = 75;
-  const foot = heightAt(g.x, g.z);
-  let best = { score: -Infinity, x: g.x, z: g.z };
-  for (let k = 0; k < 8; k++) {
-    const a = (k / 8) * Math.PI * 2;
-    const x = g.x + Math.cos(a) * range;
-    const z = g.z + Math.sin(a) * range;
-    const eye = heightAt(x, z) + 3;
-    // Clearance of the sight line from the eye to half the tree's height.
-    let clear = Infinity;
-    for (let s = 0.1; s < 1; s += 0.1) clear = Math.min(clear, eye + (foot + GIANTS.height / 2 - eye) * s - heightAt(x + (g.x - x) * s, z + (g.z - z) * s));
-    if (clear > best.score) best = { score: clear, x, z };
+  const foot = groundHeightAt(g.x, g.z);
+  const halfFov = 0.4; // radians above the view centre that still show
+  let best = { score: -Infinity, x: g.x, z: g.z, back: 30, pitch: 0.15 };
+  let fallback = { score: -Infinity, x: g.x + 120, z: g.z, back: 60, pitch: 0.1 };
+  for (const [back, pitch] of [[30, 0.15], [60, 0.1], [90, 0.08]] as const) {
+    for (const range of [60, 90, 120, 160, 200]) {
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2;
+        const x = g.x + Math.cos(a) * range;
+        const z = g.z + Math.sin(a) * range;
+        const cx = g.x + Math.cos(a) * (range + back);
+        const cz = g.z + Math.sin(a) * (range + back);
+        // The camera sits back*sin(pitch) above the player's chest, but never in the ground (the
+        // follow camera lifts it), and then it looks down more steeply at the player.
+        const chest = groundHeightAt(x, z) + 1;
+        const eye = Math.max(chest + back * Math.sin(pitch), groundHeightAt(cx, cz) + 1.5);
+        const look = Math.atan((eye - chest) / back);
+        let clear = Infinity;
+        for (let s = 0.05; s < 0.95; s += 0.05) clear = Math.min(clear, eye + (foot + 5 - eye) * s - groundHeightAt(cx + (g.x - cx) * s, cz + (g.z - cz) * s));
+        const top = Math.atan((foot + GIANTS.height - eye) / (range + back));
+        // Closer is better (the tree towers); a little preference for a middling distance.
+        const score = Math.min(clear, 6) - back * 0.05 - Math.abs(range - 90) * 0.02;
+        // If nothing fits, the clearest view that comes closest to fitting.
+        const near = Math.min(clear, 6) - Math.max(0, top + look - halfFov) * 40;
+        if (near > fallback.score) fallback = { score: near, x, z, back, pitch };
+        if (clear < 4 || top + look > halfFov) continue;
+        if (score > best.score) best = { score, x, z, back, pitch };
+      }
+    }
   }
-  return { id: `giant-${i + 1}`, label: g.name, x: best.x, z: best.z, target: { x: g.x, z: g.z }, pitch: 0.02, distance: 14 };
+  if (best.score === -Infinity) best = fallback;
+  return { id: `giant-${i + 1}`, label: g.name, x: best.x, z: best.z, target: { x: g.x, z: g.z }, pitch: best.pitch, distance: best.back };
 }
 
 const GIANT_VIEWS: CameraView[] = GIANT_TREES.map(giantView);

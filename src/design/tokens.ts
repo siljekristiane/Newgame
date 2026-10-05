@@ -73,6 +73,7 @@ export const giantPalette = {
   bark: '#76604b',
   barkOld: '#6a5a4a',
   deadwood: '#bdb19f',
+  pineBark: '#8a6a50',
   oakLeaf: '#4f6e2f',
   oakLeafLight: '#7d9a45',
   lindenLeaf: '#6a8f3a',

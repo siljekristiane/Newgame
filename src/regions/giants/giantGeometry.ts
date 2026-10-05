@@ -168,8 +168,8 @@ function ancientOak(random: () => number): THREE.BufferGeometry[] {
   const parts: THREE.BufferGeometry[] = [];
   const leaves: THREE.BufferGeometry[] = [];
   const tips: Tip[] = [];
-  const trunk: THREE.BufferGeometry[] = [tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(0.6, 6, 0.3), 3, 2.5, 14), tube(new THREE.Vector3(0.6, 6, 0.3), new THREE.Vector3(0.2, 11, -0.4), 2.5, 2, 14)];
-  roots(trunk, 3, 9, random);
+  const trunk: THREE.BufferGeometry[] = [tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(0.6, 6, 0.3), 4.2, 3.4, 16), tube(new THREE.Vector3(0.6, 6, 0.3), new THREE.Vector3(0.2, 11, -0.4), 3.4, 2.6, 16)];
+  roots(trunk, 4.2, 10, random);
   const spec: Branching = { depth: 2, children: [2, 3], spread: [0.45, 0.9], lengthK: 0.62, radiusK: 0.55, rise: 0.12, bend: 0.25, radial: 8 };
   const limbs = 6;
   for (let l = 0; l < limbs; l++) {
@@ -185,8 +185,8 @@ function meadowLinden(random: () => number): THREE.BufferGeometry[] {
   const parts: THREE.BufferGeometry[] = [];
   const leaves: THREE.BufferGeometry[] = [];
   const tips: Tip[] = [];
-  const trunk: THREE.BufferGeometry[] = [tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(-0.3, 10, 0.2), 2.4, 1.7, 12)];
-  roots(trunk, 2.4, 7, random);
+  const trunk: THREE.BufferGeometry[] = [tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(-0.3, 10, 0.2), 3.3, 2.3, 14)];
+  roots(trunk, 3.3, 8, random);
   const spec: Branching = { depth: 2, children: [2, 3], spread: [0.3, 0.65], lengthK: 0.66, radiusK: 0.55, rise: 0.25, bend: 0.18, radial: 8 };
   const limbs = 8;
   for (let l = 0; l < limbs; l++) {
@@ -205,10 +205,10 @@ function deadTree(random: () => number): THREE.BufferGeometry[] {
   const tips: Tip[] = [];
   // A twisted, split trunk; huge bare limbs reaching out and up, many dry twigs.
   const trunk: THREE.BufferGeometry[] = [
-    tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(1, 5, -0.5), 2.6, 2.1, 10),
-    tube(new THREE.Vector3(1, 5, -0.5), new THREE.Vector3(0.2, 10, 0.6), 2.1, 1.6, 10),
+    tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(1, 5, -0.5), 3.4, 2.7, 12),
+    tube(new THREE.Vector3(1, 5, -0.5), new THREE.Vector3(0.2, 10, 0.6), 2.7, 2, 12),
   ];
-  roots(trunk, 2.6, 8, random);
+  roots(trunk, 3.4, 9, random);
   const spec: Branching = { depth: 3, children: [2, 3], spread: [0.4, 0.95], lengthK: 0.6, radiusK: 0.5, rise: 0.15, bend: 0.4, radial: 6 };
   const limbs = 5;
   for (let l = 0; l < limbs; l++) {
@@ -227,10 +227,10 @@ function windPine(random: () => number): THREE.BufferGeometry[] {
   const tips: Tip[] = [];
   // A tall trunk bent by the wind toward +X, bare to high up.
   const knots = [new THREE.Vector3(0, -3, 0), new THREE.Vector3(0.4, 8, 0), new THREE.Vector3(1.6, 16, 0.3), new THREE.Vector3(3.6, 23, 0.2), new THREE.Vector3(6, 28, 0)];
-  const radii = [2.3, 1.9, 1.5, 1.1, 0.7];
+  const radii = [3, 2.4, 1.8, 1.3, 0.8];
   const trunk: THREE.BufferGeometry[] = [];
   for (let k = 0; k < knots.length - 1; k++) trunk.push(tube(knots[k]!, knots[k + 1]!, radii[k]!, radii[k + 1]!, 12));
-  roots(trunk, 2.3, 7, random);
+  roots(trunk, 3, 8, random);
   const spec: Branching = { depth: 1, children: [2, 3], spread: [0.4, 0.8], lengthK: 0.6, radiusK: 0.5, rise: 0.05, bend: 0.2, radial: 6 };
   for (let l = 0; l < 7; l++) {
     const a = (l / 7) * Math.PI * 2;
@@ -242,21 +242,21 @@ function windPine(random: () => number): THREE.BufferGeometry[] {
   // Flat, layered needle pads: the umbrella crown of an old pine.
   tips.forEach((t, i) => crown.push(cluster(t.pos.clone().addScaledVector(UP, 0.8), 3.4 + random(), 0.38, 1, i)));
   crown.push(cluster(knots[4]!.clone().addScaledVector(UP, 1.5), 5.5, 0.4, 1, 99));
-  return [painted(mergeGeometries([...trunk, ...parts])!, barkPaint('#5a4433')), painted(mergeGeometries(crown)!, leafPaint(giantPalette.pineNeedle, '#4c6a3c', 26))];
+  return [painted(mergeGeometries([...trunk, ...parts])!, barkPaint(giantPalette.pineBark)), painted(mergeGeometries(crown)!, leafPaint(giantPalette.pineNeedle, '#4c6a3c', 26))];
 }
 
 function snowFir(random: () => number): THREE.BufferGeometry[] {
   const top = 40;
-  const trunk: THREE.BufferGeometry[] = [tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(0, top - 2, 0), 2.6, 0.35, 12)];
-  roots(trunk, 2.6, 8, random);
+  const trunk: THREE.BufferGeometry[] = [tube(new THREE.Vector3(0, -3, 0), new THREE.Vector3(0, top - 2, 0), 3.4, 0.4, 14)];
+  roots(trunk, 3.4, 9, random);
   const tiers: THREE.BufferGeometry[] = [];
-  const count = 20;
-  const segments = 28;
+  const count = 24;
+  const segments = 32;
   for (let t = 0; t < count; t++) {
     const f = t / count;
-    const radius = 11 * (1 - f) ** 1.05 + 1.2;
+    const radius = 16.5 * (1 - f) ** 1.1 + 1.4;
     const y0 = 5 + f * (top - 7);
-    const h = (top - y0) * 0.3 + 2;
+    const h = (top - y0) * 0.28 + 2.5;
     const g = new THREE.ConeGeometry(radius, h, segments, 1, true);
     g.rotateY(random() * Math.PI);
     g.translate(0, y0 + h / 2, 0);
@@ -279,7 +279,7 @@ function snowFir(random: () => number): THREE.BufferGeometry[] {
     painted(mergeGeometries(trunk)!, barkPaint(giantPalette.barkOld, top)),
     painted(mergeGeometries(tiers)!, (p, n, out) => {
       // Snow lies thick on every upward face; the dark needles show beneath and on the undersides.
-      const cover = Math.min(1, Math.max(0, (n.y - 0.15) * 2.2 + (jitter(p) - 0.5) * 0.5));
+      const cover = Math.min(0.92, Math.max(0, (n.y - 0.42) * 2.4 + (jitter(p) - 0.5) * 0.6));
       out.copy(needles).multiplyScalar(0.6 + (p.y / top) * 0.35).lerp(snow, cover);
     }),
   ];
