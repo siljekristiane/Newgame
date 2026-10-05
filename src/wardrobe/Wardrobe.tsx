@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { EYE_COLORS, HAIR_COLORS, HAIR_STYLES, SKIN_TONES, type Appearance } from '../avatar/appearance';
+import { BODY_IDS, BODY_MODELS } from '../avatar/models';
 import { PRESETS } from '../avatar/presets';
 import { AvatarPreview } from './AvatarPreview';
 import { itemsInSlot, itemById, REQUIRED_SLOTS, SLOTS, type ClothingItem, type Slot } from './catalog';
@@ -32,6 +33,10 @@ function WardrobeDialog() {
     { id: 'look', label: 'Utseende' },
     ...SLOTS,
   ];
+
+  const body = BODY_MODELS[draft.body];
+  // Rigged .glb bodies wear their own clothes and hair for now.
+  const fixedLook = body.kind === 'glb' ? `${body.name} har egne klær og hår. Valgene her gjelder den tegnede figuren.` : null;
 
   const wear = (slot: Slot, item: ClothingItem | null, color?: string) => setDraft((d) => ({ ...d, outfit: equipInOutfit(d.outfit, slot, item, color) }));
 
@@ -101,6 +106,15 @@ function WardrobeDialog() {
 
               {tab === 'look' && (
                 <>
+                  <div className="dw-ward-label">Figur</div>
+                  <div className="dw-ward-pills">
+                    {BODY_IDS.map((id) => (
+                      <button key={id} type="button" className={draft.body === id ? 'dw-btn dw-btn-sm dw-btn-primary' : 'dw-btn dw-btn-sm'} aria-pressed={draft.body === id} onClick={() => setDraft((d) => ({ ...d, body: id }))}>
+                        {BODY_MODELS[id].name}
+                      </button>
+                    ))}
+                  </div>
+                  {fixedLook && <p className="dw-ward-note">{fixedLook}</p>}
                   <Swatches label="Hud" value={draft.skin} options={SKIN_TONES} onPick={(skin) => setDraft((d) => ({ ...d, skin }))} />
                   <Swatches label="Øyne" value={draft.eyes} options={EYE_COLORS} onPick={(eyes) => setDraft((d) => ({ ...d, eyes }))} />
                   <div className="dw-ward-label">Frisyre</div>
@@ -115,6 +129,7 @@ function WardrobeDialog() {
                 </>
               )}
 
+              {tab !== 'start' && tab !== 'look' && fixedLook && <p className="dw-ward-note">{fixedLook}</p>}
               {tab !== 'start' && tab !== 'look' && (
                 <div className="dw-ward-grid">
                   {!REQUIRED_SLOTS.includes(tab) && (
