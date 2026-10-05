@@ -258,9 +258,11 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   LOD 1 et utvalg (`coarseKeep`) med grovere mesher. Planter som neste LOD ikke
   har, krymper bort mens chunken morpher (`fade`), så ingenting popper; LOD 2–3
   har ingen planter. Testet i `vegetation.test.ts`.
-- **Mesher** (`vegetation/plantGeometry.ts`): stablede kjegler med hengende kant
-  (bartre), klumpete kuler (løvtre, busk), fasettert kule (stein), med
-  vertex-farger og `sway`. Delt per LOD; hver chunk har bare sine
+- **Mesher** (`vegetation/plantGeometry.ts`): bartre med seks stjerneformede
+  greinlag der greinspissene stikker ut og henger (steg 12), lysere skudd ytterst
+  (`coniferTip`); løvtre av seks klumpete klaser i hver sin grønntone
+  (`broadleafLight`), mørkere under og innerst; busk; fasettert stein. Fargestøy
+  er knyttet til posisjonen, så den er glatt. Vertex-farger og `sway`. Delt per LOD; hver chunk har bare sine
   instans-attributter.
 - **Materiale** (`materials/plantMaterial.ts`): `MeshStandardMaterial` med
   farge per instans, vind (sving + flimring, fase fra verdensposisjon), LOD-morph

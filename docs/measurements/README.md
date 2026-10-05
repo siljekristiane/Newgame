@@ -62,6 +62,10 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   trekanter med avataren fra den andre chatten (+~65 draw calls mot 10c, som
   kommer fra avataren). `forest-before.jpg` / `forest-after.jpg` er den nye
   vinkelen `forest` (Skogutsikt) uten og med skogtak.
+- `step-12/`: mer naturlige trær. `mountain-before.jpg` / `mountain-after.jpg`:
+  grantrær med seks stjerneformede, hengende greinlag og lysere skudd, løvtrær
+  med flere klaser i ulike grønntoner. Gran 44 → 84 og løvtre 152 → 192
+  trekanter på LOD 0 (LOD 1 omtrent uendret).
 
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og
