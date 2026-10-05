@@ -17,6 +17,11 @@ const color = (hex: string) => new THREE.Color(hex);
 
 /** Per-vertex colour, shading and sway on a part (made non-indexed first). */
 function finish(g: THREE.BufferGeometry, base: THREE.Color, shade: (p: THREE.Vector3) => number, sway: (p: THREE.Vector3) => number): Part {
+  return finishColor(g, (p, out) => out.copy(base).multiplyScalar(shade(p)), sway);
+}
+
+/** Like `finish`, with a colour per vertex (for hue shifts, not just shading). */
+function finishColor(g: THREE.BufferGeometry, paint: (p: THREE.Vector3, out: THREE.Color) => void, sway: (p: THREE.Vector3) => number): Part {
   const geo = g.index ? g.toNonIndexed() : g;
   if (geo !== g) g.dispose();
   geo.deleteAttribute('uv');
@@ -24,15 +29,22 @@ function finish(g: THREE.BufferGeometry, base: THREE.Color, shade: (p: THREE.Vec
   const colors = new Float32Array(pos.count * 3);
   const sways = new Float32Array(pos.count);
   const p = new THREE.Vector3();
+  const c = new THREE.Color();
   for (let v = 0; v < pos.count; v++) {
     p.fromBufferAttribute(pos, v);
-    const k = shade(p);
-    colors.set([base.r * k, base.g * k, base.b * k], v * 3);
+    paint(p, c);
+    colors.set([c.r, c.g, c.b], v * 3);
     sways[v] = sway(p);
   }
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geo.setAttribute('sway', new THREE.BufferAttribute(sways, 1));
   return geo;
+}
+
+/** A stable 0..1 value per position: shared corners get the same, so colour noise stays smooth. */
+function jitter(p: THREE.Vector3): number {
+  const h = Math.sin(p.x * 12.9898 + p.y * 78.233 + p.z * 37.719) * 43758.5453;
+  return h - Math.floor(h);
 }
 
 /** Radial jitter that depends only on direction, so shared corners stay welded. */
@@ -85,40 +97,63 @@ function trunk(radius: number, height: number, detail: number): Part {
 function conifer(detail: number): Part {
   const random = mulberry32(WORLD_SEED + 71);
   const parts: Part[] = [trunk(0.3, 4, detail)];
-  const tiers = detail ? 4 : 3;
+  const tiers = detail ? 6 : 3;
+  // An even number of rim points: every other one is a branch tip, the rest the gaps between.
+  const segments = detail ? 12 : 6;
   const top = 13;
   const base = color(vegetationPalette.conifer);
+  const tip = color(vegetationPalette.coniferTip);
   for (let t = 0; t < tiers; t++) {
     const f = t / tiers;
-    const radius = 2.8 * (1 - f) + 0.6;
-    const y0 = 2.2 + f * (top - 4.5);
-    const h = (top - y0) * (detail ? 0.55 : 0.7);
+    const radius = 3 * (1 - f) ** 1.15 + 0.55;
+    const y0 = 2 + f * (top - 3.6);
+    const h = (top - y0) * (detail ? 0.42 : 0.7);
     // Open underneath: the camera is never below a branch tier, and it saves a third of the triangles.
-    const g = new THREE.ConeGeometry(radius, h, detail ? 8 : 5, 1, true);
+    const g = new THREE.ConeGeometry(radius, h, segments, 1, true);
     g.rotateY(random() * Math.PI);
     g.translate(0, y0 + h / 2, 0);
-    // Droop the rim so tiers read as branches, not stacked cones.
+    // A star-shaped, drooping rim: branch tips stick out and hang, the gaps between pull in.
     const pos = g.getAttribute('position');
     for (let v = 0; v < pos.count; v++) {
-      const y = pos.getY(v);
-      if (y < y0 + 0.01) pos.setY(v, y - 0.5 - random() * 0.5);
+      if (pos.getY(v) > y0 + 0.01) continue;
+      const isTip = (v % (segments + 1)) % 2 === 0;
+      const k = isTip ? 1.05 + random() * 0.15 : 0.62 + random() * 0.08;
+      pos.setX(v, pos.getX(v) * k);
+      pos.setZ(v, pos.getZ(v) * k);
+      pos.setY(v, pos.getY(v) - (isTip ? 0.7 + random() * 0.5 : 0.2));
     }
     g.computeVertexNormals();
     tiltNormals(g, 0.8);
-    parts.push(finish(g, base, (p) => 0.62 + (p.y / top) * 0.5 + (Math.hypot(p.x, p.z) / radius) * 0.12, (p) => (p.y / top) ** 2));
+    parts.push(
+      finishColor(
+        g,
+        (p, out) => {
+          const out01 = Math.min(1, Math.hypot(p.x, p.z) / radius);
+          // Dark and dense inside, fresh growth at the tips, lighter toward the top.
+          out.copy(base).lerp(tip, Math.max(0, out01 - 0.55) * 1.6);
+          out.multiplyScalar((0.5 + (p.y / top) * 0.45 + out01 * 0.2) * (0.9 + jitter(p) * 0.2));
+        },
+        (p) => (p.y / top) ** 2,
+      ),
+    );
   }
   return merge(parts);
 }
 
 function broadleaf(detail: number): Part {
+  const random = mulberry32(WORLD_SEED + 73);
   const parts: Part[] = [trunk(0.4, 6, detail)];
   const base = color(vegetationPalette.broadleaf);
+  const light = color(vegetationPalette.broadleafLight);
+  const center = new THREE.Vector3(0, 6.6, 0);
   const blobs: Array<[number, number, number, number]> = detail
     ? [
-        [0, 7.4, 0, 3.4],
-        [1.8, 6.2, 0.9, 2.4],
-        [-1.5, 6.5, -1.1, 2.5],
-        [0.3, 5.6, -1.9, 2.1],
+        [0, 7.4, 0, 3.3],
+        [1.8, 6.2, 0.9, 2.3],
+        [-1.5, 6.5, -1.1, 2.4],
+        [0.3, 5.6, -1.9, 2],
+        [-0.6, 8.9, 0.8, 1.7],
+        [1.2, 8.3, -1.2, 1.6],
       ]
     : [
         [0, 7.2, 0, 3.6],
@@ -130,8 +165,21 @@ function broadleaf(detail: number): Part {
     lumpy(g, 0.16, i * 1.7 + 1);
     g.scale(1, 0.85, 1);
     g.translate(x, y, z);
-    sphericalNormals(g, new THREE.Vector3(0, 6.2, 0));
-    parts.push(finish(g, base, (p) => 0.65 + ((p.y - 3.5) / 7.5) * 0.5, (p) => Math.min(1, (p.y / 10) ** 2)));
+    sphericalNormals(g, center);
+    // Each leaf cluster its own shade of green; dark underneath and deep inside the crown.
+    const sun = random() * 0.6 + (y - 5.5) * 0.12;
+    parts.push(
+      finishColor(
+        g,
+        (p, out) => {
+          const under = Math.min(1, Math.max(0, (center.y - p.y) / 3.5));
+          const depth = 1 - Math.min(1, p.distanceTo(center) / 4.5);
+          out.copy(base).lerp(light, Math.min(1, Math.max(0, sun)) * (1 - under));
+          out.multiplyScalar((0.95 - under * 0.4 - depth * 0.25) * (0.92 + jitter(p) * 0.16));
+        },
+        (p) => Math.min(1, (p.y / 10) ** 2),
+      ),
+    );
   });
   return merge(parts);
 }
@@ -144,7 +192,7 @@ function bush(detail: number): Part {
     g.scale(1, 0.75, 1);
     g.translate(x!, y!, z!);
     sphericalNormals(g, new THREE.Vector3(0, 0.3, 0));
-    return finish(g, base, (p) => 0.7 + p.y * 0.25, (p) => Math.min(1, p.y * 0.35));
+    return finish(g, base, (p) => (0.55 + p.y * 0.35) * (0.9 + jitter(p) * 0.2), (p) => Math.min(1, p.y * 0.35));
   });
   return merge(parts);
 }

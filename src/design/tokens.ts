@@ -52,7 +52,11 @@ export const pathPalette = {
 export const vegetationPalette = {
   bark: '#4b3b2e',
   conifer: '#3a5732',
+  /** Young growth at the branch tips (step 12). */
+  coniferTip: '#5a7a41',
   broadleaf: '#5b7a3a',
+  /** Sunlit, yellower leaf clusters (step 12). */
+  broadleafLight: '#7f9446',
   bush: '#66783f',
   rock: '#7f7b73',
   /** Forest seen from afar (step 11): the canopy with its own shade, darker than one tree. */
