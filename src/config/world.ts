@@ -105,6 +105,11 @@ export const VEGETATION = {
   spawnClearing: 30,
   /** Size multiplier per kind (the meshes are ~13 m, ~11 m, ~1.5 m and ~2 m). */
   scale: [1, 1, 1, 1.3] as const,
+  /**
+   * LOD 0 chunks draw their plants with LOD 1's coarser meshes while the whole
+   * chunk is further than this from the player (meters, Chebyshev).
+   */
+  detailDistance: 350,
   /** Share of conifers and leafy trees drawn as their second shape (conifer2, broadleaf2). */
   variantShare: 0.45,
   /** Largest lean of a tree, radians. */

@@ -73,7 +73,7 @@ export function Terrain({ manager }: { manager: ChunkManager }) {
   return (
     <group ref={group}>
       {chunks.map((chunk) => (
-        <Chunk key={chunk.key} chunk={chunk} geometry={chunk.geometry} materials={materials[chunk.lod]!} detail={detail} vegetation={vegetation} />
+        <Chunk key={chunk.key} chunk={chunk} geometry={chunk.geometry} materials={materials[chunk.lod]!} farPlants={chunk.lod === 0 ? materials[1]!.plantGeometries : undefined} detail={detail} vegetation={vegetation} />
       ))}
     </group>
   );
@@ -83,12 +83,15 @@ const Chunk = memo(function Chunk({
   chunk,
   geometry,
   materials,
+  farPlants,
   detail,
   vegetation,
 }: {
   chunk: LoadedChunk;
   geometry: THREE.BufferGeometry;
   materials: LodMaterials;
+  /** LOD 1's plant meshes, for the far part of the LOD 0 ring. */
+  farPlants?: THREE.BufferGeometry[];
   detail: boolean;
   vegetation: boolean;
 }) {
@@ -96,7 +99,7 @@ const Chunk = memo(function Chunk({
     <group position={[chunk.cx * CHUNK_SIZE, 0, chunk.cz * CHUNK_SIZE]}>
       <mesh geometry={geometry} material={detail ? materials.terrain : materials.terrainPlain} matrixAutoUpdate={false} userData={{ terrain: true }} receiveShadow />
       {vegetation && chunk.props.length > 0 && (
-        <ChunkPlants plants={chunk.props} bases={materials.plantGeometries} material={materials.plants} cx={chunk.cx} cz={chunk.cz} morphEnd={materials.morphEnd} />
+        <ChunkPlants plants={chunk.props} bases={materials.plantGeometries} farBases={farPlants} material={materials.plants} cx={chunk.cx} cz={chunk.cz} morphEnd={materials.morphEnd} />
       )}
     </group>
   );

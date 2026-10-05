@@ -1,13 +1,15 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { CHUNK_SIZE } from '../config/world';
+import { CHUNK_SIZE, VEGETATION } from '../config/world';
 import { morphEnabled } from '../materials/terrainMaterials';
 import { player } from '../state/runtime';
 import { PLANT_FIELDS as F, PLANT_KINDS, PLANT_STRIDE } from '../world/vegetation';
 
 interface KindInstances {
   geometry: THREE.BufferGeometry;
+  /** The same instances on the coarser meshes, for when the whole chunk is far from the player (or null). */
+  farGeometry: THREE.BufferGeometry | null;
   matrices: Float32Array;
   colors: Float32Array;
   n: number;
@@ -27,6 +29,7 @@ interface KindInstances {
 export function ChunkPlants({
   plants,
   bases,
+  farBases,
   material,
   cx,
   cz,
@@ -34,6 +37,12 @@ export function ChunkPlants({
 }: {
   plants: Float32Array;
   bases: THREE.BufferGeometry[];
+  /**
+   * Coarser meshes for the same plants (LOD 0 chunks get LOD 1's). Used while
+   * every point of the chunk is more than VEGETATION.detailDistance from the
+   * player: the detail is invisible there, the triangles are not.
+   */
+  farBases?: THREE.BufferGeometry[];
   material: THREE.Material;
   cx: number;
   cz: number;
@@ -83,18 +92,26 @@ export function ChunkPlants({
         horB.set(plants.subarray(o + F.horizon + 4, o + F.horizon + 8), slot * 4);
         if (fade[slot] === 0) keep++;
       });
-      const geometry = new THREE.BufferGeometry();
-      const base = bases[k]!;
-      for (const name of Object.keys(base.attributes)) geometry.setAttribute(name, base.getAttribute(name));
-      geometry.boundingSphere = base.boundingSphere;
-      geometry.setAttribute('aMorphDelta', new THREE.InstancedBufferAttribute(delta, 1));
-      geometry.setAttribute('aFade', new THREE.InstancedBufferAttribute(fade, 1));
-      geometry.setAttribute('aSnow', new THREE.InstancedBufferAttribute(snow, 1));
-      geometry.setAttribute('aHorA', new THREE.InstancedBufferAttribute(horA, 4));
-      geometry.setAttribute('aHorB', new THREE.InstancedBufferAttribute(horB, 4));
-      return { geometry, matrices, colors, n, keep };
+      // Per-instance attributes, shared by the near and the far geometry.
+      const instanced: Record<string, THREE.InstancedBufferAttribute> = {
+        aMorphDelta: new THREE.InstancedBufferAttribute(delta, 1),
+        aFade: new THREE.InstancedBufferAttribute(fade, 1),
+        aSnow: new THREE.InstancedBufferAttribute(snow, 1),
+        aHorA: new THREE.InstancedBufferAttribute(horA, 4),
+        aHorB: new THREE.InstancedBufferAttribute(horB, 4),
+      };
+      const withBase = (base: THREE.BufferGeometry) => {
+        const geometry = new THREE.BufferGeometry();
+        for (const name of Object.keys(base.attributes)) geometry.setAttribute(name, base.getAttribute(name));
+        geometry.boundingSphere = base.boundingSphere;
+        for (const [name, attr] of Object.entries(instanced)) geometry.setAttribute(name, attr);
+        return geometry;
+      };
+      const geometry = withBase(bases[k]!);
+      const farGeometry = farBases ? withBase(farBases[k]!) : null;
+      return { geometry, farGeometry, matrices, colors, n, keep };
     });
-  }, [plants, bases]);
+  }, [plants, bases, farBases]);
 
   // Only the per-instance attributes belong to this chunk. Detach the shared
   // base attributes first, so dispose() frees just this chunk's buffers.
@@ -103,11 +120,16 @@ export function ChunkPlants({
       kinds.forEach((k, i) => {
         for (const name of Object.keys(bases[i]!.attributes)) k.geometry.deleteAttribute(name);
         k.geometry.dispose();
+        if (k.farGeometry && farBases) {
+          for (const name of Object.keys(farBases[i]!.attributes)) k.farGeometry.deleteAttribute(name);
+          k.farGeometry.dispose();
+        }
       }),
-    [kinds, bases],
+    [kinds, bases, farBases],
   );
 
   const meshes = useRef<Array<THREE.InstancedMesh | null>>([]);
+  const far = useRef(false);
   const setMesh = useMemo(
     () =>
       kinds.map((_, i) => (mesh: THREE.InstancedMesh | null) => {
@@ -123,10 +145,17 @@ export function ChunkPlants({
     const dx = Math.max(x0 - player.x, 0, player.x - x0 - CHUNK_SIZE);
     const dz = Math.max(z0 - player.z, 0, player.z - z0 - CHUNK_SIZE);
     // With morphing off (debug) the fading plants never shrink, so keep drawing them.
-    const beyond = morphEnabled.value === 1 && Math.max(dx, dz) >= morphEnd;
+    const d = Math.max(dx, dz);
+    const beyond = morphEnabled.value === 1 && d >= morphEnd;
+    // Coarse meshes when the whole chunk is far (a little hysteresis, so it never flickers).
+    if (d > VEGETATION.detailDistance + 30) far.current = true;
+    else if (d < VEGETATION.detailDistance) far.current = false;
     kinds.forEach((k, i) => {
       const mesh = meshes.current[i];
-      if (mesh) mesh.count = beyond ? k.keep : k.n;
+      if (!mesh) return;
+      mesh.count = beyond ? k.keep : k.n;
+      const want = far.current && k.farGeometry ? k.farGeometry : k.geometry;
+      if (mesh.geometry !== want) mesh.geometry = want;
     });
   });
 

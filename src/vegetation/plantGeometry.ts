@@ -259,7 +259,7 @@ function broadleaf2(detail: number): Part {
   ends.push(new THREE.Vector3(0, 8, 0));
   ends.forEach((e, i) => {
     const r = i === ends.length - 1 ? 3 : 2.3 + random() * 0.6;
-    const g = new THREE.IcosahedronGeometry(r, detail && i === ends.length - 1 ? 1 : 0);
+    const g = new THREE.IcosahedronGeometry(r, 0);
     lumpy(g, 0.2, i * 2.1 + 3);
     g.scale(1.15, 0.7, 1.15);
     g.translate(e.x, e.y + 0.6, e.z);
