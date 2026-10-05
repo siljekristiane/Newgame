@@ -91,6 +91,7 @@ src/
     naturalTerrain.ts     naturalHeightAt(x, z): terrengformen uten regioner
     terrain.ts            heightAt(x, z): naturlig terreng med regionene stemplet inn
     biomes.ts             Klima (temperatur, fuktighet) → biom → materialvekter og farge
+    canopy.ts             Skogtakfarge på grove LOD-er og kart (skog på avstand)
     terrainTextures.ts    Prosedyrale, flisbare detaljteksturer (5 materialer) + normal maps
     timeOfDay.ts          Sol, måne, himmel- og lysfarger som ren funksjon av klokkeslett
     ground.ts             groundHeightAt / gridHeightAt: høyden på trekantene som tegnes
@@ -273,7 +274,16 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   naboene, pluss gressfarge i sRGB og tetthet), nøyaktig som `gridHeightAt`
   (testet). Bygges i en worker når spilleren bytter chunk. Normalen peker opp, så
   gresset lyses som bakken; Lambert (ingen spekulær glans på tynne strå).
-- Neste: tekstur på løv/bark, impostorer for skog på avstand.
+- **Skog på avstand (steg 11, `world/canopy.ts`, `CANOPY`):** ekte trær finnes
+  bare i LOD 0–1, så lenger ute tar terrengfargen skogtakets farge der trær
+  vokser (`canopyAt` bruker samme `plantDensity` som plasserer trærne),
+  flekket i klumper og glenner med støy, bartre mørkere enn løv
+  (`vegetationPalette.canopyConifer/Broadleaf`). Styrken øker per LOD
+  (0 / 0,5 / 0,88 / 0,92); morph-fargen bruker neste LODs styrke, så overgangen
+  glir (testet). Fjernringen og kartene bruker full styrke. På LOD 0 regnes
+  skogtaket bare i partallspunktene (det morph-målet leser), så byggetiden er
+  uendret der; LOD 1 koster ~6 ms mer per chunk.
+- Neste: tekstur på løv/bark, impostorer (silhuetter) for skog på avstand.
 
 ### Startområdet (steg 6)
 

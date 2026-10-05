@@ -111,6 +111,23 @@ export const VEGETATION = {
 } as const;
 
 /**
+ * Forest canopy at a distance (step 11): where trees grow, the terrain colour
+ * turns toward the canopy colour on the coarser LODs, where real trees thin out
+ * (LOD 1 keeps 20 %, LOD 2–3 and the far ring have none). `strength` per LOD
+ * index (the far ring and the maps use the last); geomorphing blends the change.
+ */
+export const CANOPY = {
+  strength: [0, 0.5, 0.88, 0.92] as const,
+  /** Tree density (share of VEGETATION.openTrees + forestTrees) where the canopy starts and closes. */
+  coverStart: 0.1,
+  coverFull: 0.75,
+  /** Clumps and gaps in the canopy, meters, and how much they vary the cover and the shade. */
+  clumpScale: 90,
+  clumpCover: 0.35,
+  clumpShade: 0.18,
+} as const;
+
+/**
  * Grass tufts around the player (step 5b), placed on the GPU on a world grid of
  * `cell` meters out to `radius`, thinning out over the last 45 %.
  */

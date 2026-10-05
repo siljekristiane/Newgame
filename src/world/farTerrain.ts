@@ -1,5 +1,6 @@
-import { FAR_TERRAIN } from '../config/world';
+import { CANOPY, FAR_TERRAIN } from '../config/world';
 import { surfaceAt, surfaceColor } from './biomes';
+import { applyCanopy, canopyAt, type Canopy } from './canopy';
 import { toLinear } from './buildChunk';
 import { heightAt } from './terrain';
 
@@ -26,6 +27,7 @@ export function buildFarTile(tx: number, tz: number): FarTile {
   const positions = new Float32Array(side * side * 3);
   const normals = new Float32Array(side * side * 3);
   const colors = new Float32Array(side * side * 3);
+  const canopy: Canopy = { cover: 0, conifer: 0 };
   let minHeight = Infinity;
   let maxHeight = -Infinity;
   for (let j = 0; j < side; j++) {
@@ -41,6 +43,7 @@ export function buildFarTile(tx: number, tz: number): FarTile {
       const len = Math.hypot(nx, 2 * step, nz);
       normals.set([nx / len, (2 * step) / len, nz / len], v * 3);
       surfaceColor(surfaceAt(x, z, h, 1 - (2 * step) / len), x, z, h, colors, v * 3);
+      applyCanopy(colors, v * 3, canopyAt(x, z, h, 1 - (2 * step) / len, canopy), CANOPY.strength[CANOPY.strength.length - 1]!, x, z);
       toLinear(colors, v * 3);
       minHeight = Math.min(minHeight, h);
       maxHeight = Math.max(maxHeight, h);

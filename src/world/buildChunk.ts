@@ -1,6 +1,7 @@
-import { CHUNK_SIZE, LOD_LEVELS, MINIMAP_RESOLUTION, NORMAL_SAMPLE_STEP, SEA_LEVEL, WORLD_SIZE } from '../config/world';
+import { CANOPY, CHUNK_SIZE, LOD_LEVELS, MINIMAP_RESOLUTION, NORMAL_SAMPLE_STEP, SEA_LEVEL, WORLD_SIZE } from '../config/world';
 import { hexToRgb, world } from '../design/tokens';
 import { surfaceAt, surfaceColor } from './biomes';
+import { applyCanopy, canopyAt, canopyStrength, type Canopy } from './canopy';
 import { heightAt } from './terrain';
 import { buildVegetation, PLANT_STRIDE } from './vegetation';
 
@@ -62,6 +63,11 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
   const weights = new Float32Array(vertexCount * 4);
   const morphWeights = new Float32Array(vertexCount * 4);
   const colors = new Float32Array(vertexCount * 3);
+  // Colours as the next coarser LOD shows them (more canopy), for the morph target.
+  const coarseColors = new Float32Array(gridCount * 3);
+  const fineCanopy = canopyStrength(segments);
+  const coarseCanopy = canopyStrength(morphSegments || segments);
+  const canopy: Canopy = { cover: 0, conifer: 0 };
   const originX = cx * CHUNK_SIZE;
   const originZ = cz * CHUNK_SIZE;
   const step = CHUNK_SIZE / segments;
@@ -80,11 +86,21 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
       terrainNormal(originX + lx, originZ + lz, normals, v * 3);
       const surface = surfaceAt(originX + lx, originZ + lz, h, 1 - normals[v * 3 + 1]!);
       surfaceColor(surface, originX + lx, originZ + lz, h, colors, v * 3);
+      // The morph target only reads even grid points, so a chunk without canopy of its own (LOD 0) skips the rest.
+      const needCanopy = coarseCanopy > 0 && (fineCanopy > 0 || (i % 2 === 0 && j % 2 === 0));
+      if (needCanopy) {
+        canopyAt(originX + lx, originZ + lz, h, 1 - normals[v * 3 + 1]!, canopy);
+        coarseColors.set(colors.subarray(v * 3, v * 3 + 3), v * 3);
+        applyCanopy(coarseColors, v * 3, canopy, coarseCanopy, originX + lx, originZ + lz);
+        applyCanopy(colors, v * 3, canopy, fineCanopy, originX + lx, originZ + lz);
+      }
       weights[v * 4] = surface.grass;
       weights[v * 4 + 1] = surface.dirt;
       weights[v * 4 + 2] = surface.rock;
       weights[v * 4 + 3] = surface.sand;
       toLinear(colors, v * 3);
+      if (needCanopy) toLinear(coarseColors, v * 3);
+      else coarseColors.set(colors.subarray(v * 3, v * 3 + 3), v * 3);
       if (h < minHeight) minHeight = h;
       if (h > maxHeight) maxHeight = h;
     }
@@ -110,7 +126,7 @@ export function buildChunk({ cx, cz, segments, morphSegments, withProps }: Chunk
       morphHeights[v] = m;
       if (m < minHeight) minHeight = m;
       if (m > maxHeight) maxHeight = m;
-      for (let k = 0; k < 3; k++) morphColors[v * 3 + k] = (colors[a * 3 + k]! + colors[b * 3 + k]!) / 2;
+      for (let k = 0; k < 3; k++) morphColors[v * 3 + k] = (coarseColors[a * 3 + k]! + coarseColors[b * 3 + k]!) / 2;
       for (let k = 0; k < 4; k++) morphWeights[v * 4 + k] = (weights[a * 4 + k]! + weights[b * 4 + k]!) / 2;
       const nx = normals[a * 3]! + normals[b * 3]!;
       const ny = normals[a * 3 + 1]! + normals[b * 3 + 1]!;
@@ -228,6 +244,7 @@ export function buildMinimap(resolution = MINIMAP_RESOLUTION): Uint8ClampedArray
   const img = new Uint8ClampedArray(resolution * resolution * 4);
   const rgb = new Float32Array(3);
   const n = new Float32Array(3);
+  const canopy: Canopy = { cover: 0, conifer: 0 };
   const water = hexToRgb(world.water);
   const cell = WORLD_SIZE / resolution;
   for (let j = 0; j < resolution; j++) {
@@ -244,6 +261,7 @@ export function buildMinimap(resolution = MINIMAP_RESOLUTION): Uint8ClampedArray
       } else {
         terrainNormal(x, z, n, 0);
         surfaceColor(surfaceAt(x, z, h, 1 - n[1]!), x, z, h, rgb, 0);
+        applyCanopy(rgb, 0, canopyAt(x, z, h, 1 - n[1]!, canopy), CANOPY.strength[CANOPY.strength.length - 1]!, x, z);
         const shade = Math.min(1.25, Math.max(0.55, 0.9 + (-n[0]! - n[2]!) * 1.4));
         img[o] = rgb[0]! * 255 * shade;
         img[o + 1] = rgb[1]! * 255 * shade;
