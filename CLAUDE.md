@@ -81,6 +81,8 @@ src/
   vegetation/             Prosedyrale plante- og steinmesher (three.js)
   regions/                Håndlagde områder: stempling i terrenget + spawn/ (plass, stier)
   player/                 Bevegelsesmodell (ren, testet)
+  avatar/                 Avataren: kropp, ansikt, frisyrer, klesmønstre, animasjon (three.js, prosedyralt)
+  wardrobe/               Klesskapet: katalog (data), låser (quests/mynter), lagring, store og UI (K)
   weather/                Værmodell, skystøy, regn og snø
   settings/               Kvalitetsnivåer: valg fra GPU-navn, lagring i nettleseren
   audio/                  Lydmotor (Web Audio), mikser og lydinnstillinger
@@ -321,8 +323,9 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - **Kamera** (`FollowCamera`): sikten fra spillerens hode til kameraet sjekkes
   mot bakken i fire punkter og kameraet heves så linja går minst
   `CAMERA.clearance` over bakken; bakker og rygger kommer ikke lenger mellom.
-- Figuren er fortsatt plassholder (kule + sekk): figurer kommer som CC0-modell
-  når brukeren ber om det, med animasjon da.
+- Kameraet ser på avatarens bryst og glir opp mot ansiktet når man zoomer helt
+  inn (`AVATAR.camera` i `config/world.ts`); klaringen over bakken krymper med
+  avstanden, så kameraet kan komme helt ned til figuren. Se «Avatar og klesskap».
 
 ### Vær og skyer (steg 8)
 
@@ -389,6 +392,57 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - **Dis:** tåka går nå lineært fra 1,5 km til 30 km (`CAMERA.fogNear/fogFar`,
   kamera `far` 34 km), så fjerne fjell står som disige silhuetter. Regn trekker
   tåka inn som før.
+
+### Avatar og klesskap (steg 11)
+
+- **Avataren** (`src/avatar/`, erstatter kula): 1,6 m høy (`AVATAR.height`,
+  under halvparten av en lyktestolpe på ~3,5 m). Alt som avhenger av
+  størrelsen (kamerafokus, zoom, klaring, lys) regnes fra denne ene konstanten.
+  Bygges prosedyralt i three.js i høy oppløsning: glatte lathe-profiler for kropp
+  og lemmer, hode med smalere kjeve, små spisse ører, øyne med iris, pupill,
+  glans og vipper som blunker, og hår av mange separate, avsmalnende lokker
+  (slått sammen til én mesh per farge). PBR (`MeshStandardMaterial`) med
+  ruhet per stoff, så avataren får samme sol, himmellys, skygger og tonemapping
+  som resten av verden (`avatar/materials.ts`, delt cache).
+  - `buildAvatar(appearance, detail)` brukes overalt: `'medium'` i verden
+    (~70–90 k trekanter), `'high'` i klesskapet (~140–170 k).
+  - Leddgrupper (`Rig` i `avatar/body.ts`): hofter, torso (dreier i livet),
+    nakke, skuldre/albuer, hofteledd/knær. Klær henger på leddene og beveger seg med.
+  - `avatar/animate.ts`: tomgang (pust, ser seg rundt, blunk), gange og løp med
+    skrittlengde etter faktisk fart (kadens begrenset), glidestilling i
+    hurtigreise, sammenkrøpet i lufta; hår, hestehale og skjørt svaier.
+  - `components/Player.tsx` bygger avataren på nytt når utseendet endres.
+- **Klesskapet** (`src/wardrobe/`, tast **K** eller knappen i hjelpelinja):
+  - `catalog.ts`: alle plagg som **data** (id, navn, spor, `pattern`, `params`,
+    fargevalg, `unlock`). Spor: topp, ytterplagg, underdel, sko, hode, hals/bryst;
+    et plagg kan dekke andre spor (kjole dekker underdel).
+  - `avatar/clothing.ts`: ett byggemønster per `pattern` (tunika, bluse, vest,
+    genser, kjole, kåpe, kappe, bukser, shorts, skjørt, støvler, sandaler,
+    diadem, blomsterkrans, bladspenne, nål, skjerf, brosje). Lagene ligger litt
+    utenfor hverandre (`LAYER`).
+  - `unlocks.ts`: det ene stedet som avgjør eid / kan kjøpes / låst / skjult
+    (`itemStatus`), kjøp, gaver og antrekk-regler. Låsetyper: `free`, `coins`,
+    `quest` (valgfritt `hidden`), `questAndCoins`. Valutaen heter
+    `COINS.label` («mynter»), start 120.
+  - `quests.ts`: quest-navn og belønning. Det finnes ikke quests ennå; et
+    framtidig quest-system kaller `useWardrobeStore.getState().completeQuest(id)`.
+  - `storage.ts`: lagres i nettleseren (`duskwood.wardrobe.v1`, med `version`);
+    `parseSave` renser alt og faller tilbake felt for felt (testet).
+  - `useWardrobeStore.ts` (zustand): utseende, framgang, åpent/lukket. Mens
+    klesskapet er åpent tar det tastaturet (ingen gange), Esc lukker, og pekerlåsen slippes.
+  - UI (`Wardrobe.tsx`, `AvatarPreview.tsx`): egen liten canvas med avataren i
+    full detalj (dra for å snu, scroll/klyp helt inn til ansiktet), faner
+    (Startfigur én gang, Utseende, ett per spor), låste plagg kan prøves men ikke lagres.
+  - `?unlockAll` i adressen låser opp alt for testing (lagres ikke).
+- **Legge til:** et plagg = én oppføring i `catalog.ts` (nytt mønster bare hvis
+  formen er ny). En frisyre = en byggefunksjon i `avatar/hair.ts` + oppføring i
+  `HAIR_STYLES`. En lås bak en quest = oppføring i `quests.ts` + `unlock.questId`.
+  Startfigurene ligger i `avatar/presets.ts`. Se også `docs/avatar-og-klesskap.md`.
+- Tester: `wardrobe/unlocks.test.ts`, `wardrobe/storage.test.ts` og
+  `avatar/buildAvatar.test.ts` (hver startfigur, frisyre og plagg bygges; føtter
+  på bakken, høyde, trekantbudsjett, animasjon). e2e: klesskapet i `smoke.spec.ts`.
+- Ikke gjort ennå: vinger (bare data-ideen), ekte skjelett/GLTF, kollisjon
+  mellom klær og lemmer i ekstreme positurer.
 
 ### Lyd (fase A av lydplanen)
 
@@ -504,7 +558,7 @@ Bruk aldri positiv `useFrame`-prioritet uten å ta over renderingen bevisst.
 | Begrensning | Løsning her |
 |---|---|
 | float32 på GPU → skjelving langt fra origo | Flytende origo + lokale chunk-vertekser |
-| Z-fighting over 34 km siktlinje | `logarithmicDepthBuffer: true`, near 0.5 m |
+| Z-fighting over 34 km siktlinje | `logarithmicDepthBuffer: true`, near 0,05 m (så kameraet kan zoome helt inn på avataren) |
 | Minne: 10 000 chunks passer ikke | Bare ~350 lastet; `dispose()` ved utlasting |
 | Terrenggenerering blokkerer frames | Web Workers + Transferables |
 | Opplastingstopper når mange chunks blir ferdige | Tidsbudsjett per frame |

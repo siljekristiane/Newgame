@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { PLAYER } from '../config/world';
+import { AVATAR, PLAYER } from '../config/world';
 import { cameraRig, input } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 import { voiceInput } from '../audio/voiceInput';
+import { useWardrobeStore } from '../wardrobe/useWardrobeStore';
 
 const GAME_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space']);
 
@@ -18,6 +19,16 @@ export function useControls(target: HTMLElement | null): void {
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
+      // The wardrobe (K) takes the keyboard while it is open: no walking, Esc closes it.
+      const wardrobe = useWardrobeStore.getState();
+      if (e.code === 'KeyK' && !e.repeat) {
+        wardrobe.toggle();
+        return;
+      }
+      if (wardrobe.open) {
+        if (e.code === 'Escape') wardrobe.setOpen(false);
+        return;
+      }
       const store = useGameStore.getState();
       if (e.code === 'KeyF' && !e.repeat) store.toggleTravelMode();
       if (e.code === 'KeyN' && !e.repeat) store.toggleMinimap();
@@ -92,7 +103,7 @@ export function useControls(target: HTMLElement | null): void {
     };
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      cameraRig.distance = clamp(cameraRig.distance * Math.exp(e.deltaY * 0.001), 6, 2_000);
+      cameraRig.distance = clamp(cameraRig.distance * Math.exp(e.deltaY * 0.001), AVATAR.camera.minDistance, AVATAR.camera.maxDistance);
     };
     const onLockChange = () => useGameStore.getState().setPointerLocked(locked());
     document.addEventListener('pointerlockchange', onLockChange);

@@ -38,7 +38,8 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 | Klikk i spillet | Styr kameraet med musa (Esc slipper) |
 | F | Hurtigreise av/på (500 m/s) |
 | Q / E, eller dra med musa | Snu kameraet |
-| Scroll | Zoom |
+| Scroll | Zoom, helt inn til ansiktet på figuren |
+| K | Klesskap: velg startfigur, endre hud, øyne og hår, bytt og kjøp klær |
 | U | Lyd av/på (volum per kanal i F3) |
 | T | Figuren sier noe (babling); den nynner av seg selv når den står stille |
 | M | Stort kart (klikk for å teleportere, Esc lukker) |
@@ -61,7 +62,9 @@ npm run measure  # ytelsestall og skjermbilder av faste kameravinkler
 - Vær: skyer som driver, overskyet, regn og snø, tåke som tetner i regnvær
 - Chunk-streaming med Web Workers, 4 LOD-nivåer og skjørt mot sprekker
 - Flytende origo, så det ikke skjelver langt ute i verden
-- Spiller (plassholder) med myk bevegelse, hopp og musestyrt tredjepersonskamera
+- Avatar i høy oppløsning (1,6 m, under halvparten av lyktestolpene) med ansikt, øyne som blunker, fem frisyrer av ekte hårlokker, klær som følger kroppen, og animasjon for tomgang, gange, løp, hopp og hurtigreise
+- Musestyrt tredjepersonskamera som ser på figuren og kan zoomes helt inn til ansiktet
+- Klesskap (**K**) med 3D-forhåndsvisning, fire startfigurer, 22 plagg i seks spor, fargevalg, og plagg låst bak mynter eller quests (se [docs/avatar-og-klesskap.md](./docs/avatar-og-klesskap.md))
 - HUD med posisjon i km, høyde, retning, fart og ytelsestall
 - Kvalitetsnivåer (Lav/Middels/Høy) valgt automatisk etter skjermkortet, kan endres i F3
 - Kompass, minikart som kan skjules og stort kart med rutenett, alle med klikk-for-å-teleportere

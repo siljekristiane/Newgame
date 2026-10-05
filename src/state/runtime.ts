@@ -1,4 +1,4 @@
-import { SPAWN, TIME } from '../config/world';
+import { AVATAR, SPAWN, TIME } from '../config/world';
 import { groundHeightAt } from '../world/ground';
 import { createMoveState } from '../player/movement';
 import { weatherAt, type Weather } from '../weather/weather';
@@ -30,7 +30,7 @@ export const origin = { x: SPAWN.x, z: SPAWN.z, version: 0 };
 export const cameraRig = {
   yaw: 0, // radians, 0 = looking north (-Z)
   pitch: 0.35, // radians above the horizon
-  distance: 22, // meters behind the player
+  distance: AVATAR.camera.defaultDistance as number, // meters from the focus point (scroll zooms)
 };
 
 /** In-game clock: hours 0..24, plus game hours elapsed in total (weather). Advanced by GameLoop unless paused. */

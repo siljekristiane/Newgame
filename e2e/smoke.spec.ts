@@ -57,6 +57,49 @@ test.describe('Duskwood World', () => {
     await waitUntilSettled(page);
   });
 
+  test('the wardrobe (K): pick a starter look, try a locked item, save, and no walking while it is open', async ({ page }) => {
+    const errors = watchForErrors(page);
+    await openGame(page);
+    await page.keyboard.press('KeyK');
+    const dialog = page.getByRole('dialog', { name: 'Klesskap' });
+    await expect(dialog).toBeVisible();
+
+    // Movement keys are ignored while the wardrobe is open.
+    const before = await page.evaluate(() => window.__duskwood!.hud());
+    await page.keyboard.down('KeyW');
+    await page.waitForTimeout(800);
+    await page.keyboard.up('KeyW');
+    const still = await page.evaluate(() => window.__duskwood!.hud());
+    expect(Math.abs(still.z - before.z)).toBeLessThan(0.05);
+
+    // The starter look (once) gives its clothes.
+    await expect(dialog.getByRole('tab', { name: 'Startfigur' })).toHaveAttribute('aria-selected', 'true');
+    await dialog.getByRole('button', { name: 'Velg', exact: true }).first().click();
+    await dialog.getByRole('tab', { name: 'Ytterplagg' }).click();
+    await expect(dialog.getByText('På deg')).toBeVisible();
+
+    // A quest item can be tried on but not saved.
+    await expect(dialog.getByText('Låst: Fullfør «Stien inn i skogen»')).toBeVisible();
+    const save = dialog.getByRole('button', { name: 'Lagre utseende' });
+    const cloakCard = dialog.locator('.dw-ward-card', { hasText: 'Skogkappe' });
+    await cloakCard.getByRole('button', { name: 'Prøv' }).click();
+    await expect(save).toBeDisabled();
+    await cloakCard.locator('..').locator('.dw-ward-card', { hasText: 'Lavendelkåpe' }).getByRole('button', { name: 'Ta på' }).click();
+    await expect(save).toBeEnabled();
+    await save.click();
+    await expect(dialog).toBeHidden();
+
+    // Saved in the browser, and the starter choice is gone next time.
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('duskwood.wardrobe.v1') ?? '{}'));
+    expect(stored.starterChosen).toBe(true);
+    expect(stored.appearance.outfit.outer.id).toBe('outer_lavender_coat');
+    await page.keyboard.press('KeyK');
+    await expect(dialog.getByRole('tab', { name: 'Startfigur' })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
   test('the big map opens with M and teleports on click; N, P and H hide the panels', async ({ page }) => {
     await openGame(page);
     await page.keyboard.press('KeyM');

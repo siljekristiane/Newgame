@@ -314,7 +314,8 @@ export const MAX_MESH_UPLOADS_PER_FRAME = 4;
 export const UPLOAD_BUDGET_MS = 3;
 
 export const CAMERA = {
-  near: 0.5,
+  /** Small, so the camera can zoom right up to the avatar (the depth buffer is logarithmic, so far stays sharp). */
+  near: 0.05,
   far: 34_000,
   fogNear: 1_500,
   /** Haze grows linearly to full at the edge of the far ring. */
@@ -337,6 +338,32 @@ export const PLAYER = {
   gravity: 20, // m/s², a bit more than real for a snappy jump
   /** Mouse look: radians per pixel of movement. */
   mouseSensitivity: 0.0025,
+} as const;
+
+/**
+ * The avatar (src/avatar/) and the camera distances that follow from its size.
+ * Change `height` and the model, its shadow and the camera framing follow.
+ * A lamp post in the spawn area is ~3,5 m, so 1,6 m stays under half of it.
+ */
+export const AVATAR = {
+  height: 1.6, // meters, sole to top of the head
+  /** The camera looks at this fraction of the height (chest), and glides up to `faceRatio` when zoomed right in. */
+  focusRatio: 0.62,
+  faceRatio: 0.9,
+  camera: {
+    defaultDistance: 5.5,
+    /** Scroll zoom range, meters from the focus point. */
+    minDistance: 0.55,
+    maxDistance: 2_000,
+    /** Between these distances the focus glides from chest to face. */
+    faceBlendFrom: 2.4,
+    faceBlendTo: 0.9,
+    /** Ground clearance of the line of sight grows with distance, up to CAMERA.clearance. */
+    minClearance: 0.12,
+    clearancePerMeter: 0.08,
+  },
+  /** In-game detail ('medium') vs. the wardrobe preview ('high'). */
+  gameDetail: 'medium',
 } as const;
 
 /**

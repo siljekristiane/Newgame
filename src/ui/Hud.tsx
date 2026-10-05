@@ -4,6 +4,8 @@ import { DebugPanel } from './DebugPanel';
 import { BigMap } from './BigMap';
 import { Compass } from './Compass';
 import { Minimap } from './Minimap';
+import { Wardrobe } from '../wardrobe/Wardrobe';
+import { useWardrobeStore } from '../wardrobe/useWardrobeStore';
 
 export function Hud() {
   const hud = useGameStore((s) => s.hud);
@@ -15,6 +17,7 @@ export function Hud() {
   const positionOpen = useGameStore((s) => s.positionOpen);
   const toggleMinimap = useGameStore((s) => s.toggleMinimap);
   const togglePosition = useGameStore((s) => s.togglePosition);
+  const toggleWardrobe = useWardrobeStore((s) => s.toggle);
 
   return (
     <div className="dw-hud">
@@ -46,6 +49,8 @@ export function Hud() {
 
       <DebugPanel />
 
+      <Wardrobe />
+
       <div className="dw-panel dw-help">
         <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gå</span>
         <span><kbd>Shift</kbd> løp</span>
@@ -53,6 +58,9 @@ export function Hud() {
         <span>{pointerLocked ? <><kbd>Esc</kbd> slipp musa</> : <>Klikk: styr kamera med musa · <kbd>Q</kbd><kbd>E</kbd> snu</>}</span>
         <span>Scroll: zoom</span>
         <span><kbd>M</kbd> kart</span>
+        <button type="button" className="dw-btn dw-btn-sm" onClick={toggleWardrobe}>
+          <kbd>K</kbd> Klesskap
+        </button>
         <span><kbd>H</kbd> skjul paneler</span>
         {!minimapOpen && (
           <button type="button" className="dw-btn dw-btn-sm" onClick={toggleMinimap}>
