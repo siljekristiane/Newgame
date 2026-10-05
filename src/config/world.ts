@@ -123,8 +123,8 @@ export const CANOPY = {
   coverFull: 0.75,
   /** Clumps and gaps in the canopy, meters, and how much they vary the cover and the shade. */
   clumpScale: 90,
-  clumpCover: 0.35,
-  clumpShade: 0.18,
+  clumpCover: 0.45,
+  clumpShade: 0.32,
 } as const;
 
 /**

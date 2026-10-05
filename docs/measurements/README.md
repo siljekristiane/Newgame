@@ -57,6 +57,11 @@ Hver mappe er én kjøring av `npm run measure`: `report.md` (tabell), `report.j
   +60 draw calls, +30 k trekanter. `horizon-high.jpg` (ovenfra over dalen) og
   `horizon-spawn.jpg` viser fjerne fjellkjeder. Ved verdenskanten −150 k
   trekanter: gresset tegnes ikke der patchen ikke har gress (hav).
+- `step-11/`: skogtak på avstand. Samme draw calls og trekanter som før
+  skogtaket (det er bare vertex-farger); 279–305 draw calls og 0,57–1,16 M
+  trekanter med avataren fra den andre chatten (+~65 draw calls mot 10c, som
+  kommer fra avataren). `forest-before.jpg` / `forest-after.jpg` er den nye
+  vinkelen `forest` (Skogutsikt) uten og med skogtak.
 
 Slik sammenligner du: kjør `npm run measure` etter en endring og legg den nye
 `report.md` ved siden av `baseline/report.md`. Skjermbildene har samme vinkel og

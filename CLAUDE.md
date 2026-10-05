@@ -42,7 +42,7 @@ kjører det samme ved hver push.
   trekanter, geometrier, teksturer, shadere, JS-minne, chunks per LOD og hvor
   lenge strømmingen brukte. Rødt = over budsjett (se «Ytelse»).
 - **Faste kameravinkler** (`src/debug/views.ts`): spawn, coast, shore (strand,
-  fra steg 4), valley, mountain, edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
+  fra steg 4), valley, mountain, forest (skogutsikt, fra steg 11), edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
   knappene i F3-panelet. Samme vinkel før og etter = sammenlignbare bilder.
 - `npm run measure` skriver tall og skjermbilder til `measurements/<tid>/`.
   Referansen før fase 2 ligger i `docs/measurements/baseline/`. En større visuell
