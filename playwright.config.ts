@@ -12,7 +12,8 @@ export default defineConfig({
   timeout: 240_000,
   expect: { timeout: 15_000 },
   workers: 1,
-  reporter: [['list']],
+  // In CI the github reporter also turns failures into annotations on the run.
+  reporter: process.env.CI ? [['list'], ['github']] : [['list']],
   use: {
     baseURL: 'http://localhost:4173',
     viewport: { width: 1280, height: 720 },
