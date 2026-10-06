@@ -106,7 +106,11 @@ export function fromRiggedScene(scene: THREE.Object3D, body: keyof typeof BODY_M
     triangles: Math.round(triangles),
     body,
     update: (dt, m) => animateSkinned(rig, anim, dt, m),
-    // Geometry, materials and textures are shared with the cached file.
-    dispose: () => group.removeFromParent(),
+    // Geometry, materials and textures are shared with the cached file; the
+    // skeleton (and its bone texture on the GPU) belongs to this clone.
+    dispose: () => {
+      group.removeFromParent();
+      scene.traverse((o) => (o as THREE.SkinnedMesh).skeleton?.dispose());
+    },
   };
 }

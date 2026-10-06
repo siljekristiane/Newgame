@@ -76,8 +76,9 @@ function WardrobeDialog() {
                     {PRESETS.map((p) => (
                       <div key={p.id} className="dw-ward-card">
                         <div className="dw-ward-swatches">
-                          {[p.appearance.skin, p.appearance.hairColor, p.appearance.eyes].map((c) => (
-                            <span key={c} className="dw-ward-swatch" style={{ background: c }} />
+                          {[p.appearance.skin, p.appearance.hairColor, p.appearance.eyes].map((c, i) => (
+                            // Hair and eyes may share a colour: key by position.
+                            <span key={i} className="dw-ward-swatch" style={{ background: c }} />
                           ))}
                         </div>
                         <strong>{p.name}</strong>

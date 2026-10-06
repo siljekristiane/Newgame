@@ -456,6 +456,21 @@ export const AVATAR = {
     minClearance: 0.12,
     clearancePerMeter: 0.08,
   },
+  /**
+   * A soft lantern glow on the avatar after dark: in front of it towards the
+   * camera, a little above the face, so the face is lit from the front (from
+   * straight above it left a dark band over nose and mouth). Off in daylight.
+   */
+  light: {
+    intensity: 6,
+    distance: 18,
+    /** Meters towards the camera, and above the top of the head. */
+    towardsCamera: 1.3,
+    aboveHead: 0.35,
+    /** Sun height (y of the direction to it) where it fades in, fully on at `fullAt`. */
+    fadeFrom: 0.12,
+    fullAt: -0.04,
+  },
   /** In-game detail ('medium') vs. the wardrobe preview ('high'). */
   gameDetail: 'medium',
 } as const;

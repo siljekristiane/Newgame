@@ -514,7 +514,11 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   - `humanoid.ts`: beinrollene animasjonen bruker, og kart for egne filer og
     Mixamo. `skinnedAnimator.ts`: samme tomgang/gange/løp/glid/hopp som
     `animate.ts`, skrevet som rotasjoner i figurens rom og regnet om til hvert
-    beins hvilestilling, så det virker uansett beinakser.
+    beins hvilestilling, så det virker uansett beinakser. Armene svinger mot
+    beinet på samme side, og kroppen lener seg fram i løp og glid; begge
+    animatorene testes for dette (`models.test.ts`, `buildAvatar.test.ts`).
+  - Lyset på avataren (`AVATAR.light`) står foran den mot kameraet og tennes
+    bare i mørket (styrke 0 om dagen, så ingen shader bygges på nytt).
   - Klesskapet har «Figur»-valg under Utseende; for `.glb`-figurer sier det at
     klærne er faste.
   - `tools/avatar/` (Python) bygger `alv.glb` på nytt fra formen og bildene i

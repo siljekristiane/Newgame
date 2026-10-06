@@ -4,8 +4,16 @@ import type * as THREE from 'three';
 import { AVATAR } from '../config/world';
 import { world } from '../design/tokens';
 import { useAvatar } from '../avatar/useAvatar';
-import { motion, origin, player } from '../state/runtime';
+import { lightDirections } from '../materials/terrainShadow';
+import { cameraRig, motion, origin, player } from '../state/runtime';
 import { useWardrobeStore } from '../wardrobe/useWardrobeStore';
+
+const L = AVATAR.light;
+
+const smooth = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 
 /**
  * The player's avatar, built from the look saved in the wardrobe (procedural
@@ -14,6 +22,8 @@ import { useWardrobeStore } from '../wardrobe/useWardrobeStore';
  */
 export function Player() {
   const ref = useRef<THREE.Group>(null);
+  const body = useRef<THREE.Group>(null);
+  const light = useRef<THREE.PointLight>(null);
   const appearance = useWardrobeStore((s) => s.appearance);
   const avatar = useAvatar(appearance, AVATAR.gameDetail);
 
@@ -21,14 +31,21 @@ export function Player() {
     const g = ref.current;
     if (!g) return;
     g.position.set(player.x - origin.x, player.y, player.z - origin.z);
-    g.rotation.y = player.heading;
+    if (body.current) body.current.rotation.y = player.heading;
     avatar?.update(Math.min(dt, 0.1), { speed: player.speed, air: motion.air });
+    const l = light.current;
+    if (l) {
+      // The camera sits along (sin yaw, cos yaw) from the player (FollowCamera).
+      l.position.set(Math.sin(cameraRig.yaw) * L.towardsCamera, AVATAR.height + L.aboveHead, Math.cos(cameraRig.yaw) * L.towardsCamera);
+      // Stays in the scene at 0 by day, so no shader is rebuilt when it comes on.
+      l.intensity = L.intensity * smooth(L.fadeFrom, L.fullAt, lightDirections.sun.value.y);
+    }
   });
 
   return (
     <group ref={ref}>
-      {avatar && <primitive object={avatar.group} />}
-      <pointLight color={world.lamp} intensity={6} distance={18} position={[0, AVATAR.height + 0.9, 0]} />
+      <group ref={body}>{avatar && <primitive object={avatar.group} />}</group>
+      <pointLight ref={light} color={world.lamp} intensity={0} distance={L.distance} />
     </group>
   );
 }

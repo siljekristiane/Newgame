@@ -124,4 +124,32 @@ describe('skinned animation', () => {
       expect(Number.isFinite(world('handR').y)).toBe(true);
     }
   });
+
+  it('walks with each arm swinging against the leg on its side, and leans into a run and the glide', () => {
+    const root = testRig();
+    const rig = createSkinnedRig(root, IDENTITY_BONE_MAP, 0.12);
+    const s = createAnimState(1);
+    const world = (name: string) => {
+      root.updateMatrixWorld(true);
+      return new THREE.Vector3().setFromMatrixPosition(root.getObjectByName(name)!.matrixWorld);
+    };
+    animateSkinned(rig, s, 1 / 60, { speed: 0, air: 0 });
+    const arm0 = world('handL').z - world('upperArmL').z;
+    let c = 0;
+    let ll = 0;
+    let aa = 0;
+    for (let i = 0; i < 300; i++) {
+      animateSkinned(rig, s, 1 / 120, { speed: 4, air: 0 });
+      const leg = world('footL').z - world('thighL').z;
+      const arm = world('handL').z - world('upperArmL').z - arm0;
+      c += leg * arm;
+      ll += leg * leg;
+      aa += arm * arm;
+    }
+    expect(c / Math.sqrt(ll * aa)).toBeLessThan(-0.5);
+    for (const speed of [14, 150]) {
+      for (let i = 0; i < 60; i++) animateSkinned(rig, s, 1 / 30, { speed, air: 0 });
+      expect(world('head').z - world('hips').z, `speed ${speed}`).toBeGreaterThan(0.02);
+    }
+  });
 });

@@ -57,4 +57,32 @@ describe('buildAvatar', () => {
     }
     av.dispose();
   });
+
+  it('walks with each arm swinging against the leg on its side, and leans into a run and the glide', () => {
+    const av = buildAvatar({ ...DEFAULT_APPEARANCE, body: 'procedural' });
+    const r = av.rig;
+    const s = createAnimState(1);
+    const at = (o: THREE.Object3D, y = 0) => {
+      av.group.updateMatrixWorld(true);
+      return new THREE.Vector3(0, y, 0).applyMatrix4(o.matrixWorld);
+    };
+    // Index 1 is the left side (+X) for both legs and arms.
+    let c = 0;
+    let ll = 0;
+    let aa = 0;
+    for (let i = 0; i < 300; i++) {
+      animateAvatar(r, s, 1 / 120, { speed: 4, air: 0 });
+      const leg = at(r.knee[1], -0.38).z - at(r.hip[1]).z;
+      const arm = at(r.elbow[1], -0.24).z - at(r.shoulder[1]).z;
+      c += leg * arm;
+      ll += leg * leg;
+      aa += arm * arm;
+    }
+    expect(c / Math.sqrt(ll * aa)).toBeLessThan(-0.5);
+    for (const speed of [14, 150]) {
+      for (let i = 0; i < 60; i++) animateAvatar(r, s, 1 / 30, { speed, air: 0 });
+      expect(at(r.head).z - at(r.hips, 0.9).z, `speed ${speed}`).toBeGreaterThan(0.02);
+    }
+    av.dispose();
+  });
 });

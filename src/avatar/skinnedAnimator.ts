@@ -80,7 +80,11 @@ const Z = new THREE.Vector3(0, 0, 1);
 const _q = new THREE.Quaternion();
 const _w = new THREE.Quaternion();
 
-/** Character-space rotation: about X (positive leans/bends forward), then Y, then Z. */
+/**
+ * Character-space rotation: about X, then Y, then Z. A positive X angle tips
+ * something pointing up (spine, neck) forwards to +Z, and something hanging
+ * down (leg, arm) backwards to -Z.
+ */
 function euler(x: number, y: number, z: number, out: THREE.Quaternion): THREE.Quaternion {
   out.setFromAxisAngle(Y, y);
   out.multiply(_q.setFromAxisAngle(X, x));
@@ -121,24 +125,28 @@ export function animateSkinned(rig: SkinnedRig, s: AnimState, dt: number, m: Mot
     b.hips.bone.position.y = rig.hipsY + Math.abs(sinP) * 0.025 * walk * (1 - glide);
     pose(b.hips, euler(0, sinP * 0.07 * walk * (1 - glide), Math.cos(s.phase) * 0.03 * walk, _w));
   }
-  pose(b.spine, euler(-(run * 0.12 + glide * 0.25), 0, 0, _w));
-  pose(b.chest, euler(-(run * 0.05 + glide * 0.1) + breathe * 0.01, -sinP * 0.1 * walk * (1 - glide), 0, _w));
-  pose(b.neck, euler(run * 0.08 + Math.sin(t * 0.23) * 0.03 * idle, Math.sin(t * 0.37 + s.seed) * 0.18 * idle, 0, _w));
-  pose(b.head, euler(run * 0.06, Math.sin(t * 0.37 + s.seed) * 0.12 * idle, Math.sin(t * 0.29 + 1) * 0.04 * idle, _w));
+  // Lean into a run and the glide (as animate.ts); neck and head take back
+  // part of it, so the eyes stay on the way ahead.
+  const lean = run * 0.17 + glide * 0.35;
+  pose(b.spine, euler(lean * 0.7, 0, 0, _w));
+  pose(b.chest, euler(lean * 0.3 + breathe * 0.01, -sinP * 0.1 * walk * (1 - glide), 0, _w));
+  pose(b.neck, euler(-lean * 0.35 + Math.sin(t * 0.23) * 0.03 * idle, Math.sin(t * 0.37 + s.seed) * 0.18 * idle, 0, _w));
+  pose(b.head, euler(-lean * 0.25, Math.sin(t * 0.37 + s.seed) * 0.12 * idle, Math.sin(t * 0.29 + 1) * 0.04 * idle, _w));
 
   for (const side of ['L', 'R'] as const) {
     const k = side === 'L' ? 1 : -1;
     const l = LIMBS[side];
     const legSwing = k * sinP * swing;
-    pose(b[l.thigh], euler(-legSwing - air * 0.55 - glide * 0.25, 0, k * 0.02, _w));
+    // Legs trail behind in the glide; tucked up in the air.
+    pose(b[l.thigh], euler(-legSwing - air * 0.55 + glide * 0.25, 0, k * 0.02, _w));
     const back = Math.max(0, k * Math.sin(s.phase + Math.PI / 2));
     pose(b[l.shin], euler(back * swing * 1.3 + air * 0.95 + glide * 0.2, 0, 0, _w));
     pose(b[l.foot], euler(-back * swing * 0.3, 0, 0, _w));
 
-    // Arms: lower from the file's rest pose, then swing against the legs.
-    const armSwing = -k * sinP * swing * 0.85;
+    // Arms: lower from the file's rest pose, then swing opposite the leg on the same side.
+    const armSwing = k * sinP * swing * 0.85;
     const out = k * (air * 0.5 + glide * 0.2 + Math.abs(breathe) * 0.008);
-    euler(armSwing - glide * 0.9 + Math.sin(t * 0.9 + k) * 0.02 * idle, 0, out, _w).multiply(rig.armDown[side]);
+    euler(armSwing + glide * 0.9 + Math.sin(t * 0.9 + k) * 0.02 * idle, 0, out, _w).multiply(rig.armDown[side]);
     pose(b[l.upperArm], _w);
     pose(b[l.foreArm], euler(-((0.12 + walk * 0.25 + run * 0.8) * (1 - glide) + air * 0.3), 0, 0, _w));
     pose(b[l.hand], euler(0, 0, 0, _w));

@@ -15,7 +15,7 @@ export interface Preset {
 export const PRESETS: readonly Preset[] = [
   {
     id: 'starcharter',
-    name: 'Stjernekartisten',
+    name: 'Stjerne\u00adkartisten',
     mood: 'Drømmende og klok',
     appearance: {
       body: 'procedural',
@@ -53,7 +53,7 @@ export const PRESETS: readonly Preset[] = [
   },
   {
     id: 'moondreamer',
-    name: 'Måneskinnsdrømmeren',
+    name: 'Måneskinns\u00addrømmeren',
     mood: 'Leken og nysgjerrig',
     appearance: {
       body: 'procedural',
@@ -71,7 +71,7 @@ export const PRESETS: readonly Preset[] = [
   },
   {
     id: 'duskadventurer',
-    name: 'Skumringseventyreren',
+    name: 'Skumrings\u00adeventyreren',
     mood: 'Sprudlende og tøff',
     appearance: {
       body: 'procedural',
