@@ -30,3 +30,16 @@ eie; komponistene døde for over 70 år siden.
 | Fil | Hva | Kilde | Lisens |
 |---|---|---|---|
 | `alv.glb` | Alven: form, farger og skjelett | Formen er laget av prosjekteieren med [TRELLIS.2](https://github.com/microsoft/TRELLIS.2) (Microsoft, MIT) fra egne referansebilder (`tools/avatar/alv/`). Farger, tekstur og skjelett er laget med `tools/avatar/` i dette prosjektet. | Prosjekteierens eget verk |
+
+## Teksturer (`public/textures/academy/`)
+
+Akademibygningen ved startplassen er formet i kode (`src/regions/academy/`). Overflatene
+er PBR-teksturer fra Poly Haven (1k, farge `diff`, normal `nor` og AO/ruhet/metall `arm`,
+komprimert på nytt med ffmpeg).
+
+| Filer | Tekstur | Kilde | Lisens |
+|---|---|---|---|
+| `wall-*.jpg` | Castle Wall Slates | [Poly Haven](https://polyhaven.com/a/castle_wall_slates) | CC0 |
+| `roof-*.jpg` | Roof Slates 03 | [Poly Haven](https://polyhaven.com/a/roof_slates_03) | CC0 |
+| `trim-*.jpg` | Large Sandstone Blocks 01 | [Poly Haven](https://polyhaven.com/a/large_sandstone_blocks_01) | CC0 |
+| `door-*.jpg` | Medieval Wood | [Poly Haven](https://polyhaven.com/a/medieval_wood) | CC0 |

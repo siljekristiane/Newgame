@@ -316,6 +316,33 @@ export const SPAWN = { x: WORLD_SIZE / 2, z: WORLD_SIZE / 2 };
  * paths that wind out from it, following the gentlest ground. The terrain is
  * flattened under them (regions/stamps.ts); lengths in meters.
  */
+/**
+ * The academy by the spawn plaza: a stone hall with a round tower and slate
+ * roofs, shaped in code (regions/academy) and dressed in CC0 textures from
+ * Poly Haven (public/textures/academy, CREDITS.md). It stands `distance`
+ * meters from the plaza centre along `heading` (radians from north, clockwise)
+ * with its door facing the fountain, on a pad levelled with the plaza.
+ */
+export const ACADEMY = {
+  heading: -0.3,
+  distance: 46,
+  hall: { width: 24, depth: 12, wallHeight: 9, ridge: 14.5, overhang: 0.6, plinth: 0.9 },
+  tower: { radius: 3.6, wallHeight: 16, top: 21.5, segments: 28 },
+  door: { width: 2.4, height: 4, steps: 3 },
+  /** Ground is levelled out to this far beyond the walls, then eased back over `blend`. */
+  padMargin: 4,
+  padBlend: 20,
+  /** Trees keep this far from the walls; grass stops at the walls. */
+  plantClearance: 5,
+  /** Meters of wall per texture repeat. */
+  texScale: { wall: 3, roof: 3, trim: 2, door: 2.4 },
+  /** The dressed stone is lifted a little, so surrounds and quoins read against the rubble walls. */
+  trimBrightness: 1.35,
+  /** Window glow after dark follows the lamps (sun elevation, radians). */
+  glowFrom: 0.05,
+  glowFull: -0.08,
+} as const;
+
 export const SPAWN_AREA = {
   plaza: { x: WORLD_SIZE / 2, z: WORLD_SIZE / 2 - 28, radius: 22, blend: 30 },
   /** Start direction of each path, radians from north (−Z) clockwise. */

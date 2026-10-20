@@ -83,6 +83,16 @@ export const giantPalette = {
   snow: '#eef3f7',
 } as const;
 
+/** The academy (regions/academy): stand-ins while textures load, and the windows. */
+export const academyPalette = {
+  wall: '#8a8273',
+  roof: '#3d4147',
+  trim: '#b9a888',
+  door: '#4a3a2c',
+  glass: '#1c2228',
+  glow: '#ffc874',
+} as const;
+
 /** Map and compass drawing (canvas), matching the HUD's Dusk theme. */
 export const mapPalette = {
   ink: '#1f1a2a',
