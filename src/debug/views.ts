@@ -1,5 +1,6 @@
 import { GIANTS, SPAWN, WORLD_SIZE } from '../config/world';
-import { academyLayout, toWorld } from '../regions/academy/layout';
+import { buildingById, toWorld } from '../regions/buildings/placements';
+import { spawnLayout } from '../regions/spawn/layout';
 import { GIANT_TREES } from '../regions/giants/layout';
 import { groundHeightAt } from '../world/ground';
 import { cameraRig, player } from '../state/runtime';
@@ -68,15 +69,22 @@ const GIANT_VIEWS: CameraView[] = GIANT_TREES.map(giantView);
 
 /** The academy from the plaza: the player stands off to one side of the fountain, facing the door and tower. */
 function academyView(): CameraView {
-  const a = academyLayout();
-  const stand = toWorld(-9, 38, { x: 0, z: 0 });
-  return { id: 'academy', label: 'Akademiet', x: stand.x, z: stand.z, target: { x: a.x, z: a.z }, pitch: 0.12, distance: 26 };
+  const a = buildingById('academy');
+  const stand = toWorld(a, -9, 38, { x: 0, z: 0 });
+  return { id: 'academy', label: 'Akademiet', x: stand.x, z: stand.z, target: { x: a.x, z: a.z - 6 }, pitch: 0.16, distance: 32 };
+}
+
+/** The campus from the south-east, over the plaza: academy, library, dormitory and bell tower. */
+function campusView(): CameraView {
+  const { plaza } = spawnLayout();
+  return { id: 'campus', label: 'Campus', x: plaza.x + 85, z: plaza.z + 45, target: { x: plaza.x - 20, z: plaza.z - 15 }, pitch: 0.3, distance: 70 };
 }
 
 export const VIEWS: readonly CameraView[] = [
   { id: 'spawn', label: 'Spawn', x: SPAWN.x, z: SPAWN.z, target: { x: SPAWN.x, z: SPAWN.z - 1_000 }, pitch: 0.35, distance: 22 },
   { id: 'coast', label: 'Kyst', x: 50_500, z: 47_000, target: { x: 50_700, z: 45_500 }, pitch: 0.3, distance: 26 },
   academyView(),
+  campusView(),
   { id: 'shore', label: 'Strand', x: 51_000, z: 46_760, target: { x: 51_050, z: 45_500 }, pitch: 0.22, distance: 20 },
   { id: 'valley', label: 'Dal', x: 47_000, z: 47_000, target: PEAK, pitch: 0.25, distance: 22 },
   { id: 'mountain', label: 'Fjell', x: 37_500, z: 49_800, target: PEAK, pitch: 0.2, distance: 30 },

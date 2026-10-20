@@ -83,7 +83,7 @@ export const giantPalette = {
   snow: '#eef3f7',
 } as const;
 
-/** The academy (regions/academy): stand-ins while textures load, and the windows. */
+/** The stone buildings (regions/buildings): stand-ins while textures load, and the windows. */
 export const academyPalette = {
   wall: '#8a8273',
   roof: '#3d4147',

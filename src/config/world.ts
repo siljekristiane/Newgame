@@ -317,21 +317,36 @@ export const SPAWN = { x: WORLD_SIZE / 2, z: WORLD_SIZE / 2 };
  * flattened under them (regions/stamps.ts); lengths in meters.
  */
 /**
- * The academy by the spawn plaza: a stone hall with a round tower and slate
- * roofs, shaped in code (regions/academy) and dressed in CC0 textures from
- * Poly Haven (public/textures/academy, CREDITS.md). It stands `distance`
- * meters from the plaza centre along `heading` (radians from north, clockwise)
- * with its door facing the fountain, on a pad levelled with the plaza.
+ * The stone buildings round the spawn plaza (regions/buildings), shaped in
+ * code with the building kit and dressed in CC0 textures from Poly Haven
+ * (public/textures/academy, CREDITS.md). Each stands at an offset from the
+ * plaza centre (meters, +X east, +Z south), turned by `rotation` (three.js
+ * rotation.y; the door, local +Z, faces the plaza or the path) on a level pad.
+ * The sites were chosen with a scan (clear of the paths, lamps, plaza and each
+ * other); placements.test.ts keeps them so.
  */
-export const ACADEMY = {
-  heading: -0.3,
-  distance: 46,
-  hall: { width: 24, depth: 12, wallHeight: 9, ridge: 14.5, overhang: 0.6, plinth: 0.9 },
-  tower: { radius: 3.6, wallHeight: 16, top: 21.5, segments: 28 },
-  door: { width: 2.4, height: 4, steps: 3 },
-  /** Ground is levelled out to this far beyond the walls, then eased back over `blend`. */
-  padMargin: 4,
+export const BUILDINGS = {
+  sites: [
+    { id: 'academy', design: 'academy-extended', dx: -13.59, dz: -43.95, rotation: 0.3 },
+    { id: 'library', design: 'library', dx: 69, dz: 6, rotation: -1.66 },
+    { id: 'dormitory', design: 'dormitory', dx: -51, dz: -27, rotation: -5.2 },
+    { id: 'belltower', design: 'belltower', dx: 32, dz: 52, rotation: 2.21 },
+    { id: 'house', design: 'house', dx: -74, dz: 33, rotation: 0.71 },
+    { id: 'cottage', design: 'cottage', dx: -84, dz: 90, rotation: -2.23 },
+    { id: 'workshop', design: 'workshop', dx: 56, dz: -103, rotation: 1.36 },
+  ],
+  /** Within this distance of the plaza centre a pad sits at plaza level; further out at the mean ground under it. */
+  plazaLevelWithin: 90,
+  /**
+   * Ground is levelled out to this far beyond the walls, then eased back over
+   * the blend (smaller buildings: shorter). At least one LOD 0 grid step
+   * (1000 / 64 ≈ 15.6 m), so no drawn triangle under a wall reaches the slope.
+   */
+  padMargin: 16,
   padBlend: 20,
+  smallPadBlend: 12,
+  /** Footprints under this bounding radius count as small. */
+  smallRadius: 12,
   /** Trees keep this far from the walls; grass stops at the walls. */
   plantClearance: 5,
   /** Meters of wall per texture repeat. */

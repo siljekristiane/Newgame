@@ -69,7 +69,7 @@ export interface BuildingGeometry {
   height: number;
 }
 
-/** Meters of each surface per texture repeat (as ACADEMY.texScale). */
+/** Meters of each surface per texture repeat (as BUILDINGS.texScale). */
 export interface TexScale {
   wall: number;
   roof: number;

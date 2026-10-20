@@ -1,5 +1,5 @@
-import { ACADEMY, GIANTS, SPAWN_AREA } from '../config/world';
-import { ACADEMY_RADIUS, academyDistance, academyLayout } from './academy/layout';
+import { BUILDINGS, GIANTS, SPAWN_AREA } from '../config/world';
+import { distanceTo, nearestBuilding, placedBuildings } from './buildings/placements';
 import { spawnLayout, type PathPoint } from './spawn/layout';
 import { nearestGiantDistance } from './giants/layout';
 
@@ -48,13 +48,14 @@ function buildIndex(): Index {
       maxZ = Math.max(maxZ, p.z + margin);
     }
   }
-  // The academy's pad and its blend.
-  const academy = academyLayout();
-  const reach = ACADEMY_RADIUS + ACADEMY.padMargin + ACADEMY.padBlend + 1;
-  minX = Math.min(minX, academy.x - reach);
-  maxX = Math.max(maxX, academy.x + reach);
-  minZ = Math.min(minZ, academy.z - reach);
-  maxZ = Math.max(maxZ, academy.z + reach);
+  // The buildings' pads and their blends.
+  for (const b of placedBuildings()) {
+    const reach = b.radius + BUILDINGS.padMargin + b.padBlend + 1;
+    minX = Math.min(minX, b.x - reach);
+    maxX = Math.max(maxX, b.x + reach);
+    minZ = Math.min(minZ, b.z - reach);
+    maxZ = Math.max(maxZ, b.z + reach);
+  }
   const cols = Math.ceil((maxX - minX) / CELL) + 1;
   const cells = new Map<number, Segment[]>();
   for (const path of paths) {
@@ -135,9 +136,11 @@ export function stampHeight(x: number, z: number, natural: number): number {
   const { plaza } = spawnLayout();
   const pd = plazaDistance(x, z);
   if (pd < SPAWN_AREA.plaza.blend) h += (plaza.y - h) * (1 - smooth(0, SPAWN_AREA.plaza.blend, pd));
-  // The academy stands on a level pad, eased back into the land around it.
-  const ad = academyDistance(x, z) - ACADEMY.padMargin;
-  if (ad < ACADEMY.padBlend) h += (academyLayout().y - h) * (1 - smooth(0, ACADEMY.padBlend, ad));
+  // Each building stands on a level pad, eased back into the land around it.
+  for (const b of placedBuildings()) {
+    const d = distanceTo(b, x, z) - BUILDINGS.padMargin;
+    if (d < b.padBlend) h += (b.y - h) * (1 - smooth(0, b.padBlend, d));
+  }
   return h;
 }
 
@@ -165,9 +168,10 @@ export function rasterizeClearing(mask: Uint8Array, size: number, x0: number, z0
       }
     }
   };
-  const academy = academyLayout();
-  const ar = ACADEMY_RADIUS + 1;
-  paint(academy.x - ar, academy.z - ar, academy.x + ar, academy.z + ar, (x, z) => 1 - smooth(-0.3, 0.8, academyDistance(x, z)));
+  for (const b of placedBuildings()) {
+    const r = b.radius + 1;
+    paint(b.x - r, b.z - r, b.x + r, b.z + r, (x, z) => 1 - smooth(-0.3, 0.8, distanceTo(b, x, z)));
+  }
   const { plaza, paths } = spawnLayout();
   const r = plaza.radius + 1;
   paint(plaza.x - r, plaza.z - r, plaza.x + r, plaza.z + r, (x, z) => 1 - smooth(-0.3, 0.6, plazaDistance(x, z)));
@@ -190,13 +194,13 @@ export function rasterizeClearing(mask: Uint8Array, size: number, x0: number, z0
 /**
  * How much a point is kept clear of plants: 1 on a path or the plaza (plus
  * SPAWN_AREA.plantClearance), easing to 0 a few meters further out, around
- * the academy, and around the five giant trees, so each stands free.
+ * the buildings, and around the five giant trees, so each stands free.
  */
 export function clearing(x: number, z: number): number {
   const edge = SPAWN_AREA.pathWidth / 2 + SPAWN_AREA.plantClearance;
   const onPath = 1 - smooth(edge, edge + 2, nearestPath(x, z).distance);
   const onPlaza = 1 - smooth(SPAWN_AREA.plantClearance, SPAWN_AREA.plantClearance + 4, plazaDistance(x, z));
   const byGiant = 1 - smooth(GIANTS.clearInner, GIANTS.clearOuter, nearestGiantDistance(x, z));
-  const byAcademy = 1 - smooth(ACADEMY.plantClearance, ACADEMY.plantClearance + 4, academyDistance(x, z));
-  return Math.max(onPath, onPlaza, byGiant, byAcademy);
+  const byBuilding = 1 - smooth(BUILDINGS.plantClearance, BUILDINGS.plantClearance + 4, nearestBuilding(x, z).distance);
+  return Math.max(onPath, onPlaza, byGiant, byBuilding);
 }

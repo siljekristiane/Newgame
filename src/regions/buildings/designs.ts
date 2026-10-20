@@ -1,9 +1,9 @@
 import type { BuildingSpec } from './buildingKit';
 
 /**
- * Building designs made with the kit (buildingKit.ts). Draft set for the
- * examples shown to the user before anything is placed in the world.
- * Sizes in meters; a lamp post is ~3.7 m and the avatar 1.6 m.
+ * Building designs made with the kit (buildingKit.ts), placed round the spawn
+ * plaza by BUILDINGS.sites (placements.ts). Sizes in meters; a lamp post is
+ * ~3.7 m and the avatar 1.6 m.
  */
 export interface BuildingDesign {
   id: string;
@@ -11,7 +11,7 @@ export interface BuildingDesign {
   spec: BuildingSpec;
 }
 
-/** The academy as it stands (hall and round tower), rebuilt with the kit. */
+/** The academy's original hall (24 × 12 m, ridge 14.5 m), as first built. */
 const ACADEMY_HALL = { x: 0, z: 0, length: 24, width: 12, floors: 2, floorHeight: 4.05, pitch: 5.5 / 6, door: { side: 'front' as const } };
 
 export const DESIGNS: readonly BuildingDesign[] = [

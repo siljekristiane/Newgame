@@ -42,7 +42,7 @@ kjører det samme ved hver push.
   trekanter, geometrier, teksturer, shadere, JS-minne, chunks per LOD og hvor
   lenge strømmingen brukte. Rødt = over budsjett (se «Ytelse»).
 - **Faste kameravinkler** (`src/debug/views.ts`): spawn, coast, shore (strand,
-  fra steg 4), academy, valley, mountain, forest (skogutsikt, fra steg 11), snowforest,
+  fra steg 4), academy, campus, valley, mountain, forest (skogutsikt, fra steg 11), snowforest,
   oldgrowth, giant-1 … giant-5 (steg 15–17), edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
   knappene i F3-panelet. Samme vinkel før og etter = sammenlignbare bilder.
 - `npm run measure` skriver tall og skjermbilder til `measurements/<tid>/`.
@@ -367,19 +367,36 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   og skyskygge. Vanlige trær holder seg unna (lysning 55–75 m, `clearing()`).
   Vinkler `giant-1` … `giant-5` velger selv retning og avstand med fri sikt der
   hele treet får plass i bildet. Testkrok `giants()`.
-- **Akademiet (`src/regions/academy/`, `ACADEMY`):** steinbygning med rundt tårn
-  og skiferstak like nord for fontena (46 m fra plassens sentrum, døra mot
-  fontena). Formen er laget i kode (`academyGeometry.ts`: hall 24 × 12 m, møne
-  14,5 m, tårn til 22 m, buevinduer, karmer, hjørnesteiner, trapp; ~4,4 k
-  trekanter), og overflatene er CC0-teksturer fra Poly Haven
-  (`public/textures/academy/`, 3 MB, i `CREDITS.md`). Til teksturene er lastet
-  vises enkle farger (`academyPalette`). Tomta flates i `stampHeight` (4 m
-  utenfor muren, myk overgang 20 m), trær og gress holder seg unna
-  (`clearing`, `rasterizeClearing`). Fast horisont for fjell- og skyskygge som
-  kjempetrærne; vinduene gløder fra skumring. Ingen kollisjon eller interiør
-  ennå. `layout.ts` er ren og testet (fri for stier og lamper, flat tomt,
-  trekantbudsjett). Vinkel `academy`. Ferdige CC0-bygninger ble vurdert først
-  (Poly Haven, Quaternius, Kenney, Sketchfab), men ingen passet stilen.
+- **Bygningene (`src/regions/buildings/`, `BUILDINGS`):** sju steinbygg rundt
+  plassen, laget med et byggesett i kode og kledd i CC0-teksturer fra Poly Haven
+  (`public/textures/academy/`, 3 MB, i `CREDITS.md`).
+  - `buildingKit.ts`: bygg som data. Fløyer (lengde, bredde, etasjer, saltak
+    eller valmtak, takkvister, dør med trapp) og tårn (runde/firkantede, kjegle-
+    eller pyramidetak, klokkeetasje, port). Vinduene legges ut per etasje og
+    utelates der en annen del dekker muren; `buildingDistance` gir grunnflaten.
+    `kitParts.ts` har byggeklossene (flater med UV i meter, buede åpninger med
+    karmer, bokser i veggens rom, dreide ringer).
+  - `designs.ts`: akademiet utbygd (opprinnelig hall + L-fløy på 3 etasjer,
+    tårn til 31 m), bibliotek (3 etasjer, valmtak, hjørnetårn), sovesal (4
+    etasjer, 34 m, to trappetårn), klokketårn med port (32 m), to småhus og et
+    verksted. 1,9–18,8 k trekanter hver, ~54 k til sammen.
+  - `BUILDINGS.sites` (`config/world.ts`): plass, retning og design per bygg,
+    valgt med en skanning (fri for stier, lamper, plassen, start og hverandre,
+    døra mot plassen eller stien). `placements.ts` (ren, testet) gir
+    verdensposisjon og tomtehøyde: plassens høyde innen 90 m, ellers snittet av
+    bakken under.
+  - Tomta flates i `stampHeight` 16 m utenfor muren (minst ett LOD 0-rutesteg,
+    så ingen tegnet trekant under muren når bakken utenfor), med myk overgang
+    20 m (12 m for småhus). Trær og gress holder seg unna (`clearing`,
+    `rasterizeClearing`).
+  - `Buildings.tsx`: alle bygg slås sammen til én geometri per overflate (mur,
+    tak, hugget stein, dør, glass), altså 5 draw calls. Hvert bygg har sin
+    egen fjell- og skyhorisont som vertex-attributter (`horizonA/B`, som
+    terrenget); vinduene gløder fra skumring. Til teksturene er lastet vises
+    enkle farger (`academyPalette`).
+  - Ingen kollisjon eller interiør ennå. Vinkler `academy` og `campus`. Ferdige
+    CC0-bygninger ble vurdert først (Poly Haven, Quaternius, Kenney, Sketchfab),
+    men ingen passet stilen. Måling i `docs/measurements/campus/`.
 
 ### Bevegelse og kamera (steg 7)
 

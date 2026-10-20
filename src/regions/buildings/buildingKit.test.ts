@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ACADEMY } from '../../config/world';
+import { BUILDINGS } from '../../config/world';
 import { buildingDistance, createBuildingGeometry } from './buildingKit';
 import { DESIGNS } from './designs';
 import { BUILDING_PARTS } from './kitParts';
@@ -7,7 +7,7 @@ import { BUILDING_PARTS } from './kitParts';
 describe('building kit', () => {
   it('builds every design: finite, within budget, standing on the pad', () => {
     for (const d of DESIGNS) {
-      const g = createBuildingGeometry(d.spec, ACADEMY.texScale);
+      const g = createBuildingGeometry(d.spec, BUILDINGS.texScale);
       expect(g.triangles, d.id).toBeGreaterThan(500);
       expect(g.triangles, d.id).toBeLessThan(25_000);
       let maxY = -Infinity;
@@ -39,7 +39,7 @@ describe('building kit', () => {
     // pair is less than the two built apart (the end windows are left out).
     const wing = { x: 0, z: 0, length: 12, width: 8, floors: 2 };
     const neighbour = { x: 9.5, z: 0, length: 8, width: 10, floors: 4 };
-    const glass = (wings: Array<typeof wing>) => createBuildingGeometry({ wings }, ACADEMY.texScale).parts.glass.attributes.position!.count;
+    const glass = (wings: Array<typeof wing>) => createBuildingGeometry({ wings }, BUILDINGS.texScale).parts.glass.attributes.position!.count;
     expect(glass([wing, neighbour])).toBeLessThan(glass([wing]) + glass([neighbour]));
   });
 });
