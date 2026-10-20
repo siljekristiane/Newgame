@@ -242,7 +242,6 @@ test.describe('Duskwood World', () => {
 });
 
 test('the player stands on the rendered ground, also between grid points', async ({ page }) => {
-  await openGame(page);
   // Fixed views, plus off-grid points: on the highest ridge, on a slope and in a valley.
   const spots: Array<[string, number, number]> = [
     ['ridge', 34_507.3, 49_511.1],
@@ -250,6 +249,9 @@ test('the player stands on the rendered ground, also between grid points', async
     ['valley', 47_008.8, 46_992.6],
     ['spawn', 50_000, 50_000],
   ];
+  // The world streams in afresh at the start and at every spot (~50 s each under software rendering).
+  test.setTimeout(90_000 * (spots.length + 1));
+  await openGame(page);
   let worstOld = 0;
   for (const [name, x, z] of spots) {
     await page.evaluate(([px, pz]) => window.__duskwood!.teleport(px!, pz!), [x, z]);
