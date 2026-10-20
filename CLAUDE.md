@@ -432,6 +432,10 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   forsvinner helt; hjelpelinja nederst får da knappene «Vis kart»/«Vis
   posisjon». Valget huskes ikke (`minimapOpen`, `positionOpen`,
   `toggleHudPanels` i storen).
+- **Snarveislinja** nederst kan skjules med **B** eller «✕ Skjul»; da står bare
+  en liten knapp «B Snarveier» igjen nede til venstre. Dette valget huskes i
+  nettleseren (`helpOpen`/`toggleHelp`, `settings/helpBar.ts`). Tastene virker
+  som før selv om linja er skjult.
 - **Minikart** kan skjules med **N** (eller knappen), og **M** åpner det store
   kartet (`ui/BigMap.tsx`): hele verden med 10 km-rutenett, spilleren,
   innlastet område og startplassen; koordinater ved hover, klikk teleporterer.
@@ -770,5 +774,5 @@ vurderes senere).
 ## Kontroller
 
 W A S D gå · Shift løp · Mellomrom hopp · klikk: styr kamera med musa (Esc slipper) · Q/E eller dra: snu kamera · scroll: zoom ·
-F: hurtigreise (500 m/s) · U: lyd av/på · T: si noe · M: stort kart · N: skjul/vis minikart · P: skjul/vis posisjon · H: skjul/vis begge · klikk på kartet: teleporter · F3: ytelsespanel
+F: hurtigreise (500 m/s) · U: lyd av/på · T: si noe · M: stort kart · N: skjul/vis minikart · P: skjul/vis posisjon · H: skjul/vis begge · B: skjul/vis snarveislinja · klikk på kartet: teleporter · F3: ytelsespanel
 (også tid på døgnet, skygger, teksturer, myke LOD-overganger).

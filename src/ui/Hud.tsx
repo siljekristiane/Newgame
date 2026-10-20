@@ -18,6 +18,8 @@ export function Hud() {
   const toggleMinimap = useGameStore((s) => s.toggleMinimap);
   const togglePosition = useGameStore((s) => s.togglePosition);
   const toggleWardrobe = useWardrobeStore((s) => s.toggle);
+  const helpOpen = useGameStore((s) => s.helpOpen);
+  const toggleHelp = useGameStore((s) => s.toggleHelp);
 
   return (
     <div className="dw-hud">
@@ -51,34 +53,46 @@ export function Hud() {
 
       <Wardrobe />
 
-      <div className="dw-panel dw-help">
-        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gå</span>
-        <span><kbd>Shift</kbd> løp</span>
-        <span><kbd>Mellomrom</kbd> hopp</span>
-        <span>{pointerLocked ? <><kbd>Esc</kbd> slipp musa</> : <>Klikk: styr kamera med musa · <kbd>Q</kbd><kbd>E</kbd> snu</>}</span>
-        <span>Scroll: zoom</span>
-        <span><kbd>M</kbd> kart</span>
-        <button type="button" className="dw-btn dw-btn-sm" onClick={toggleWardrobe}>
-          <kbd>K</kbd> Klesskap
+      {!helpOpen && (
+        <button type="button" className="dw-btn dw-btn-sm dw-help-show" onClick={toggleHelp} title="Vis snarveiene">
+          <kbd>B</kbd> Snarveier
         </button>
-        <span><kbd>H</kbd> skjul paneler</span>
-        {!minimapOpen && (
-          <button type="button" className="dw-btn dw-btn-sm" onClick={toggleMinimap}>
-            <kbd>N</kbd> Vis kart
+      )}
+
+      {helpOpen && (
+        <div className="dw-panel dw-help">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gå</span>
+          <span><kbd>Shift</kbd> løp</span>
+          <span><kbd>Mellomrom</kbd> hopp</span>
+          <span>{pointerLocked ? <><kbd>Esc</kbd> slipp musa</> : <>Klikk: styr kamera med musa · <kbd>Q</kbd><kbd>E</kbd> snu</>}</span>
+          <span>Scroll: zoom</span>
+          <span><kbd>M</kbd> kart</span>
+          <button type="button" className="dw-btn dw-btn-sm" onClick={toggleWardrobe}>
+            <kbd>K</kbd> Klesskap
           </button>
-        )}
-        {!positionOpen && (
-          <button type="button" className="dw-btn dw-btn-sm" onClick={togglePosition}>
-            <kbd>P</kbd> Vis posisjon
+          <span><kbd>H</kbd> skjul paneler</span>
+          {!minimapOpen && (
+            <button type="button" className="dw-btn dw-btn-sm" onClick={toggleMinimap}>
+              <kbd>N</kbd> Vis kart
+            </button>
+          )}
+          {!positionOpen && (
+            <button type="button" className="dw-btn dw-btn-sm" onClick={togglePosition}>
+              <kbd>P</kbd> Vis posisjon
+            </button>
+          )}
+          <span><kbd>U</kbd> lyd {muted ? 'av' : 'på'}</span>
+          <span><kbd>T</kbd> si noe</span>
+          <span><kbd>F3</kbd> ytelse</span>
+          <span><kbd>B</kbd> skjul snarveier</span>
+          <button type="button" className={travel ? 'dw-btn dw-btn-primary' : 'dw-btn'} onClick={toggleTravel} aria-pressed={travel}>
+            <kbd>F</kbd> Hurtigreise {travel ? 'på' : 'av'}
           </button>
-        )}
-        <span><kbd>U</kbd> lyd {muted ? 'av' : 'på'}</span>
-        <span><kbd>T</kbd> si noe</span>
-        <span><kbd>F3</kbd> ytelse</span>
-        <button type="button" className={travel ? 'dw-btn dw-btn-primary' : 'dw-btn'} onClick={toggleTravel} aria-pressed={travel}>
-          <kbd>F</kbd> Hurtigreise {travel ? 'på' : 'av'}
-        </button>
-      </div>
+          <button type="button" className="dw-btn dw-btn-sm dw-help-hide" onClick={toggleHelp} title="Skjul snarveiene" aria-label="Skjul snarveiene">
+            ✕ Skjul
+          </button>
+        </div>
+      )}
     </div>
   );
 }

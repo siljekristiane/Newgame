@@ -34,6 +34,7 @@ export function useControls(target: HTMLElement | null): void {
       if (e.code === 'KeyN' && !e.repeat) store.toggleMinimap();
       if (e.code === 'KeyP' && !e.repeat) store.togglePosition();
       if (e.code === 'KeyH' && !e.repeat) store.toggleHudPanels();
+      if (e.code === 'KeyB' && !e.repeat) store.toggleHelp();
       if (e.code === 'KeyU' && !e.repeat) store.toggleMute();
       if (e.code === 'KeyT' && !e.repeat) voiceInput.talk++;
       if (e.code === 'KeyM' && !e.repeat) {

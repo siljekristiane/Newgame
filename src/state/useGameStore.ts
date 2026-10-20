@@ -5,6 +5,7 @@ import { clock, player } from './runtime';
 import type { WeatherMode } from '../weather/weather';
 import { QUALITY, type QualityLevel } from '../config/world';
 import { saveQuality } from '../settings/quality';
+import { loadHelpOpen, saveHelpOpen } from '../settings/helpBar';
 import { loadAudioSettings, saveAudioSettings, type AudioChannel, type AudioSettings } from '../audio/mixer';
 import { terrainShadow } from '../materials/terrainShadow';
 
@@ -78,6 +79,8 @@ interface GameState {
   minimapOpen: boolean;
   /** The position panel (top left); P toggles it, H both panels. Not remembered between visits. */
   positionOpen: boolean;
+  /** The shortcut line at the bottom; B toggles it. Remembered in this browser (settings/helpBar.ts). */
+  helpOpen: boolean;
   bigMapOpen: boolean;
   /** performance.now() of the last start or teleport, for the settle-time measurement. */
   lastJumpAt: number;
@@ -107,6 +110,7 @@ interface GameState {
   togglePosition: () => void;
   /** Hides both the minimap and the position panel, or shows both if either is hidden. */
   toggleHudPanels: () => void;
+  toggleHelp: () => void;
   setBigMapOpen: (open: boolean) => void;
   teleport: (x: number, z: number) => void;
 }
@@ -149,6 +153,7 @@ export const useGameStore = create<GameState>((set) => ({
   bigMap: null,
   minimapOpen: true,
   positionOpen: true,
+  helpOpen: typeof window === 'undefined' ? true : loadHelpOpen(),
   bigMapOpen: false,
   lastJumpAt: 0,
   setHud: (hud) => set({ hud }),
@@ -198,6 +203,11 @@ export const useGameStore = create<GameState>((set) => ({
     set((s) => {
       const show = !(s.minimapOpen && s.positionOpen);
       return { minimapOpen: show, positionOpen: show };
+    }),
+  toggleHelp: () =>
+    set((s) => {
+      saveHelpOpen(!s.helpOpen);
+      return { helpOpen: !s.helpOpen };
     }),
   setBigMapOpen: (bigMapOpen) => set({ bigMapOpen }),
   teleport: (x, z) => {

@@ -139,6 +139,22 @@ test.describe('Duskwood World', () => {
     await expect(page.getByRole('button', { name: /Vis kart/ })).toBeVisible();
     await page.keyboard.press('KeyH');
     await expect(minimap).toBeVisible();
+
+    // B hides the shortcut line, leaving a small button to bring it back; the choice is remembered.
+    const shortcuts = page.getByText('Mellomrom', { exact: true });
+    await expect(shortcuts).toBeVisible();
+    await page.keyboard.press('KeyB');
+    await expect(shortcuts).toBeHidden();
+    await page.getByRole('button', { name: /Snarveier/ }).click();
+    await expect(shortcuts).toBeVisible();
+    await page.getByRole('button', { name: 'Skjul snarveiene' }).click();
+    await expect(shortcuts).toBeHidden();
+    await page.reload();
+    await page.waitForFunction(() => window.__duskwood !== undefined);
+    await expect(page.getByRole('button', { name: /Snarveier/ })).toBeVisible();
+    await expect(shortcuts).toBeHidden();
+    await page.keyboard.press('KeyB');
+    await expect(shortcuts).toBeVisible();
   });
 
   test('sound unlocks on the first click, U mutes it, wind, steps and rain play, and T talks', async ({ page }) => {
