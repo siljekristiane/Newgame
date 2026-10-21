@@ -248,6 +248,8 @@ export const AUDIO = {
   duckRamp: 0.25,
   /** Footsteps (phase B): no steps below minSpeed or above maxSpeed (fast travel), m/s. */
   steps: { minSpeed: 0.6, maxSpeed: 60, gain: 0.55, landingGain: 0.9, variants: 4 },
+  /** Tumbleweeds: dry rustle of the rolling ones near you, a crackle when one bounces or is kicked, heard within `hearing` m. */
+  tumbleweeds: { rustleGain: 0.32, impactGain: 0.55, hearing: 45, variants: 4 },
   /** Wind: base level in calm air, how much a storm adds, extra per km of height. */
   wind: { calm: 0.06, storm: 0.55, perKm: 0.25 },
   /** Rain and snow loudness at full precipitation; the rain texture loop length, seconds. */
@@ -474,6 +476,45 @@ export const PLAYER = {
   gravity: 20, // m/s², a bit more than real for a snappy jump
   /** Mouse look: radians per pixel of movement. */
   mouseSensitivity: 0.0025,
+} as const;
+
+/**
+ * Tumbleweeds (src/tumbleweeds): dry, tangled bushes that roll over dry land
+ * with the wind, hop on gusts and bumps, and are knocked away when the player
+ * walks or runs into them. A small pool lives within `radius` of the player
+ * and is moved on (respawned upwind) when it drifts out; they only appear
+ * where the land is dry (`habitat`).
+ */
+export const TUMBLEWEEDS = {
+  count: 26,
+  radius: 140,
+  /** Ball radius range, meters. */
+  size: [0.4, 0.75],
+  /** Dry land feels windier: wind × this, never below `minWind` (m/s). */
+  windScale: 1.6,
+  minWind: 2.8,
+  /** How fast a weed takes the wind's speed (1/s), on the ground and in the air. */
+  dragGround: 0.8,
+  dragAir: 0.35,
+  /** Rolling resistance on the ground (1/s). */
+  friction: 0.25,
+  gravity: 9.81,
+  /** Share of the speed kept in a bounce. */
+  restitution: 0.38,
+  /** Gust hops: every `hopEvery` seconds or so, up to `hop` m/s up (more in strong wind). */
+  hopEvery: [1.4, 4.5],
+  hop: 2.4,
+  /** A hit from the player passes on this share of its speed, at least `minKick` m/s, with a little hop. */
+  kick: 1.25,
+  minKick: 2.2,
+  kickHop: 1.6,
+  /** Habitat: moisture below `dryFrom` (fully at `dryFull`), warmer than `minTemperature`, `minHeight` above the sea. */
+  dryFrom: 0.42,
+  dryFull: 0.33,
+  minTemperature: 4,
+  minHeight: 3,
+  /** Longest physics step, seconds. */
+  maxStep: 1 / 60,
 } as const;
 
 /**

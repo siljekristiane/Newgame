@@ -90,6 +90,7 @@ export const VIEWS: readonly CameraView[] = [
   { id: 'mountain', label: 'Fjell', x: 37_500, z: 49_800, target: PEAK, pitch: 0.2, distance: 30 },
   { id: 'forest', label: 'Skogutsikt', x: 52_000, z: 38_000, target: { x: 47_000, z: 43_000 }, pitch: 0.45, distance: 60 },
   { id: 'snowforest', label: 'Snøskog', x: 59_500, z: 33_500, target: { x: 61_500, z: 34_500 }, pitch: 0.3, distance: 30 },
+  { id: 'desert', label: 'Ørken', x: 52_000, z: 69_000, target: { x: 52_600, z: 69_300 }, pitch: 0.28, distance: 18 },
   { id: 'oldgrowth', label: 'Urskog', x: 55_500, z: 52_500, target: { x: 55_800, z: 53_500 }, pitch: 0.12, distance: 16 },
   ...GIANT_VIEWS,
   { id: 'edge', label: 'Verdenskanten', x: 3_500, z: WORLD_SIZE / 2, target: { x: 0, z: WORLD_SIZE / 2 }, pitch: 0.3, distance: 60 },

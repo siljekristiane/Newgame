@@ -14,6 +14,7 @@ import { useGameStore } from '../state/useGameStore';
 import { heightAt } from '../world/terrain';
 import type { ChunkManager } from '../world/ChunkManager';
 import { GIANT_TREES } from '../regions/giants/layout';
+import { tumbleweedState } from '../tumbleweeds/state';
 
 const INTERVAL = 0.2; // seconds between snapshots
 
@@ -71,6 +72,11 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
         return { playerY: player.y, meshY: hit.point.y, smoothY: heightAt(player.x, player.z) };
       },
       solidClearance: () => Math.min(...colliders().map((c) => c.distance(player.x, player.z))) - COLLISION.playerRadius,
+      tumbleweeds: () => ({
+        active: tumbleweedState.active,
+        kicks: tumbleweedState.kicks,
+        weeds: tumbleweedState.weeds.filter((w) => w.active).map(({ x, y, z, r }) => ({ x, y, z, r })),
+      }),
     };
     return () => {
       delete window.__duskwood;

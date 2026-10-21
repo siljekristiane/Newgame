@@ -43,7 +43,7 @@ kjører det samme ved hver push.
   lenge strømmingen brukte. Rødt = over budsjett (se «Ytelse»).
 - **Faste kameravinkler** (`src/debug/views.ts`): spawn, coast, shore (strand,
   fra steg 4), academy, campus, valley, mountain, forest (skogutsikt, fra steg 11), snowforest,
-  oldgrowth, giant-1 … giant-5 (steg 15–17), edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
+  oldgrowth, desert (ørkenballer), giant-1 … giant-5 (steg 15–17), edge. Åpnes med `#v-<id>` i URL-en (f.eks. `#v-coast`) eller
   knappene i F3-panelet. Samme vinkel før og etter = sammenlignbare bilder.
 - `npm run measure` skriver tall og skjermbilder til `measurements/<tid>/`.
   Referansen før fase 2 ligger i `docs/measurements/baseline/`. En større visuell
@@ -85,6 +85,7 @@ src/
   avatar/                 Avataren: figurer (models.ts), felles AvatarInstance, prosedyral kropp/klær/hår, .glb-figurer og animasjon
   wardrobe/               Klesskapet: katalog (data), låser (quests/mynter), lagring, store og UI (K)
   weather/                Værmodell, skystøy, regn og snø
+  tumbleweeds/            Ørkenballer: fysikk (ren), mesh, lyd
   settings/               Kvalitetsnivåer: valg fra GPU-navn, lagring i nettleseren
   audio/                  Lydmotor (Web Audio), mikser og lydinnstillinger
   world/
@@ -425,6 +426,29 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
 - Kameraet ser på avatarens bryst og glir opp mot ansiktet når man zoomer helt
   inn (`AVATAR.camera` i `config/world.ts`); klaringen over bakken krymper med
   avstanden, så kameraet kan komme helt ned til figuren. Se «Avatar og klesskap».
+
+### Ørkenballer (`src/tumbleweeds/`, `TUMBLEWEEDS`)
+
+- **Fysikk** (`sim.ts`, ren og testet): en lett ball som vinden drar mot sin
+  fart (ørkenvind: værets vind × `windScale`, aldri under `minWind`, med egne
+  kast), friksjon og helning på bakken, hopp i kastene, sprett på ujevn bakke
+  (`restitution`), og spinn som følger farten (ruller uten å skli). Spilleren
+  dytter dem unna (`kick`, `minKick`, et lite hopp). Veggene stopper dem via
+  `moveWithCollision` (farten inn i veggen speiles). Faste delsteg (1/60 s).
+- **Hvor:** `habitat(x, z, høyde)` = tørt (fuktighet under `dryFrom`, fullt ved
+  `dryFull`), varmere enn `minTemperature` og over havet. En pool på `count`
+  (26) lever innen `radius` (140 m) rundt spilleren: ved ankomst til tørt land
+  fylles sirkelen, siden kommer de inn fra vindsiden når de triller ut.
+- **Mesh** (`geometry.ts`): ekte rør for hver kvist (buer rundt skallet,
+  sideskudd, tett kjerne), bleket ytterst og mørk innerst. ~7 k trekanter nær
+  (under 30 m), ~2 k lenger unna; to `InstancedMesh` (2 draw calls).
+  Fjell- og skyskygge fra spillerens horisont (`'local'`).
+- **Lyd** (`sound.ts`, `TumbleweedSound.tsx`, `AUDIO.tumbleweeds`): tørr
+  raslesløyfe som følger hvor mye som ruller nær deg, og knitring ved sprett og
+  spark (sterkere nært og hardt, panorert til siden det skjer på).
+- Vinkel `desert` (flatt, varmt og tørt, 19 km sør for start). Testkrok
+  `tumbleweeds()` (antall, posisjoner, spark); e2e sjekker at de triller og
+  dyttes unna.
 
 ### Vær og skyer (steg 8)
 

@@ -143,7 +143,7 @@ function pushOut(list: readonly Collider[], x: number, z: number, r: number, out
  * Moves a circle of radius r from (x, z) by (dx, dz), sliding along whatever
  * it meets. Returns the new position and the last contact normal.
  */
-export function moveWithCollision(x: number, z: number, dx: number, dz: number, r = COLLISION.playerRadius, out: MoveResult = { x, z, nx: 0, nz: 0 }): MoveResult {
+export function moveWithCollision(x: number, z: number, dx: number, dz: number, r: number = COLLISION.playerRadius, out: MoveResult = { x, z, nx: 0, nz: 0 }): MoveResult {
   out.nx = 0;
   out.nz = 0;
   const list = query(Math.min(x, x + dx) - r, Math.min(z, z + dz) - r, Math.max(x, x + dx) + r, Math.max(z, z + dz) + r);
@@ -168,7 +168,7 @@ export function moveWithCollision(x: number, z: number, dx: number, dz: number, 
  * clear of every collider by `margin` (1 = all the way). Only the parts below
  * a collider's top count, so the camera may look over a roof.
  */
-export function clearAlong(ax: number, ay: number, az: number, bx: number, by: number, bz: number, margin = COLLISION.cameraMargin): number {
+export function clearAlong(ax: number, ay: number, az: number, bx: number, by: number, bz: number, margin: number = COLLISION.cameraMargin): number {
   const list = query(Math.min(ax, bx) - margin, Math.min(az, bz) - margin, Math.max(ax, bx) + margin, Math.max(az, bz) + margin);
   if (list.length === 0) return 1;
   const samples = Math.max(4, Math.ceil(Math.hypot(bx - ax, bz - az) / 0.25));

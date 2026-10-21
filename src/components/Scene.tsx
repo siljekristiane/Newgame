@@ -14,6 +14,8 @@ import { AmbienceSound } from '../audio/AmbienceSound';
 import { FootstepSound } from '../audio/FootstepSound';
 import { MusicPlayer } from '../audio/MusicPlayer';
 import { VoiceSound } from '../audio/VoiceSound';
+import { Tumbleweeds } from '../tumbleweeds/Tumbleweeds';
+import { TumbleweedSound } from '../tumbleweeds/TumbleweedSound';
 import { Terrain } from './Terrain';
 import { TerrainTextures } from './TerrainTextures';
 import { Water } from './Water';
@@ -48,6 +50,7 @@ export function Scene() {
       <FootstepSound />
       <MusicPlayer />
       <VoiceSound />
+      <TumbleweedSound />
       <Atmosphere />
       <Water pool={pool} />
       <Terrain manager={manager} />
@@ -56,6 +59,7 @@ export function Scene() {
       <SpawnArea />
       <GiantTrees />
       <Buildings />
+      <Tumbleweeds />
       <Precipitation />
       <TerrainTextures pool={pool} />
       <Player />

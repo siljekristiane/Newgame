@@ -59,6 +59,24 @@ test.describe('Duskwood World', () => {
     expect(pushing).toBeGreaterThan(-0.02);
   });
 
+  test('tumbleweeds roll in the desert and are knocked away by the player', async ({ page }) => {
+    const errors = watchForErrors(page);
+    await openGame(page, '#v-desert');
+    await page.waitForFunction(() => window.__duskwood!.tumbleweeds().active >= 8, undefined, { timeout: 30_000, polling: 200 });
+    const before = await page.evaluate(() => window.__duskwood!.tumbleweeds().weeds);
+    await page.waitForTimeout(2000);
+    const after = await page.evaluate(() => window.__duskwood!.tumbleweeds().weeds);
+    // Same pool order: most of the weeds have rolled on (the odd one may have been recycled).
+    const moved = before.filter((w, i) => after[i] && Math.hypot(after[i].x - w.x, after[i].z - w.z) > 0.5).length;
+    expect(moved).toBeGreaterThan(before.length / 2);
+    // Standing where one is knocks it away.
+    const kicks = await page.evaluate(() => window.__duskwood!.tumbleweeds().kicks);
+    const w = after[0]!;
+    await page.evaluate(({ x, z }) => window.__duskwood!.teleport(x, z), w);
+    await page.waitForFunction((k) => window.__duskwood!.tumbleweeds().kicks > k, kicks, { timeout: 10_000, polling: 100 });
+    expect(errors).toEqual([]);
+  });
+
   test('clicking the minimap teleports', async ({ page }) => {
     await openGame(page);
     const map = page.getByRole('img', { name: /Kart over hele verdenen/ });

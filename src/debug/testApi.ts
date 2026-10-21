@@ -43,6 +43,8 @@ export interface DuskwoodTestApi {
   groundCheck: () => { playerY: number; meshY: number; smoothY: number } | null;
   /** Distance from the player's footprint to the nearest solid thing (building, fountain, lamp, trunk); negative = inside. */
   solidClearance: () => number;
+  /** Tumbleweeds near the player: how many are live, their positions, and kicks by the player so far. */
+  tumbleweeds: () => { active: number; kicks: number; weeds: Array<{ x: number; y: number; z: number; r: number }> };
   /** Pushes a music plot layer on top of the zones (null pops it again). */
   setMusicLayer: (name: string | null) => void;
   /** Ends the current pause between pieces, so music starts at once. */

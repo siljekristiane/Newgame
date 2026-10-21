@@ -93,6 +93,13 @@ export const academyPalette = {
   glow: '#ffc874',
 } as const;
 
+/** Tumbleweeds (src/tumbleweeds): sun-bleached twigs, darker inside. */
+export const tumbleweedPalette = {
+  twig: '#b8a074',
+  twigPale: '#d2bf93',
+  twigDark: '#7e6646',
+} as const;
+
 /** Map and compass drawing (canvas), matching the HUD's Dusk theme. */
 export const mapPalette = {
   ink: '#1f1a2a',
