@@ -6,6 +6,9 @@ export const soundStatus = {
   wind: 0,
   rain: 0,
   snow: 0,
+  /** The wind's voice per landscape: layer gains, and the landscape mix round the player (0..1 each). */
+  landscape: { forest: 0, mountain: 0, desert: 0, coast: 0 },
+  landscapeMix: { forest: 0, mountain: 0, desert: 0, coast: 0 },
   steps: 0,
   lastStep: null as StepSurface | null,
   /** Music: the zone right now, the zone the music follows (after the hold), the layer or zone it plays for, and the piece. */

@@ -63,6 +63,11 @@ test.describe('Duskwood World', () => {
     const errors = watchForErrors(page);
     await openGame(page, '#v-desert');
     await page.waitForFunction(() => window.__duskwood!.tumbleweeds().active >= 8, undefined, { timeout: 30_000, polling: 200 });
+    // The wind here has the desert's voice (sand hiss), not the forest's or the sea's.
+    await page.waitForFunction(() => window.__duskwood!.audio().landscapeMix.desert > 0.6, undefined, { timeout: 60_000, polling: 200 });
+    const mix = (await page.evaluate(() => window.__duskwood!.audio())).landscapeMix;
+    expect(mix.forest).toBeLessThan(0.3);
+    expect(mix.coast).toBeLessThan(0.3);
     const before = await page.evaluate(() => window.__duskwood!.tumbleweeds().weeds);
     await page.waitForTimeout(2000);
     const after = await page.evaluate(() => window.__duskwood!.tumbleweeds().weeds);
@@ -245,6 +250,9 @@ test.describe('Duskwood World', () => {
     // The zone right now changes at once; the music follows once it has held (8–10 s).
     await page.evaluate(() => window.__duskwood!.teleport(34_500, 49_500));
     await page.waitForFunction(() => window.__duskwood!.audio().zoneRaw === 'mountain');
+    // …and the wind's mountain voice (the howl) takes over from the plaza's.
+    await page.waitForFunction(() => window.__duskwood!.audio().landscapeMix.mountain > 0.6, undefined, { timeout: 60_000, polling: 200 });
+    expect((await music()).landscape.mountain).toBeGreaterThan(0);
     expect((await music()).zone).toBe('start');
     await page.waitForFunction(() => window.__duskwood!.audio().zone === 'mountain', undefined, { timeout: 30_000 });
     await page.evaluate(() => window.__duskwood!.setTime(23, true));

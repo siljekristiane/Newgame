@@ -620,6 +620,19 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
     fire varianter per underlag med litt ulik tonehøyde og styrke, og en tyngre
     landing etter hopp.
   - `audio/dsp.ts`: biquad, normalisering og nullgjennomgangsrate (lysstyrke i testene).
+- **Vindlyd per landskap** (veikart-steg 3, `audio/landscape.ts` ren og testet,
+  `LandscapeSound.tsx`, `AUDIO.landscape`): ved siden av den vanlige vinden
+  får vinden stemme etter stedet: løv som rasler i skog (tett løvflimmer i
+  bølger), hyl over fjell og rygger (to smale resonanser en kvint fra
+  hverandre som glir med kastene), sandsus på tørt land (fin, høy sus med
+  korn) og havbrus ved kysten (lav dur og bølger som bryter og trekker seg
+  tilbake, aldri helt stille). `landscapeMix` måler skog (`canopyAt`), fjell
+  (høyde, hvor mye høyere enn landet rundt, nakent fjell), ørken (som
+  ørkenballenes `habitat`) og kyst (avstand til havet langs 12 stråler,
+  interpolert der strålen krysser vannlinja, svakere jo høyere over havet).
+  Snittet over en ring på 70 m, to ganger i sekundet, og glidd over 1,5 s, så
+  overgangene er myke (testet: under 0,15 per 2 m). Nivå fra vindstyrke og
+  egne kast. Testkroken `audio()` gir `landscape` (nivå) og `landscapeMix`.
 - **Fase C, musikkdirigent og soner** (logikken, uten lydfiler):
   - `audio/playlist.ts`: sonene (`MUSIC_ZONES`, norske navn i `ZONE_NAMES`) og
     stykkene (`TRACKS`: komponist, verk, sats, soner, `file`, kreditt). `file`

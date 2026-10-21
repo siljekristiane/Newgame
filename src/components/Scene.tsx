@@ -12,6 +12,7 @@ import { QualityInit } from './QualityInit';
 import { AudioSystem } from '../audio/AudioSystem';
 import { AmbienceSound } from '../audio/AmbienceSound';
 import { FootstepSound } from '../audio/FootstepSound';
+import { LandscapeSound } from '../audio/LandscapeSound';
 import { MusicPlayer } from '../audio/MusicPlayer';
 import { VoiceSound } from '../audio/VoiceSound';
 import { Tumbleweeds } from '../tumbleweeds/Tumbleweeds';
@@ -47,6 +48,7 @@ export function Scene() {
       <QualityInit />
       <AudioSystem />
       <AmbienceSound />
+      <LandscapeSound />
       <FootstepSound />
       <MusicPlayer />
       <VoiceSound />

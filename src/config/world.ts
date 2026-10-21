@@ -254,6 +254,26 @@ export const AUDIO = {
   wind: { calm: 0.06, storm: 0.55, perKm: 0.25 },
   /** Rain and snow loudness at full precipitation; the rain texture loop length, seconds. */
   rain: { gain: 0.55, snowGain: 0.12, loopSeconds: 6 },
+  /**
+   * The wind's voice per landscape (steg 3): rustling leaves in forest, a howl
+   * over mountains and ridges, sand hiss on dry land, surf on the coast. The
+   * mix is sampled on a ring round the player (`ring` m, every `sampleInterval`
+   * s) and eased over `smooth` s, so walking between landscapes cross-fades.
+   * Gains are at full presence; `calm` is how much is left in still air.
+   */
+  landscape: {
+    ring: 70,
+    sampleInterval: 0.5,
+    smooth: 1.5,
+    forest: { gain: 0.42, calm: 0.25 },
+    /** Mountain: from `fromHeight` (full at `fullHeight`) or `ridge` m above the land round about. */
+    mountain: { gain: 0.36, calm: 0.15, fromHeight: 260, fullHeight: 650, ridge: 45 },
+    desert: { gain: 0.3, calm: 0.2 },
+    /** Coast: surf heard up to `reach` m from the sea, fading out `fadeHeight` m above it. */
+    coast: { gain: 0.6, calm: 0.55, reach: 380, fadeHeight: 45 },
+    loopSeconds: 8,
+    surfSeconds: 24,
+  },
   /** Music director (phase C): zones, hysteresis, pauses and fades, seconds and meters. */
   music: {
     /** A new zone must hold this long before the music follows it (night and rain: `holdSlow`). */

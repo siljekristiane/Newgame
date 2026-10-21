@@ -68,6 +68,9 @@ export interface DuskwoodTestApi {
     wind: number;
     rain: number;
     snow: number;
+    /** The wind's voice per landscape: layer gains, and the landscape mix round the player (0..1 each). */
+    landscape: { forest: number; mountain: number; desert: number; coast: number };
+    landscapeMix: { forest: number; mountain: number; desert: number; coast: number };
     steps: number;
     lastStep: string | null;
   };
