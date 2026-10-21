@@ -98,6 +98,17 @@ describe('tumbleweeds', () => {
     expect(w.x).toBeGreaterThan(e.player.x + 0.8);
   });
 
+  it('rolling into a player who stands still knocks it back', () => {
+    const e = env({ windX: 5, windZ: 0 });
+    const w = weed(e, 0, 0);
+    e.player.x = 6;
+    e.player.z = 0.2;
+    const impacts = run(w, e, 6);
+    expect(impacts.some((i) => i.kind === 'kick')).toBe(true);
+    // It never ends up inside the player.
+    expect(Math.hypot(w.x - e.player.x, w.z - e.player.z)).toBeGreaterThan(w.r + e.player.radius - 0.05);
+  });
+
   it('bounce off walls instead of rolling through a building', () => {
     const academy = buildingById('academy');
     const start = toWorld(academy, 0, 14, { x: 0, z: 0 });

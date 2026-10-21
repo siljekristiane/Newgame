@@ -74,11 +74,24 @@ test.describe('Duskwood World', () => {
     // Same pool order: most of the weeds have rolled on (the odd one may have been recycled).
     const moved = before.filter((w, i) => after[i] && Math.hypot(after[i].x - w.x, after[i].z - w.z) > 0.5).length;
     expect(moved).toBeGreaterThan(before.length / 2);
-    // Standing where one is knocks it away.
+    // Standing in the path of a rolling one: it runs into the player and is knocked away.
     const kicks = await page.evaluate(() => window.__duskwood!.tumbleweeds().kicks);
-    const w = after[0]!;
-    await page.evaluate(({ x, z }) => window.__duskwood!.teleport(x, z), w);
-    await page.waitForFunction((k) => window.__duskwood!.tumbleweeds().kicks > k, kicks, { timeout: 10_000, polling: 100 });
+    let kicked = false;
+    for (let attempt = 0; attempt < 6 && !kicked; attempt++) {
+      await page.evaluate(() => {
+        const { weeds } = window.__duskwood!.tumbleweeds();
+        const w = weeds.reduce((a, b) => (Math.hypot(b.vx, b.vz) > Math.hypot(a.vx, a.vz) ? b : a));
+        const speed = Math.hypot(w.vx, w.vz) || 1;
+        // A couple of meters ahead of it, plus how far it rolls before the next frame lands.
+        const ahead = 2 + speed * 0.6;
+        window.__duskwood!.teleport(w.x + (w.vx / speed) * ahead, w.z + (w.vz / speed) * ahead);
+      });
+      kicked = await page
+        .waitForFunction((k) => window.__duskwood!.tumbleweeds().kicks > k, kicks, { timeout: 8_000, polling: 100 })
+        .then(() => true)
+        .catch(() => false);
+    }
+    expect(kicked).toBe(true);
     expect(errors).toEqual([]);
   });
 

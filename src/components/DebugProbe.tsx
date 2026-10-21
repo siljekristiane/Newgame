@@ -75,7 +75,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
       tumbleweeds: () => ({
         active: tumbleweedState.active,
         kicks: tumbleweedState.kicks,
-        weeds: tumbleweedState.weeds.filter((w) => w.active).map(({ x, y, z, r }) => ({ x, y, z, r })),
+        weeds: tumbleweedState.weeds.filter((w) => w.active).map(({ x, y, z, r, vx, vz }) => ({ x, y, z, r, vx, vz })),
       }),
     };
     return () => {
