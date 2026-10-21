@@ -1,21 +1,24 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import { BIG_MAP_RESOLUTION, MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME, WEATHER } from '../config/world';
+import { BIG_MAP_RESOLUTION, COLLISION, MINIMAP_RESOLUTION, PLAYER, REBASE_DISTANCE, SEA_LEVEL, TIME, WEATHER } from '../config/world';
 import { cameraRig, clock, cloudDrift, input, motion, origin, player, rebaseOrigin, weather } from '../state/runtime';
 import { weatherAt } from '../weather/weather';
 import { useGameStore } from '../state/useGameStore';
 import { clampToWorld, worldToChunk } from '../world/chunkMath';
 import type { ChunkManager } from '../world/ChunkManager';
 import { groundHeightAt } from '../world/ground';
+import { moveWithCollision, type MoveResult } from '../player/collision';
+import { standHeight } from '../regions/buildings/placements';
 import { stepMovement } from '../player/movement';
 import { wrapHours } from '../world/timeOfDay';
 import type { WorkerPool } from '../world/workerPool';
 
 const HUD_INTERVAL = 0.2; // seconds
+const moved: MoveResult = { x: 0, z: 0, nx: 0, nz: 0 };
 
 /**
  * The one place game state advances each frame, in this order:
- * input → player movement → floating-origin rebase → chunk streaming → HUD.
+ * input → player movement (with collision) → floating-origin rebase → chunk streaming → HUD.
  * Runs at priority -1, before the render components read the new state.
  */
 export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: WorkerPool }) {
@@ -72,12 +75,19 @@ export function GameLoop({ manager, pool }: { manager: ChunkManager; pool: Worke
     const here = Math.max(SEA_LEVEL, groundHeightAt(player.x, player.z));
     const slope = len > 0 ? Math.max(SEA_LEVEL, groundHeightAt(player.x + dirX, player.z + dirZ)) - here : 0;
     stepMovement(motion, { dirX, dirZ, speed, jump: k.has('Space'), slope }, dt);
-    player.x = clampToWorld(player.x + motion.vx * dt);
-    player.z = clampToWorld(player.z + motion.vz * dt);
+    // Slide along walls and other solid things; lose the part of the velocity that pushes into them.
+    moveWithCollision(player.x, player.z, motion.vx * dt, motion.vz * dt, COLLISION.playerRadius, moved);
+    const into = motion.vx * moved.nx + motion.vz * moved.nz;
+    if (into < 0) {
+      motion.vx -= into * moved.nx;
+      motion.vz -= into * moved.nz;
+    }
+    player.x = clampToWorld(moved.x);
+    player.z = clampToWorld(moved.z);
     player.heading = motion.heading;
     player.speed = Math.hypot(motion.vx, motion.vz);
-    // Stand on the ground (or the water surface), plus the height of a jump.
-    player.y = Math.max(SEA_LEVEL, groundHeightAt(player.x, player.z)) + motion.air;
+    // Stand on the ground (or the water surface, or a building's door steps), plus the height of a jump.
+    player.y = Math.max(SEA_LEVEL, groundHeightAt(player.x, player.z), standHeight(player.x, player.z)) + motion.air;
 
     // Floating origin: keep render-space coordinates small.
     if (Math.abs(player.x - origin.x) > REBASE_DISTANCE || Math.abs(player.z - origin.z) > REBASE_DISTANCE) {

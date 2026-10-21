@@ -1,7 +1,7 @@
 import { BUILDINGS } from '../../config/world';
 import { naturalHeightAt } from '../../world/naturalTerrain';
 import { spawnLayout } from '../spawn/layout';
-import { buildingDistance } from './buildingKit';
+import { buildingDistance, stepHeight } from './buildingKit';
 import { DESIGNS, type BuildingDesign } from './designs';
 
 /**
@@ -119,4 +119,16 @@ function place(): PlacedBuilding[] {
     }
     return b;
   });
+}
+
+/** Ground the player can stand on from the buildings (door steps), world height, or -Infinity. */
+export function standHeight(x: number, z: number): number {
+  let h = -Infinity;
+  for (const b of placedBuildings()) {
+    if (Math.hypot(x - b.x, z - b.z) > b.radius) continue;
+    toLocal(b, x, z, local);
+    const step = stepHeight(b.design.spec, local.x, local.z);
+    if (step > 0) h = Math.max(h, b.y + step);
+  }
+  return h;
 }

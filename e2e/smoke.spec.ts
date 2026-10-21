@@ -43,6 +43,22 @@ test.describe('Duskwood World', () => {
     expect(after.z).toBeLessThan(before.z); // camera starts facing north (-Z)
   });
 
+  test('walls stop the player: running at the academy ends outside it', async ({ page }) => {
+    await openGame(page, '#v-academy');
+    await page.locator('canvas').first().focus();
+    const start = await page.evaluate(() => window.__duskwood!.solidClearance());
+    expect(start).toBeGreaterThan(5);
+    await page.keyboard.down('ShiftLeft');
+    await page.keyboard.down('KeyW');
+    // The view faces the academy: run until something solid is close, then keep pushing.
+    await page.waitForFunction(() => window.__duskwood!.solidClearance() < 0.6, undefined, { timeout: 150_000, polling: 200 });
+    await page.waitForTimeout(3000);
+    const pushing = await page.evaluate(() => window.__duskwood!.solidClearance());
+    await page.keyboard.up('KeyW');
+    await page.keyboard.up('ShiftLeft');
+    expect(pushing).toBeGreaterThan(-0.02);
+  });
+
   test('clicking the minimap teleports', async ({ page }) => {
     await openGame(page);
     const map = page.getByRole('img', { name: /Kart over hele verdenen/ });

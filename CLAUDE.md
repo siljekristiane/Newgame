@@ -394,7 +394,7 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
     egen fjell- og skyhorisont som vertex-attributter (`horizonA/B`, som
     terrenget); vinduene gløder fra skumring. Til teksturene er lastet vises
     enkle farger (`academyPalette`).
-  - Ingen kollisjon eller interiør ennå. Vinkler `academy` og `campus`. Ferdige
+  - Kollisjon med veggene (se «Bevegelse og kamera»), men ingen interiør ennå. Vinkler `academy` og `campus`. Ferdige
     CC0-bygninger ble vurdert først (Poly Haven, Quaternius, Kenney, Sketchfab),
     men ingen passet stilen. Måling i `docs/measurements/campus/`.
 
@@ -406,6 +406,16 @@ skjørtene har trekanter i begge retninger og samme normal og farge som kanten.
   (`turnRate`), oppover går saktere (ned til 40 %), og Mellomrom hopper
   (`jumpSpeed`, `gravity`). Tilstanden ligger i `runtime.motion`; `GameLoop`
   kaller `stepMovement` og setter `player.y` = bakke + hopphøyde.
+- **Kollisjon** (`player/collision.ts`, ren og testet, `COLLISION`): spilleren
+  er en sirkel (0,35 m) som ikke kommer inn i byggene (til sokkelkanten),
+  fontena, lyktestolpene eller kjempestammene, men glir langs dem (skyves ut
+  langs gradienten av avstandsfeltet; farten inn i veggen fjernes). Lange
+  flytt deles i steg på 0,5 m, så hurtigreise ikke går gjennom vegger.
+  Kolliderne ligger i et 32 m-rutenett. Dørtrappene kan gås opp
+  (`standHeight` i `placements.ts`, `stepHeight` i byggesettet). Kameraet
+  kommer inn foran vegger som ellers ville stått mellom (`clearAlong`), men kan
+  se over tak. Nye faste ting (møbler, rekkverk) = én collider til.
+  Testkrok `solidClearance()`; e2e løper mot akademiet og stopper utenfor.
 - **Mus:** et klikk i spillet låser pekeren (pointer lock), og musa snur da
   kameraet (`mouseSensitivity`) til Esc. Uten lås (eller om nettleseren nekter)
   virker dra med musa som før. HUD viser hint etter tilstand (`pointerLocked`).

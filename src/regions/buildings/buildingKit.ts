@@ -114,6 +114,44 @@ export function buildingDistance(spec: BuildingSpec, x: number, z: number): numb
   return d;
 }
 
+/** How far the plinth stands out from the walls (meters): the walkable edge of a building. */
+export const PLINTH_OUT = 0.25;
+
+/**
+ * Height above the pad of the door steps under (x, z) in the building frame,
+ * or 0 off the steps: lets the player climb them. Mirrors the steps buildWing
+ * lays out (each 0.45 m deep, the top one level with the plinth).
+ */
+export function stepHeight(spec: BuildingSpec, x: number, z: number): number {
+  let best = 0;
+  for (const w of spec.wings) {
+    if (!w.door) continue;
+    const [lx, lz] = intoWing(w, x, z);
+    const L = w.length / 2;
+    const D = w.width / 2;
+    const side = w.door.side;
+    const u = side === 'front' ? lx : side === 'back' ? -lx : side === 'right' ? -lz : lz;
+    const d = side === 'front' ? lz - D : side === 'back' ? -lz - D : side === 'right' ? lx - L : -lx - L;
+    const steps = w.door.steps ?? 3;
+    const half = (w.door.width ?? 2.4) / 2 + 0.8;
+    if (Math.abs(u - (w.door.u ?? 0)) > half || d < 0 || d > 0.12 + steps * 0.45) continue;
+    const i = Math.min(steps - 1, Math.floor(steps - (d - 0.12) / 0.45));
+    best = Math.max(best, ((w.plinth ?? DEFAULTS.plinth) / steps) * (i + 1));
+  }
+  return best;
+}
+
+/** Highest point of a building above its pad, without building the mesh (roof ridges, tower tips). */
+export function buildingHeight(spec: BuildingSpec): number {
+  let h = 0;
+  for (const w of spec.wings) {
+    const pitch = w.pitch ?? DEFAULTS.pitch;
+    h = Math.max(h, wallTop(w) + (w.width / 2) * pitch + 0.2);
+  }
+  for (const t of spec.towers ?? []) h = Math.max(h, t.height + 0.35 + t.roofHeight + 0.9);
+  return h;
+}
+
 /** How high some other part stands over (x, z), or 0: windows below that are covered. */
 function coveredTo(spec: BuildingSpec, self: object, x: number, z: number): number {
   let h = 0;
@@ -178,7 +216,7 @@ function buildWing(P: Record<BuildingPart, Part>, spec: BuildingSpec, w: WingSpe
   const toBuilding = (lx: number, lz: number): [number, number] => [w.x + lx * Math.cos(angle) + lz * Math.sin(angle), w.z - lx * Math.sin(angle) + lz * Math.cos(angle)];
 
   // Plinth.
-  P.trim.box([-L - 0.25, SINK, -D - 0.25], [L + 0.25, base, D + 0.25], ['-y']);
+  P.trim.box([-L - PLINTH_OUT, SINK, -D - PLINTH_OUT], [L + PLINTH_OUT, base, D + PLINTH_OUT], ['-y']);
 
   // Walls, and gables for a gable roof.
   const sides: Record<Side, { f: WallFrame; half: number }> = {
@@ -334,7 +372,7 @@ function buildTower(P: Record<BuildingPart, Part>, spec: BuildingSpec, t: TowerS
   const roofBase = top + 0.6;
   const tip = roofBase - 0.25 + t.roofHeight;
   if (t.shape === 'round') {
-    ring(P.trim, tx, tz, R + 0.25, R + 0.25, SINK, base, SEGMENTS, R);
+    ring(P.trim, tx, tz, R + PLINTH_OUT, R + PLINTH_OUT, SINK, base, SEGMENTS, R);
     ring(P.wall, tx, tz, R, R, base, top, SEGMENTS, R);
     ring(P.trim, tx, tz, R + 0.3, R + 0.3, top, roofBase, SEGMENTS, R);
     ring(P.trim, tx, tz, R, R + 0.3, top - 0.3, top, SEGMENTS, R);
@@ -352,7 +390,7 @@ function buildTower(P: Record<BuildingPart, Part>, spec: BuildingSpec, t: TowerS
       }
     }
   } else {
-    P.trim.box([tx - R - 0.25, SINK, tz - R - 0.25], [tx + R + 0.25, base, tz + R + 0.25], ['-y']);
+    P.trim.box([tx - R - PLINTH_OUT, SINK, tz - R - PLINTH_OUT], [tx + R + PLINTH_OUT, base, tz + R + PLINTH_OUT], ['-y']);
     const faces: Array<[V3, V3]> = [
       [[tx, 0, tz + R], [0, 0, 1]],
       [[tx, 0, tz - R], [0, 0, -1]],

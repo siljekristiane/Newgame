@@ -4,9 +4,11 @@ import * as THREE from 'three';
 import { audioEngine } from '../audio/audioEngine';
 import { musicScheduler } from '../audio/MusicPlayer';
 import { soundStatus } from '../audio/status';
+import { COLLISION } from '../config/world';
 import { PerfMonitor } from '../debug/perfMonitor';
 import '../debug/testApi';
 import { applyView, VIEWS } from '../debug/views';
+import { colliders } from '../player/collision';
 import { origin, player } from '../state/runtime';
 import { useGameStore } from '../state/useGameStore';
 import { heightAt } from '../world/terrain';
@@ -68,6 +70,7 @@ export function DebugProbe({ manager }: { manager: ChunkManager }) {
         if (!hit) return null;
         return { playerY: player.y, meshY: hit.point.y, smoothY: heightAt(player.x, player.z) };
       },
+      solidClearance: () => Math.min(...colliders().map((c) => c.distance(player.x, player.z))) - COLLISION.playerRadius,
     };
     return () => {
       delete window.__duskwood;

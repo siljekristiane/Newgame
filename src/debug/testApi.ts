@@ -41,6 +41,8 @@ export interface DuskwoodTestApi {
    * terrain is loaded under the player.
    */
   groundCheck: () => { playerY: number; meshY: number; smoothY: number } | null;
+  /** Distance from the player's footprint to the nearest solid thing (building, fountain, lamp, trunk); negative = inside. */
+  solidClearance: () => number;
   /** Pushes a music plot layer on top of the zones (null pops it again). */
   setMusicLayer: (name: string | null) => void;
   /** Ends the current pause between pieces, so music starts at once. */

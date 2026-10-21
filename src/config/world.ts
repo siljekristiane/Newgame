@@ -477,6 +477,27 @@ export const PLAYER = {
 } as const;
 
 /**
+ * Collision (player/collision.ts): the player is a circle on the ground that
+ * cannot enter buildings, the fountain, lamp posts or giant trunks; it slides
+ * along them instead. Movement is cut into short steps, so fast travel cannot
+ * tunnel through a wall. The camera keeps `cameraMargin` off the walls.
+ */
+export const COLLISION = {
+  /** The avatar's footprint radius, meters. */
+  playerRadius: 0.35,
+  /** Basin lip of the fountain, lamp posts, giant trunks at the roots. */
+  fountainRadius: 3.65,
+  lampRadius: 0.16,
+  giantRadius: 2.2,
+  /** Broad-phase grid cell, meters. */
+  cell: 32,
+  /** Longest move checked in one go, meters (fast travel is split into steps). */
+  maxStep: 0.5,
+  /** Distance the camera keeps from a wall. */
+  cameraMargin: 0.4,
+} as const;
+
+/**
  * The avatar (src/avatar/) and the camera distances that follow from its size.
  * Change `height` and the model, its shadow and the camera framing follow.
  * A lamp post in the spawn area is ~3,5 m, so 1,6 m stays under half of it.

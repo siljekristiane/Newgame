@@ -3,13 +3,15 @@ import { useRef } from 'react';
 import * as THREE from 'three';
 import { AVATAR, CAMERA, SEA_LEVEL } from '../config/world';
 import { cameraRig, origin, player } from '../state/runtime';
+import { clearAlong } from '../player/collision';
 import { groundHeightAt } from '../world/ground';
 
 /** Points along the player → camera line (fractions) checked against the ground. */
 const SIGHT_SAMPLES = [0.25, 0.5, 0.75, 1];
 
 /**
- * Third-person camera: orbits the player, eases toward its target, keeps its view of the player clear of the ground.
+ * Third-person camera: orbits the player, eases toward its target, keeps its view of the player clear of the ground
+ * and comes in front of walls that would block it.
  * It looks at the avatar's chest, and glides up to the face when zoomed right in (AVATAR.camera).
  */
 export function FollowCamera() {
@@ -21,8 +23,8 @@ export function FollowCamera() {
   useFrame((_, dt) => {
     const d = cameraRig.distance;
     const cp = Math.cos(cameraRig.pitch);
-    const wantX = player.x + Math.sin(cameraRig.yaw) * d * cp;
-    const wantZ = player.z + Math.cos(cameraRig.yaw) * d * cp;
+    let wantX = player.x + Math.sin(cameraRig.yaw) * d * cp;
+    let wantZ = player.z + Math.cos(cameraRig.yaw) * d * cp;
     // Keep the line of sight from the focus point to the camera above the
     // ground: at each sample the camera must be high enough that the line
     // clears the ground there. The clearance shrinks when zoomed in, so the
@@ -35,6 +37,13 @@ export function FollowCamera() {
     for (const t of SIGHT_SAMPLES) {
       const g = Math.max(SEA_LEVEL, groundHeightAt(player.x + (wantX - player.x) * t, player.z + (wantZ - player.z) * t)) + clearance;
       wantY = Math.max(wantY, headY + (g - headY) / t);
+    }
+    // Walls (buildings, trunks) between the player and the camera: come in to just short of them.
+    const clear = clearAlong(player.x, headY, player.z, wantX, wantY, wantZ);
+    if (clear < 1) {
+      wantX = player.x + (wantX - player.x) * clear;
+      wantY = headY + (wantY - headY) * clear;
+      wantZ = player.z + (wantZ - player.z) * clear;
     }
 
     // After a rebase, move the camera by the same shift so it stays put in the world.
